@@ -85,6 +85,9 @@ Turn-based, initiated by clicking enemy or walking adjacent. state.combat object
 ### Save/load
 localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player stats + worldClock + hudScale.
 
+## Next coding session — start here
+- **Wolf enemy** — spawn near market square (gx=52, gz=45). Wolf mesh from primitives (body, 4 legs, head, snout, ears, tail — grey-brown). Chase AI: pursues player if within 8 tiles, auto-starts combat at distance 1. Flee by walking: remove the "can't move in combat" block, let player walk away, wolf chases. Combat ends if distance > 12 ("You escaped") or wolf/player dies. Respawns after 60s.
+
 ## What needs to be done next (user's priorities)
 1. **Visual upgrade** — buildings are plain boxes. User wants better visuals. Options discussed:
    - **Option A:** Improve procedural geometry (pitched roofs, windows, chimneys, better NPC models with limbs) — no external assets needed
