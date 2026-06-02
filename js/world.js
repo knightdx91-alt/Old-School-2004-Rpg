@@ -651,6 +651,7 @@ const world = {
     robe.material = robeMat;
     robe.position.y = 0.65;
     robe.parent = root;
+    robe.metadata = { npcId: id };
 
     const trimMat = new BABYLON.StandardMaterial(`npcTrimMat_${id}`, scene);
     trimMat.diffuseColor = accentColor || robeColor;
@@ -659,6 +660,7 @@ const world = {
     trim.material = trimMat;
     trim.position.y = 0.05;
     trim.parent = root;
+    trim.metadata = { npcId: id };
 
     const headMat = new BABYLON.StandardMaterial(`npcHeadMat_${id}`, scene);
     headMat.diffuseColor = skinColor;
@@ -666,6 +668,7 @@ const world = {
     head.material = headMat;
     head.position.y = 1.5;
     head.parent = root;
+    head.metadata = { npcId: id };
 
     const hairMat = new BABYLON.StandardMaterial(`npcHairMat_${id}`, scene);
     hairMat.diffuseColor = darkColor;
@@ -674,6 +677,7 @@ const world = {
     hair.position.y = 1.55;
     hair.scaling.y = 0.5;
     hair.parent = root;
+    hair.metadata = { npcId: id };
 
     const wp = world.gridToWorld(gx, gz);
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
@@ -922,16 +926,13 @@ const world = {
 
     // Did we click an NPC?
     if (pick.pickedMesh) {
-      let node = pick.pickedMesh;
-      while (node && !node.name.startsWith('npc_')) node = node.parent;
-      if (node && node.name.startsWith('npc_')) {
-        const id = node.name.slice(4);
-        const npc = world.npcs.find(n => n.id === id);
-        if (npc) {
-          log(`${npc.name}: "${npc.dialogue[npc.dialogueIndex % npc.dialogue.length]}"`, 'system');
-          npc.dialogueIndex++;
-          return;
-        }
+      const npcId = (pick.pickedMesh.metadata && pick.pickedMesh.metadata.npcId) ||
+        (() => { let n = pick.pickedMesh; while (n && !n.name.startsWith('npc_')) n = n.parent; return n ? n.name.slice(4) : null; })();
+      const npc = npcId ? world.npcs.find(n => n.id === npcId) : null;
+      if (npc) {
+        log(`${npc.name}: "${npc.dialogue[npc.dialogueIndex % npc.dialogue.length]}"`, 'system');
+        npc.dialogueIndex++;
+        return;
       }
     }
 
@@ -960,12 +961,9 @@ const world = {
 
     let npcClicked = null;
     if (!enemyClicked && pick.pickedMesh) {
-      let node = pick.pickedMesh;
-      while (node && !node.name.startsWith('npc_')) node = node.parent;
-      if (node && node.name.startsWith('npc_')) {
-        const id = node.name.slice(4);
-        npcClicked = world.npcs.find(n => n.id === id);
-      }
+      const npcId = (pick.pickedMesh.metadata && pick.pickedMesh.metadata.npcId) ||
+        (() => { let n = pick.pickedMesh; while (n && !n.name.startsWith('npc_')) n = n.parent; return n ? n.name.slice(4) : null; })();
+      npcClicked = npcId ? world.npcs.find(n => n.id === npcId) : null;
     }
 
     if (enemyClicked) {
