@@ -1,0 +1,31 @@
+name: Deploy to itch.io
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download BabylonJS
+        run: |
+          curl -L -o js/babylon.js "https://cdn.jsdelivr.net/npm/babylonjs@6.49.0/babylon.min.js"
+
+      - name: Build
+        run: |
+          mkdir -p build
+          cp index.html styles.css build/
+          cp -r js assets build/
+
+      - name: Deploy to itch.io
+        uses: josephbmanley/butler-publish-itchio-action@v1.0.3
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
+          CHANNEL: html5
+          ITCH_GAME: sygl
+          ITCH_USER: Knightdx91
+          PACKAGE: build
