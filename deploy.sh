@@ -24,6 +24,12 @@ cp index.html styles.css "$BUILD_DIR/"
 cp -r js assets "$BUILD_DIR/"
 
 echo "==> Pushing to itch.io as $ITCH_USER/$ITCH_GAME:$CHANNEL..."
-butler push "$BUILD_DIR" "$ITCH_USER/$ITCH_GAME:$CHANNEL"
+# Look for butler in PATH, then current directory, then repo root
+BUTLER=$(command -v butler 2>/dev/null || echo "./butler")
+if [ ! -x "$BUTLER" ]; then
+  echo "ERROR: butler not found. Download it from https://itchio.itch.io/butler"
+  exit 1
+fi
+"$BUTLER" push "$BUILD_DIR" "$ITCH_USER/$ITCH_GAME:$CHANNEL"
 
 echo "==> Done! Live at https://$ITCH_USER.itch.io/$ITCH_GAME"
