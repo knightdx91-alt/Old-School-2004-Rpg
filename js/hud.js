@@ -236,6 +236,8 @@ hud.initLayout = function() {
 
   window.addEventListener('resize', hud.checkOrientation);
   window.addEventListener('orientationchange', hud.checkOrientation);
+  document.addEventListener('fullscreenchange', hud.checkOrientation);
+  document.addEventListener('webkitfullscreenchange', hud.checkOrientation);
 
   hud.applyDockState();
   hud.checkOrientation();
@@ -325,7 +327,8 @@ hud.checkOrientation = function() {
   if (!hint) return;
   const portrait = window.innerHeight > window.innerWidth;
   const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  const show = portrait && isTouch && hud.ui.fullscreenAttempted;
+  const inFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const show = portrait && isTouch && inFullscreen;
   hint.classList.toggle('active', show);
   if (show && !hint._dismissBound) {
     hint._dismissBound = true;
