@@ -20,7 +20,7 @@ js/
 ```
 
 ## Active branch
-`codespace-musical-robot-wvr97j4jv96w3p9g` — this is the main working branch. Always commit and push to this branch. Run `git pull` in Codespace to get changes.
+`main` — this is the only working branch. Always commit and push to `main`. Never commit to any other branch. Run `git pull origin main` in Codespace to get changes.
 
 ## World: New Spring (current zone)
 100×100 tile grid, TILE_SIZE=2 (each tile = 2 world units). gridToWorld(gx,gz) = {x: gx*2, z: gz*2}.
