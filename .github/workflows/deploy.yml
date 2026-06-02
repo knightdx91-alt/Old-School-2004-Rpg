@@ -21,11 +21,14 @@ jobs:
           cp index.html styles.css build/
           cp -r js assets build/
 
+      - name: Install butler
+        run: |
+          curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+          unzip butler.zip
+          chmod +x butler
+
       - name: Deploy to itch.io
-        uses: josephbmanley/butler-publish-itchio-action@v1.0.3
         env:
-          BUTLER_CREDENTIALS: ${{ secrets.BUTLER_API_KEY }}
-          CHANNEL: html5
-          ITCH_GAME: sygl
-          ITCH_USER: Knightdx91
-          PACKAGE: build
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          ./butler push build Knightdx91/sygl:html5
