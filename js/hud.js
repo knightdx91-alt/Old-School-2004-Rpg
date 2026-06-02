@@ -228,6 +228,9 @@ hud.initLayout = function() {
   });
   document.getElementById('player-chat-form').addEventListener('submit', hud.sendChat);
 
+  window.addEventListener('resize', hud.applyDockState);
+  window.addEventListener('orientationchange', hud.applyDockState);
+
   hud.applyDockState();
   // Canvas container changed shape — tell Babylon
   setTimeout(() => state.engine && state.engine.resize(), 50);
@@ -240,8 +243,9 @@ hud.applyDockState = function() {
   const { chatOpen, menuOpen } = hud.ui;
   document.getElementById('chat-dock').classList.toggle('open', chatOpen);
   document.getElementById('menu-dock').classList.toggle('open', menuOpen);
-  document.getElementById('chat-toggle').classList.toggle('hidden', chatOpen);
-  document.getElementById('menu-toggle').classList.toggle('hidden', menuOpen);
+  const portrait = window.innerHeight > window.innerWidth;
+  document.getElementById('chat-toggle').classList.toggle('hidden', chatOpen || (portrait && menuOpen));
+  document.getElementById('menu-toggle').classList.toggle('hidden', menuOpen || (portrait && chatOpen));
   hudEl.classList.toggle('both-open',  chatOpen && menuOpen);
   hudEl.classList.toggle('only-chat',  chatOpen && !menuOpen);
   hudEl.classList.toggle('only-menu', !chatOpen &&  menuOpen);
