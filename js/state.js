@@ -2,7 +2,7 @@
    STATE
    ================================================================ */
 const SAVE_KEY = 'sygl_save_v1';
-const GRID_SIZE = 20;     // 20x20 tile grid
+const GRID_SIZE = 100;    // 100x100 tile grid
 const TILE_SIZE = 2;      // each tile = 2 world units
 const TICK_MS = 600;
 
