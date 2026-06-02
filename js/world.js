@@ -106,6 +106,7 @@ const world = {
 
     let downX = 0, downY = 0, downTime = 0, downId = null;
     let longPressTimer = null;
+    let suppressNextTap = false;
     const TAP_MOVE_MAX = 10;
     const TAP_TIME_MAX = 350;
     const LONG_PRESS_MS = 500;
@@ -117,6 +118,8 @@ const world = {
         ev.preventDefault();
         return;
       }
+      // If ctx menu is open, the tap should only dismiss it, not move the player
+      suppressNextTap = document.getElementById('ctx-menu').classList.contains('active');
       downX = ev.clientX; downY = ev.clientY;
       downTime = performance.now();
       downId = ev.pointerId;
@@ -146,6 +149,7 @@ const world = {
       const dt = performance.now() - downTime;
       downId = null;
       if (dist < TAP_MOVE_MAX && dt < TAP_TIME_MAX) {
+        if (suppressNextTap) { suppressNextTap = false; return; }
         world.handleTap(ev);
       }
     });
