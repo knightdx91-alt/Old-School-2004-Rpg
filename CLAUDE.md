@@ -7,15 +7,21 @@ A browser-based 3D RPG built with **BabylonJS 6.49.0**, HTML/CSS/JS only. No bui
 ```
 index.html          — single page app, loads all scripts
 styles.css          — all CSS including HUD dock system
+assets/maps/        — SVG zone maps for reference (imported from Google Drive)
+  Game Maps/
+    01_new_spring_town.svg
+    02_surrounding_countryside.svg
+    03_outer_school_grounds.svg
+    04_first_floor_interior.svg
 js/
   babylon-loader.js — CDN fallback loader for BabylonJS
   gamepad-patch.js  — gamepad support
   data.js           — SYGLS data (5 sygl types with stats/spells)
   state.js          — global state, constants (GRID_SIZE=100, TILE_SIZE=2)
   quiz.js           — sygl selection quiz
-  world.js          — 3D scene, town layout, buildings, NPCs (~961 lines)
-  combat.js         — turn-based combat system
-  hud.js            — floating dock HUD, day/night cycle
+  world.js          — 3D scene, town layout, buildings, NPCs
+  combat.js         — turn-based combat system, context menu, actions
+  hud.js            — floating dock HUD, day/night cycle, minimap, head bubble
   main.js           — game loop, save/load, zone transitions
 ```
 
@@ -75,6 +81,23 @@ Two floating corner docks: chat (left) and menu (right).
 - Menu dock anchors to right via `margin-left: auto`
 - Tabs are horizontally scrollable (overflow-x: auto, no scrollbar)
 - Toggle buttons: #chat-toggle (left:12px), #menu-toggle (right:12px), both fixed bottom
+- Save/Quit buttons removed from topbar — live in Options tab of menu dock
+
+### Minimap (hud.js)
+Circular 120px canvas in top-right corner (`#minimap-zone`). Draws obstacles (brown), NPCs (blue), enemies (red), player (white dot) within 20-tile radius. Redraws every 200ms via `hud.drawMinimap()`.
+
+### Run toggle (hud.js + main.js)
+Button below minimap. Toggles `state.running`. Running moves 2 tiles per tick (RS2004 style), drains `state.runEnergy` at 1.5%/step, recovers at 0.4%/tick while standing. Button shows energy % and turns green when active.
+
+### Long-press context menu (world.js + combat.js)
+500ms hold triggers `world.handleLongPress()` (desktop right-click does the same). Shows options based on target:
+- NPC → Talk, Examine, Close
+- Enemy → Attack, Examine, Close
+- Ground → Examine, Close
+Regular tap still auto-interacts (walk/talk/attack).
+
+### Head bubble (hud.js)
+Chat text typed in the chat box appears above the player's head in yellow, anchored via `BABYLON.Vector3.Project()` each frame. Fades after 4s. `hud.showHeadBubble(text)`, updated each frame by `hud.updateBubblePos()`.
 
 ### Day/night cycle
 `updateDayNight()` in hud.js, driven by state.worldClock. Affects sunLight, ambientLight, scene fog, sky color. state.brazierLight dims during day, brightens at night.
