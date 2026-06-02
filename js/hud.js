@@ -224,9 +224,11 @@ hud.initLayout = function() {
   document.getElementById('menu-toggle').addEventListener('click', hud.toggleMenu);
   document.getElementById('fullscreen-btn').addEventListener('click', hud.enterFullscreen);
   document.getElementById('run-toggle').addEventListener('click', () => {
+    if (!state.ready) return;
+    if (state.runEnergy <= 0 && !state.running) { log('No run energy.', 'system'); return; }
     state.running = !state.running;
     hud.updateRunBtn();
-    log(state.running ? 'Running.' : 'Walking.', 'system');
+    if (typeof log === 'function') log(state.running ? 'Running.' : 'Walking.', 'system');
   });
   chatDock.querySelectorAll('.chat-mode-tab').forEach(t => {
     t.addEventListener('click', () => hud.switchChatMode(t.dataset.mode));
