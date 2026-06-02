@@ -682,6 +682,7 @@ const world = {
     const wp = world.gridToWorld(gx, gz);
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
 
+    state.obstacles.add(`${gx},${gz}`);
     world.npcs.push({ id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0 });
   },
 
