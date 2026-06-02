@@ -22,7 +22,9 @@ const state = {
   scene: null, engine: null, camera: null, sunLight: null, ambientLight: null,
   targetMarker: null,
   hudScale: 1,
-  ready: false
+  ready: false,
+  running: false,
+  runEnergy: 100  // 0-100, drains while running, recovers while walking
 };
 
 /* ================================================================

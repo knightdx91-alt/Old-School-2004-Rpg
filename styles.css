@@ -259,19 +259,14 @@
 
                                    /* Context menu */
 
-                                   .ctx-menu { position: fixed; background: rgba(13,10,8,0.97); border: 1px solid var(--gold); padding: 4px 0; min-width: 160px; z-index: 80; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }
-
-                                   .ctx-menu.active { display: block; }
-
-                                   .ctx-menu .ctx-header { font-family: 'Cinzel', serif; padding: 6px 14px; color: var(--gold); font-size: 0.75rem; letter-spacing: 0.1em; border-bottom: 1px solid rgba(212,168,71,0.2); margin-bottom: 4px; }
-
-                                   .ctx-menu .ctx-item { padding: 8px 14px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.08em; color: var(--parchment); }
-
-                                   .ctx-menu .ctx-item:hover { background: rgba(212,168,71,0.18); color: var(--gold); }
-
-                                   .ctx-menu .ctx-item.attack { color: #e88a8a; }
-
-                                   .ctx-menu .ctx-item.attack:hover { background: rgba(160,26,42,0.3); color: #ffaaaa; }
+.ctx-menu { position: fixed; background: rgba(13,10,8,0.97); border: 1px solid var(--gold); padding: 4px 0; min-width: 180px; z-index: 80; display: none; box-shadow: 0 4px 20px rgba(0,0,0,0.8); border-radius: 4px; }
+.ctx-menu.active { display: block; }
+.ctx-menu .ctx-header { font-family: 'Cinzel', serif; padding: 8px 16px; color: var(--gold); font-size: 0.8rem; letter-spacing: 0.1em; border-bottom: 1px solid rgba(212,168,71,0.2); margin-bottom: 2px; }
+.ctx-menu .ctx-item { padding: 12px 16px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.9rem; letter-spacing: 0.08em; color: var(--parchment); user-select: none; }
+.ctx-menu .ctx-item:hover, .ctx-menu .ctx-item:active { background: rgba(212,168,71,0.18); color: var(--gold); }
+.ctx-menu .ctx-attack { color: #e88a8a; }
+.ctx-menu .ctx-attack:hover, .ctx-menu .ctx-attack:active { background: rgba(160,26,42,0.3); color: #ffaaaa; }
+.ctx-menu .ctx-cancel { color: #888; font-size: 0.8rem; border-top: 1px solid rgba(212,168,71,0.1); margin-top: 2px; }
 
 
 
@@ -459,16 +454,46 @@
 #fullscreen-btn:hover { background: var(--gold-dim); color: var(--ink); }
 .topbar { padding-left: 56px; }
 
-/* Reserved minimap zone — top-right */
+/* Minimap zone — top-right */
 #minimap-zone {
-  position: absolute;
+  position: fixed;
   top: 8px; right: 8px;
-  width: 150px; height: 150px;
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   z-index: 14;
-  /* uncomment for debug: border: 1px dashed rgba(212,168,71,0.3); */
+  pointer-events: auto;
 }
-.topbar .time-of-day { margin-right: 160px; }
+#minimap-canvas {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  display: block;
+}
+#run-toggle {
+  background: rgba(20,16,10,0.85);
+  border: 1px solid #6a5030;
+  color: #d4a847;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 3px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 64px;
+  text-align: center;
+  transition: background 0.15s, color 0.15s;
+  pointer-events: auto;
+}
+#run-toggle.run-active {
+  background: rgba(60, 120, 40, 0.85);
+  border-color: #80c060;
+  color: #d0ffc0;
+}
+#run-toggle.run-empty {
+  opacity: 0.5;
+  cursor: default;
+}
+.topbar .time-of-day { margin-right: 140px; }
 
 
 /* Portrait stub — session 2 handles this properly */

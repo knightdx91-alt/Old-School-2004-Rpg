@@ -44,12 +44,21 @@ const actions = {
       state.targetMarker.isVisible = true;
     }
   },
+  talkTo(npcId) {
+    const npc = world.npcs.find(n => n.id === npcId);
+    if (!npc) return;
+    log(`${npc.name}: "${npc.dialogue[npc.dialogueIndex % npc.dialogue.length]}"`, 'system');
+    npc.dialogueIndex++;
+  },
   examine(target) {
     if (target.type === 'enemy') {
       const e = target.enemy;
       log(`A ${e.type}. Looks harmless enough — until you swing at it.`, 'system');
+    } else if (target.type === 'npc') {
+      const npc = world.npcs.find(n => n.id === target.id);
+      log(npc ? `${npc.name} stands here.` : 'Someone stands here.', 'system');
     } else {
-      log('Open ground. You could walk here.', 'system');
+      log('Open ground. Nothing remarkable here.', 'system');
     }
   }
 };
@@ -68,35 +77,47 @@ function showCursorTarget(x, y) {
    CONTEXT MENU
    ================================================================ */
 const ctxMenu = {
-  showForEnemy(x, y, enemy) {
+  _show(x, y, html) {
     const el = document.getElementById('ctx-menu');
-    el.innerHTML = `
-      <div class="ctx-header">${enemy.type}</div>
-      <div class="ctx-item attack" onclick="actions.attack(state.enemies.find(e=>e.id==='${enemy.id}')); ctxMenu.hide()">Attack</div>
-      <div class="ctx-item" onclick="actions.examine({type:'enemy', enemy: state.enemies.find(e=>e.id==='${enemy.id}')}); ctxMenu.hide()">Examine</div>
-      <div class="ctx-item" onclick="ctxMenu.hide()">Cancel</div>
-    `;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
+    el.innerHTML = html;
+    // Keep menu on screen
+    el.style.left = '0px';
+    el.style.top = '0px';
     el.classList.add('active');
+    const rect = el.getBoundingClientRect();
+    const cx = Math.min(x, window.innerWidth - rect.width - 8);
+    const cy = Math.min(y, window.innerHeight - rect.height - 8);
+    el.style.left = Math.max(8, cx) + 'px';
+    el.style.top = Math.max(8, cy) + 'px';
+  },
+  showForEnemy(x, y, enemy) {
+    this._show(x, y, `
+      <div class="ctx-header">${enemy.type}</div>
+      <div class="ctx-item ctx-attack" onclick="actions.attack(state.enemies.find(e=>e.id==='${enemy.id}')); ctxMenu.hide()">Attack</div>
+      <div class="ctx-item" onclick="actions.examine({type:'enemy', enemy: state.enemies.find(e=>e.id==='${enemy.id}')}); ctxMenu.hide()">Examine</div>
+      <div class="ctx-item ctx-cancel" onclick="ctxMenu.hide()">Close</div>
+    `);
+  },
+  showForNpc(x, y, npc) {
+    this._show(x, y, `
+      <div class="ctx-header">${npc.name}</div>
+      <div class="ctx-item" onclick="actions.talkTo('${npc.id}'); ctxMenu.hide()">Talk</div>
+      <div class="ctx-item ctx-attack" onclick="actions.examine({type:'npc',id:'${npc.id}'}); ctxMenu.hide()">Examine</div>
+      <div class="ctx-item ctx-cancel" onclick="ctxMenu.hide()">Close</div>
+    `);
   },
   showForTile(x, y, gx, gz) {
-    const el = document.getElementById('ctx-menu');
-    el.innerHTML = `
-      <div class="ctx-header">Tile ${gx},${gz}</div>
-      <div class="ctx-item" onclick="actions.walkTo(${gx}, ${gz}); ctxMenu.hide()">Walk here</div>
-      <div class="ctx-item" onclick="actions.examine({type:'tile'}); ctxMenu.hide()">Examine</div>
-      <div class="ctx-item" onclick="ctxMenu.hide()">Cancel</div>
-    `;
-    el.style.left = x + 'px';
-    el.style.top = y + 'px';
-    el.classList.add('active');
+    this._show(x, y, `
+      <div class="ctx-header">Examine area</div>
+      <div class="ctx-item" onclick="actions.examine({type:'tile',gx:${gx},gz:${gz}}); ctxMenu.hide()">Examine</div>
+      <div class="ctx-item ctx-cancel" onclick="ctxMenu.hide()">Close</div>
+    `);
   },
   hide() {
     document.getElementById('ctx-menu').classList.remove('active');
   }
 };
-document.addEventListener('click', e => {
+document.addEventListener('pointerdown', e => {
   if (!e.target.closest('.ctx-menu')) ctxMenu.hide();
 });
 

@@ -213,13 +213,21 @@ hud.initLayout = function() {
     '<button id="chat-toggle" class="dock-toggle" aria-label="Open chat">💬</button>' +
     '<button id="menu-toggle" class="dock-toggle" aria-label="Open menu">☰</button>' +
     '<button id="fullscreen-btn" aria-label="Fullscreen">⛶</button>' +
-    '<div id="minimap-zone" aria-hidden="true"></div>'
+    '<div id="minimap-zone">' +
+      '<canvas id="minimap-canvas" width="120" height="120" aria-label="Minimap"></canvas>' +
+      '<button id="run-toggle" aria-label="Toggle run">Run</button>' +
+    '</div>'
   );
 
   // Wire events
   document.getElementById('chat-toggle').addEventListener('click', hud.toggleChat);
   document.getElementById('menu-toggle').addEventListener('click', hud.toggleMenu);
   document.getElementById('fullscreen-btn').addEventListener('click', hud.enterFullscreen);
+  document.getElementById('run-toggle').addEventListener('click', () => {
+    state.running = !state.running;
+    hud.updateRunBtn();
+    log(state.running ? 'Running.' : 'Walking.', 'system');
+  });
   chatDock.querySelectorAll('.chat-mode-tab').forEach(t => {
     t.addEventListener('click', () => hud.switchChatMode(t.dataset.mode));
   });
@@ -314,5 +322,88 @@ hud.enterFullscreen = async function() {
   setTimeout(hud.checkOrientation, 300);
 };
 
+
+hud.updateRunBtn = function() {
+  const btn = document.getElementById('run-toggle');
+  if (!btn) return;
+  const energy = Math.round(state.runEnergy);
+  btn.textContent = state.running ? `Run ${energy}%` : `Walk`;
+  btn.classList.toggle('run-active', state.running);
+  btn.classList.toggle('run-empty', state.runEnergy <= 0);
+};
+
+hud.drawMinimap = function() {
+  const canvas = document.getElementById('minimap-canvas');
+  if (!canvas || !state.player) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const R = W / 2;
+  // View radius in grid tiles
+  const VIEW = 20;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Circular clip
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(R, R, R - 1, 0, Math.PI * 2);
+  ctx.clip();
+
+  // Background
+  ctx.fillStyle = '#1a2410';
+  ctx.fillRect(0, 0, W, H);
+
+  const px = state.player.gx, pz = state.player.gz;
+  const scale = R / VIEW;
+
+  // Draw obstacles (buildings/walls as darker boxes)
+  ctx.fillStyle = '#5a4a35';
+  state.obstacles.forEach(key => {
+    const [ox, oz] = key.split(',').map(Number);
+    const sx = R + (ox - px) * scale;
+    const sy = R + (oz - pz) * scale;
+    if (sx > -2 && sx < W + 2 && sy > -2 && sy < H + 2) {
+      ctx.fillRect(sx - scale * 0.5, sy - scale * 0.5, scale, scale);
+    }
+  });
+
+  // Enemies
+  state.enemies.forEach(e => {
+    const sx = R + (e.gx - px) * scale;
+    const sy = R + (e.gz - pz) * scale;
+    ctx.fillStyle = '#cc3333';
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(2, scale * 0.6), 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // NPCs
+  world.npcs && world.npcs.forEach(n => {
+    const sx = R + (n.gx - px) * scale;
+    const sy = R + (n.gz - pz) * scale;
+    ctx.fillStyle = '#88ccff';
+    ctx.beginPath();
+    ctx.arc(sx, sy, Math.max(2, scale * 0.6), 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Player dot
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.arc(R, R, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+
+  // Border ring
+  ctx.strokeStyle = '#8a7040';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(R, R, R - 1, 0, Math.PI * 2);
+  ctx.stroke();
+};
+
+// Draw minimap every ~200ms
+setInterval(() => { if (state.ready) hud.drawMinimap(); }, 200);
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(() => hud.initLayout(), 0));

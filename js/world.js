@@ -104,23 +104,41 @@ const world = {
 
     window.addEventListener('resize', () => state.engine.resize());
 
-    let downX = 0, downY = 0, downTime = 0, downButton = 0, downId = null;
+    let downX = 0, downY = 0, downTime = 0, downId = null;
+    let longPressTimer = null;
     const TAP_MOVE_MAX = 10;
     const TAP_TIME_MAX = 350;
+    const LONG_PRESS_MS = 500;
 
     canvas.addEventListener('pointerdown', (ev) => {
       if (ev.button === 2) {
-        world.handleRightClick(ev);
+        // Desktop right-click → show context menu
+        world.handleLongPress(ev);
         ev.preventDefault();
         return;
       }
       downX = ev.clientX; downY = ev.clientY;
       downTime = performance.now();
-      downButton = ev.button;
       downId = ev.pointerId;
+      // Start long-press timer
+      longPressTimer = setTimeout(() => {
+        longPressTimer = null;
+        downId = null; // suppress tap on pointerup
+        world.handleLongPress(ev);
+      }, LONG_PRESS_MS);
+    });
+
+    canvas.addEventListener('pointermove', (ev) => {
+      if (!longPressTimer) return;
+      const dx = ev.clientX - downX, dy = ev.clientY - downY;
+      if (Math.sqrt(dx*dx + dy*dy) > TAP_MOVE_MAX) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
     });
 
     canvas.addEventListener('pointerup', (ev) => {
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
       if (ev.pointerId !== downId) return;
       const dx = ev.clientX - downX;
       const dy = ev.clientY - downY;
@@ -919,7 +937,7 @@ const world = {
     }
   },
 
-  handleRightClick(ev) {
+  handleLongPress(ev) {
     if (!state.ready) return;
     if (dialogue.active) return;
     const scene = state.scene;
@@ -936,7 +954,6 @@ const world = {
       }
     }
 
-    // Check NPC right-click
     let npcClicked = null;
     if (!enemyClicked && pick.pickedMesh) {
       let node = pick.pickedMesh;
@@ -950,9 +967,7 @@ const world = {
     if (enemyClicked) {
       ctxMenu.showForEnemy(ev.clientX, ev.clientY, enemyClicked);
     } else if (npcClicked) {
-      // Right-click on NPC: same as left-click dialogue
-      log(`${npcClicked.name}: "${npcClicked.dialogue[npcClicked.dialogueIndex % npcClicked.dialogue.length]}"`, 'system');
-      npcClicked.dialogueIndex++;
+      ctxMenu.showForNpc(ev.clientX, ev.clientY, npcClicked);
     } else if (pick.pickedPoint) {
       const { gx, gz } = world.worldToGrid(pick.pickedPoint.x, pick.pickedPoint.z);
       ctxMenu.showForTile(ev.clientX, ev.clientY, gx, gz);
