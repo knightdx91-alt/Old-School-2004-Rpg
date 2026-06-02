@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" font-family="Georgia, serif">
+  <defs>
+    <pattern id="grass3" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#6b8e4e"/><path d="M3,18 L3,14 M7,18 L7,15 M11,18 L11,13" stroke="#4a6a30" stroke-width="0.8"/></pattern>
+    <pattern id="stoneWall" patternUnits="userSpaceOnUse" width="24" height="14"><rect width="24" height="14" fill="#8a8275"/><rect x="0" y="0" width="11" height="6" fill="none" stroke="#5a5245" stroke-width="0.8"/><rect x="13" y="0" width="11" height="6" fill="none" stroke="#5a5245" stroke-width="0.8"/><rect x="6" y="7" width="11" height="6" fill="none" stroke="#5a5245" stroke-width="0.8"/></pattern>
+    <pattern id="cobble2" patternUnits="userSpaceOnUse" width="22" height="22"><rect width="22" height="22" fill="#b8a878"/><circle cx="6" cy="6" r="4" fill="#a89868"/><circle cx="16" cy="14" r="4" fill="#a89868"/></pattern>
+    <pattern id="forest3" patternUnits="userSpaceOnUse" width="28" height="28"><rect width="28" height="28" fill="#2a4520"/><circle cx="7" cy="8" r="5" fill="#1a3010"/><circle cx="20" cy="20" r="6" fill="#0d2010"/></pattern>
+    <radialGradient id="towerRoof"><stop offset="0%" stop-color="#7a3a3a"/><stop offset="100%" stop-color="#4a1010"/></radialGradient>
+  </defs>
+  <rect width="1200" height="1000" fill="url(#grass3)"/>
+  <rect x="0" y="0" width="1200" height="80" fill="url(#forest3)"/>
+  <rect x="0" y="920" width="1200" height="80" fill="url(#forest3)"/>
+  <rect x="0" y="0" width="80" height="1000" fill="url(#forest3)"/>
+  <rect x="1120" y="0" width="80" height="1000" fill="url(#forest3)"/>
+  <text x="600" y="50" text-anchor="middle" font-size="13" fill="#d4a64a" font-style="italic" font-weight="bold">— Surrounding Forest —</text>
+  <rect x="320" y="92" width="560" height="50" rx="6" fill="#2b1d0f" stroke="#d4a64a" stroke-width="3"/>
+  <text x="600" y="125" text-anchor="middle" font-size="24" fill="#f3e1b0" font-weight="bold">OUTER SCHOOL GROUNDS — The Heir's School</text>
+  <rect x="180" y="200" width="840" height="700" rx="40" fill="url(#stoneWall)" stroke="#5a5245" stroke-width="14"/>
+  <rect x="540" y="892" width="120" height="22" fill="#2a2a2a" stroke="#0d0d0d" stroke-width="3"/>
+  <text x="600" y="940" text-anchor="middle" font-size="13" fill="#f3e1b0" font-weight="bold">⇩ Iron Gate (Castle Road)</text>
+  <rect x="380" y="380" width="440" height="320" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="4"/>
+  <text x="600" y="540" text-anchor="middle" font-size="20" fill="#2b1d0f" font-weight="bold">MAIN KEEP</text>
+  <text x="600" y="565" text-anchor="middle" font-size="13" fill="#2b1d0f" font-style="italic">(school interior — see floor plan)</text>
+  <g><circle cx="290" cy="310" r="42" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="3"/><polygon points="248,310 290,250 332,310" fill="url(#towerRoof)"/><text x="290" y="316" text-anchor="middle" font-size="14" fill="#d4a64a" font-weight="bold">☯</text><text x="290" y="372" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Duality Tower</text><text x="290" y="386" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Aren / Nera)</text></g>
+  <g><circle cx="910" cy="310" r="42" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="3"/><polygon points="868,310 910,250 952,310" fill="url(#towerRoof)"/><text x="910" y="316" text-anchor="middle" font-size="14" fill="#7ab0d8" font-weight="bold">~</text><text x="910" y="372" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Waves Tower</text><text x="910" y="386" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Kenmei)</text></g>
+  <g><circle cx="290" cy="780" r="42" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="3"/><polygon points="248,780 290,720 332,780" fill="url(#towerRoof)"/><text x="290" y="786" text-anchor="middle" font-size="14" fill="#8a6a30" font-weight="bold">⛰</text><text x="290" y="842" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Terra Tower</text><text x="290" y="856" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Naisura)</text></g>
+  <g><circle cx="910" cy="780" r="42" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="3"/><polygon points="868,780 910,720 952,780" fill="url(#towerRoof)"/><text x="910" y="786" text-anchor="middle" font-size="14" fill="#d49538" font-weight="bold">⚡</text><text x="910" y="842" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Tempus Tower</text><text x="910" y="856" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Raizen)</text></g>
+  <g><circle cx="600" cy="280" r="48" fill="url(#stoneWall)" stroke="#3a3025" stroke-width="3"/><polygon points="552,280 600,210 648,280" fill="url(#towerRoof)"/><circle cx="600" cy="280" r="16" fill="#5a1010"/><text x="600" y="287" text-anchor="middle" font-size="16" fill="#d44848" font-weight="bold">✦</text><text x="600" y="350" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Blood Tower</text><text x="600" y="364" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Amelia)</text></g>
+  <rect x="430" y="730" width="340" height="150" fill="url(#cobble2)" stroke="#5d4a28" stroke-width="2"/>
+  <rect x="540" y="775" width="120" height="60" fill="#b8b0a0" stroke="#5a5245" stroke-width="2"/>
+  <g fill="#d4a64a" stroke="#5d3010" stroke-width="1"><rect x="555" y="795" width="14" height="20"/><rect x="575" y="795" width="14" height="20"/><rect x="595" y="795" width="14" height="20"/><rect x="615" y="795" width="14" height="20"/><rect x="635" y="795" width="14" height="20"/></g>
+  <text x="600" y="725" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">Inner Courtyard &amp; Originator Podium</text>
+  <rect x="380" y="200" width="440" height="170" fill="#9a8a5a" fill-opacity="0.3" stroke="#5d4a28" stroke-dasharray="5 3"/>
+  <text x="600" y="225" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">Training Yard</text>
+  <g><circle cx="440" cy="270" r="6" fill="#7a5a3a"/><rect x="437" y="276" width="6" height="20" fill="#7a5a3a"/><circle cx="480" cy="270" r="6" fill="#7a5a3a"/><rect x="477" y="276" width="6" height="20" fill="#7a5a3a"/><circle cx="520" cy="270" r="6" fill="#7a5a3a"/><rect x="517" y="276" width="6" height="20" fill="#7a5a3a"/></g>
+  <g><circle cx="720" cy="270" r="10" fill="#f3e1b0" stroke="#3a3025"/><circle cx="720" cy="270" r="6" fill="#d44848"/><circle cx="720" cy="270" r="2" fill="#3a3025"/><circle cx="760" cy="270" r="10" fill="#f3e1b0" stroke="#3a3025"/><circle cx="760" cy="270" r="6" fill="#d44848"/><circle cx="760" cy="270" r="2" fill="#3a3025"/></g>
+  <text x="480" y="320" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">Combat dummies</text>
+  <text x="740" y="320" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">Archery range</text>
+  <g><rect x="200" y="450" width="120" height="80" fill="#8a6838" stroke="#3a2010" stroke-width="2"/><polygon points="200,450 260,420 320,450" fill="#5a3a10"/><text x="260" y="555" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Stables</text></g>
+  <g><rect x="880" y="450" width="120" height="80" fill="#a8d0a0" stroke="#3a5a30" stroke-width="2"/><text x="940" y="555" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Greenhouse</text><text x="940" y="570" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(alchemy herbs)</text></g>
+  <circle cx="380" cy="600" r="22" fill="#7aa6cf" stroke="#3d5a78" stroke-width="2"/><circle cx="380" cy="600" r="10" fill="#a8c8e0"/>
+  <text x="380" y="640" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">Fountain</text>
+  <g><rect x="840" y="600" width="60" height="40" fill="#c8b888" stroke="#5d4a28" stroke-width="2"/><polygon points="840,600 870,575 900,600" fill="#7a3a3a"/><text x="870" y="660" text-anchor="middle" font-size="11" fill="#2b1d0f" font-weight="bold">Shrine</text></g>
+  <g transform="translate(120,170)"><circle r="36" fill="#f3e1b0" stroke="#5d3010" stroke-width="2"/><polygon points="0,-28 6,0 0,28 -6,0" fill="#5d3010"/><polygon points="-28,0 0,6 28,0 0,-6" fill="#a86838"/><text y="-40" text-anchor="middle" font-size="12" font-weight="bold" fill="#2b1d0f">N</text><text y="50" text-anchor="middle" font-size="12" font-weight="bold" fill="#2b1d0f">S</text><text x="-46" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#2b1d0f">W</text><text x="46" y="5" text-anchor="middle" font-size="12" font-weight="bold" fill="#2b1d0f">E</text></g>
+</svg>

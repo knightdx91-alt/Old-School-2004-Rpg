@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" font-family="Georgia, serif">
+  <rect width="1200" height="900" fill="#6b8e4e"/>
+  <g fill="#5a7a40" opacity="0.5">
+    <circle cx="80" cy="120" r="3"/><circle cx="160" cy="80" r="2"/><circle cx="200" cy="200" r="3"/>
+    <circle cx="1050" cy="150" r="3"/><circle cx="1120" cy="250" r="2"/><circle cx="980" cy="80" r="3"/>
+    <circle cx="100" cy="750" r="3"/><circle cx="180" cy="820" r="2"/><circle cx="80" cy="660" r="3"/>
+    <circle cx="1080" cy="780" r="3"/><circle cx="1140" cy="700" r="2"/><circle cx="1020" cy="850" r="3"/>
+  </g>
+  <rect x="350" y="20" width="500" height="55" rx="6" fill="#2b1d0f" stroke="#d4a64a" stroke-width="3"/>
+  <text x="600" y="58" text-anchor="middle" font-size="28" fill="#f3e1b0" font-weight="bold">NEW SPRING — TOWN MAP</text>
+  <defs>
+    <pattern id="field1" patternUnits="userSpaceOnUse" width="14" height="14"><path d="M0,7 L14,7" stroke="#7a9a55" stroke-width="1"/></pattern>
+    <pattern id="field2" patternUnits="userSpaceOnUse" width="14" height="14"><path d="M7,0 L7,14" stroke="#7a9a55" stroke-width="1"/></pattern>
+    <pattern id="cobble" patternUnits="userSpaceOnUse" width="22" height="22"><rect width="22" height="22" fill="#b8a878"/><circle cx="6" cy="6" r="4" fill="#a89868"/><circle cx="16" cy="14" r="4" fill="#a89868"/></pattern>
+    <pattern id="dirtroad" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#9d7e4f"/><circle cx="5" cy="5" r="1" fill="#7d5e2f"/><circle cx="15" cy="12" r="1" fill="#7d5e2f"/></pattern>
+  </defs>
+  <rect x="40" y="100" width="180" height="120" fill="url(#field1)" stroke="#3d5a2b" stroke-width="1.5"/>
+  <rect x="40" y="230" width="180" height="100" fill="url(#field2)" stroke="#3d5a2b" stroke-width="1.5"/>
+  <rect x="980" y="100" width="180" height="120" fill="url(#field2)" stroke="#3d5a2b" stroke-width="1.5"/>
+  <rect x="980" y="230" width="180" height="100" fill="url(#field1)" stroke="#3d5a2b" stroke-width="1.5"/>
+  <text x="130" y="170" text-anchor="middle" font-size="13" fill="#2b1d0f" font-style="italic">Farmland</text>
+  <text x="1070" y="170" text-anchor="middle" font-size="13" fill="#2b1d0f" font-style="italic">Farmland</text>
+  <g fill="#5a7a40" stroke="#3d5a2b" stroke-width="1.5">
+    <rect x="40" y="650" width="200" height="200" rx="4"/>
+    <rect x="960" y="650" width="200" height="200" rx="4"/>
+  </g>
+  <g fill="#3d5a2b">
+    <circle cx="80" cy="690" r="12"/><circle cx="130" cy="690" r="12"/><circle cx="180" cy="690" r="12"/><circle cx="230" cy="690" r="12"/>
+    <circle cx="80" cy="750" r="12"/><circle cx="130" cy="750" r="12"/><circle cx="180" cy="750" r="12"/><circle cx="230" cy="750" r="12"/>
+    <circle cx="80" cy="810" r="12"/><circle cx="130" cy="810" r="12"/><circle cx="180" cy="810" r="12"/><circle cx="230" cy="810" r="12"/>
+    <circle cx="1000" cy="690" r="12"/><circle cx="1050" cy="690" r="12"/><circle cx="1100" cy="690" r="12"/><circle cx="1150" cy="690" r="12"/>
+    <circle cx="1000" cy="750" r="12"/><circle cx="1050" cy="750" r="12"/><circle cx="1100" cy="750" r="12"/><circle cx="1150" cy="750" r="12"/>
+    <circle cx="1000" cy="810" r="12"/><circle cx="1050" cy="810" r="12"/><circle cx="1100" cy="810" r="12"/><circle cx="1150" cy="810" r="12"/>
+  </g>
+  <text x="140" y="870" text-anchor="middle" font-size="13" fill="#f3e1b0" font-style="italic">Orchard</text>
+  <text x="1060" y="870" text-anchor="middle" font-size="13" fill="#f3e1b0" font-style="italic">Orchard</text>
+  <rect x="570" y="100" width="60" height="700" fill="url(#dirtroad)" stroke="#5d3e1f" stroke-width="2"/>
+  <rect x="220" y="430" width="760" height="50" fill="url(#dirtroad)" stroke="#5d3e1f" stroke-width="2"/>
+  <rect x="260" y="240" width="680" height="420" rx="14" fill="none" stroke="#7a6648" stroke-width="6"/>
+  <rect x="570" y="234" width="60" height="14" fill="#9d7e4f" stroke="#3d3020" stroke-width="1.5"/>
+  <rect x="570" y="652" width="60" height="14" fill="#9d7e4f" stroke="#3d3020" stroke-width="1.5"/>
+  <rect x="254" y="430" width="14" height="50" fill="#9d7e4f" stroke="#3d3020" stroke-width="1.5"/>
+  <rect x="932" y="430" width="14" height="50" fill="#9d7e4f" stroke="#3d3020" stroke-width="1.5"/>
+  <text x="600" y="227" text-anchor="middle" font-size="11" fill="#2b1d0f" font-weight="bold">N. Gate</text>
+  <text x="600" y="682" text-anchor="middle" font-size="11" fill="#2b1d0f" font-weight="bold">S. Gate (to Castle Road)</text>
+  <text x="247" y="455" text-anchor="end" font-size="11" fill="#2b1d0f" font-weight="bold">W. Gate</text>
+  <text x="953" y="455" text-anchor="start" font-size="11" fill="#2b1d0f" font-weight="bold">E. Gate (Whitehaven)</text>
+  <rect x="500" y="385" width="200" height="140" fill="url(#cobble)" stroke="#5d4a28" stroke-width="2"/>
+  <circle cx="600" cy="455" r="22" fill="#7aa6cf" stroke="#3d5a78" stroke-width="2"/>
+  <circle cx="600" cy="455" r="10" fill="#a8c8e0"/>
+  <text x="600" y="378" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold" font-style="italic">Town Square</text>
+  <g fill="#c97a3a" stroke="#5d3010" stroke-width="1">
+    <rect x="510" y="395" width="22" height="16"/><rect x="540" y="395" width="22" height="16"/><rect x="638" y="395" width="22" height="16"/><rect x="668" y="395" width="22" height="16"/>
+    <rect x="510" y="498" width="22" height="16"/><rect x="540" y="498" width="22" height="16"/><rect x="638" y="498" width="22" height="16"/><rect x="668" y="498" width="22" height="16"/>
+  </g>
+  <g><rect x="340" y="290" width="130" height="90" fill="#d4a64a" stroke="#5d3010" stroke-width="2"/><polygon points="340,290 405,260 470,290" fill="#8a4a20" stroke="#5d3010" stroke-width="2"/><rect x="395" y="335" width="20" height="45" fill="#3d2010"/><text x="405" y="395" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">Dawn Hall</text><text x="405" y="408" text-anchor="middle" font-size="9" fill="#2b1d0f" font-style="italic">(guild / job board)</text></g>
+  <g><rect x="730" y="290" width="120" height="90" fill="#a86838" stroke="#3d2010" stroke-width="2"/><polygon points="730,290 790,255 850,290" fill="#5d3010"/><rect x="780" y="340" width="20" height="40" fill="#3d2010"/><text x="790" y="395" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">Inn &amp; Tavern</text></g>
+  <g><rect x="290" y="500" width="100" height="80" fill="#7a4a8a" stroke="#3d1d50" stroke-width="2"/><text x="340" y="595" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Enchanted Weapons</text></g>
+  <g><rect x="290" y="600" width="80" height="50" fill="#c44848" stroke="#5d1010" stroke-width="2"/><text x="330" y="630" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">Jeweler</text><rect x="400" y="600" width="80" height="50" fill="#4a8a6a" stroke="#1d4a30" stroke-width="2"/><text x="440" y="630" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">Apothecary</text></g>
+  <g><rect x="810" y="500" width="110" height="80" fill="#5a8ac4" stroke="#1d3a6a" stroke-width="2"/><text x="865" y="595" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Familiar Supplies</text></g>
+  <g><rect x="730" y="600" width="80" height="50" fill="#d49538" stroke="#5d3010" stroke-width="2"/><text x="770" y="630" text-anchor="middle" font-size="11" fill="#2b1d0f" font-weight="bold">Restaurant</text><rect x="840" y="600" width="80" height="50" fill="#d49538" stroke="#5d3010" stroke-width="2"/><text x="880" y="630" text-anchor="middle" font-size="11" fill="#2b1d0f" font-weight="bold">Tea House</text></g>
+  <g transform="translate(110,500)"><circle r="40" fill="#f3e1b0" stroke="#5d3010" stroke-width="2"/><polygon points="0,-32 6,0 0,32 -6,0" fill="#5d3010"/><polygon points="-32,0 0,6 32,0 0,-6" fill="#a86838"/><text y="-44" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">N</text><text y="56" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">S</text><text x="-50" y="5" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">W</text><text x="50" y="5" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">E</text></g>
+</svg>

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1000" font-family="Georgia, serif">
+  <defs>
+    <pattern id="floorStone" patternUnits="userSpaceOnUse" width="40" height="40"><rect width="40" height="40" fill="#c8b890"/><path d="M0,0 L40,0 M0,20 L40,20 M0,0 L0,40 M20,0 L20,40" stroke="#a89868" stroke-width="0.6"/></pattern>
+    <pattern id="floorWood" patternUnits="userSpaceOnUse" width="60" height="14"><rect width="60" height="14" fill="#a8784a"/><line x1="0" y1="14" x2="60" y2="14" stroke="#7a5630"/><line x1="30" y1="0" x2="30" y2="14" stroke="#7a5630" stroke-width="0.5"/></pattern>
+    <pattern id="floorCarpet" patternUnits="userSpaceOnUse" width="20" height="20"><rect width="20" height="20" fill="#7a2a2a"/><path d="M0,10 L20,10 M10,0 L10,20" stroke="#5a1010" stroke-width="0.5"/></pattern>
+  </defs>
+  <rect width="1400" height="1000" fill="#3a3025"/>
+  <rect x="350" y="20" width="700" height="55" rx="6" fill="#2b1d0f" stroke="#d4a64a" stroke-width="3"/>
+  <text x="700" y="58" text-anchor="middle" font-size="24" fill="#f3e1b0" font-weight="bold">THE HEIR'S SCHOOL — FIRST FLOOR PLAN</text>
+  <rect x="80" y="100" width="1240" height="850" fill="url(#floorStone)" stroke="#3a3025" stroke-width="8"/>
+  <rect x="600" y="800" width="200" height="150" fill="url(#floorCarpet)" stroke="#3a3025" stroke-width="3"/>
+  <text x="700" y="850" text-anchor="middle" font-size="14" fill="#f3e1b0" font-weight="bold">MAIN ENTRANCE</text>
+  <rect x="650" y="943" width="50" height="14" fill="#2a2a2a"/><rect x="700" y="943" width="50" height="14" fill="#2a2a2a"/>
+  <text x="700" y="980" text-anchor="middle" font-size="12" fill="#d4a64a" font-weight="bold">⇩ to Inner Courtyard</text>
+  <rect x="500" y="380" width="400" height="380" fill="url(#floorWood)" stroke="#3a3025" stroke-width="4"/>
+  <text x="700" y="420" text-anchor="middle" font-size="18" fill="#f3e1b0" font-weight="bold">GREAT DINING HALL</text>
+  <g fill="#5a3a1a"><rect x="530" y="450" width="40" height="280"/><rect x="610" y="450" width="40" height="280"/><rect x="750" y="450" width="40" height="280"/><rect x="830" y="450" width="40" height="280"/></g>
+  <rect x="540" y="730" width="320" height="22" fill="#8a6a3a"/>
+  <text x="700" y="746" text-anchor="middle" font-size="10" fill="#f3e1b0" font-weight="bold">Teachers' Table</text>
+  <text x="550" y="445" font-size="9" fill="#2b1d0f" font-weight="bold">Duality</text>
+  <text x="630" y="445" font-size="9" fill="#2b1d0f" font-weight="bold">Waves</text>
+  <text x="770" y="445" font-size="9" fill="#2b1d0f" font-weight="bold">Terra</text>
+  <text x="850" y="445" font-size="9" fill="#2b1d0f" font-weight="bold">Tempus</text>
+  <rect x="900" y="500" width="180" height="180" fill="#8a8275" stroke="#3a3025" stroke-width="3"/>
+  <text x="990" y="530" text-anchor="middle" font-size="14" fill="#f3e1b0" font-weight="bold">KITCHENS</text>
+  <rect x="920" y="550" width="40" height="30" fill="#3a3025"/><circle cx="930" cy="565" r="4" fill="#d44848"/><circle cx="950" cy="565" r="4" fill="#d44848"/>
+  <rect x="920" y="610" width="140" height="50" fill="#7a5630"/>
+  <text x="990" y="640" text-anchor="middle" font-size="10" fill="#f3e1b0" font-weight="bold">Pantry &amp; Cold Store</text>
+  <rect x="120" y="120" width="220" height="180" fill="url(#floorStone)" stroke="#3a3025" stroke-width="3"/>
+  <text x="230" y="148" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">WARFARE</text>
+  <text x="230" y="163" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Classroom)</text>
+  <g fill="#7a5630"><rect x="140" y="180" width="40" height="16"/><rect x="190" y="180" width="40" height="16"/><rect x="240" y="180" width="40" height="16"/><rect x="290" y="180" width="40" height="16"/><rect x="140" y="210" width="40" height="16"/><rect x="190" y="210" width="40" height="16"/><rect x="240" y="210" width="40" height="16"/><rect x="290" y="210" width="40" height="16"/></g>
+  <rect x="150" y="275" width="180" height="14" fill="#3a3025"/>
+  <text x="240" y="286" text-anchor="middle" font-size="9" fill="#f3e1b0">Weapon Rack</text>
+  <rect x="360" y="120" width="220" height="180" fill="url(#floorStone)" stroke="#3a3025" stroke-width="3"/>
+  <text x="470" y="148" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">MAGYK THEORY</text>
+  <text x="470" y="163" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Classroom)</text>
+  <g fill="#7a5630"><rect x="380" y="180" width="40" height="16"/><rect x="430" y="180" width="40" height="16"/><rect x="480" y="180" width="40" height="16"/><rect x="530" y="180" width="40" height="16"/></g>
+  <rect x="390" y="275" width="160" height="14" fill="#2a2a2a"/>
+  <text x="470" y="286" text-anchor="middle" font-size="9" fill="#f3e1b0">Blackboard</text>
+  <rect x="820" y="120" width="220" height="180" fill="url(#floorStone)" stroke="#3a3025" stroke-width="3"/>
+  <text x="930" y="148" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">FAMILIAR STUDIES</text>
+  <text x="930" y="163" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Classroom)</text>
+  <g fill="#5a4a28"><rect x="855" y="275" width="20" height="18"/><rect x="890" y="275" width="20" height="18"/><rect x="925" y="275" width="20" height="18"/></g>
+  <rect x="1060" y="120" width="220" height="180" fill="url(#floorStone)" stroke="#3a3025" stroke-width="3"/>
+  <text x="1170" y="148" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">ALCHEMY LAB</text>
+  <text x="1170" y="163" text-anchor="middle" font-size="10" fill="#2b1d0f" font-style="italic">(Classroom)</text>
+  <g fill="#7ab0d8"><circle cx="1100" cy="190" r="4"/><circle cx="1140" cy="190" r="4"/><circle cx="1200" cy="190" r="4"/><circle cx="1240" cy="190" r="4"/></g>
+  <rect x="1100" y="380" width="220" height="280" fill="url(#floorWood)" stroke="#3a3025" stroke-width="3"/>
+  <text x="1210" y="410" text-anchor="middle" font-size="14" fill="#f3e1b0" font-weight="bold">LIBRARY</text>
+  <g fill="#5a3a1a"><rect x="1115" y="440" width="20" height="200"/><rect x="1150" y="440" width="20" height="200"/><rect x="1185" y="440" width="20" height="200"/><rect x="1220" y="440" width="20" height="200"/><rect x="1255" y="440" width="20" height="200"/><rect x="1290" y="440" width="20" height="200"/></g>
+  <rect x="120" y="380" width="220" height="280" fill="#5a4a3a" stroke="#3a3025" stroke-width="3"/>
+  <text x="230" y="410" text-anchor="middle" font-size="14" fill="#f3e1b0" font-weight="bold">DORM ACCESS HALL</text>
+  <text x="230" y="425" text-anchor="middle" font-size="9" fill="#f3e1b0" font-style="italic">(sygl-locked pedestals)</text>
+  <g>
+    <rect x="145" y="455" width="32" height="36" fill="#8a8275" stroke="#3a3025" stroke-width="2"/><circle cx="161" cy="473" r="6" fill="#d4a64a"/><text x="161" y="505" text-anchor="middle" font-size="9" fill="#f3e1b0">Duality</text>
+    <rect x="200" y="455" width="32" height="36" fill="#8a8275" stroke="#3a3025" stroke-width="2"/><circle cx="216" cy="473" r="6" fill="#7ab0d8"/><text x="216" y="505" text-anchor="middle" font-size="9" fill="#f3e1b0">Waves</text>
+    <rect x="255" y="455" width="32" height="36" fill="#8a8275" stroke="#3a3025" stroke-width="2"/><circle cx="271" cy="473" r="6" fill="#8a6a30"/><text x="271" y="505" text-anchor="middle" font-size="9" fill="#f3e1b0">Terra</text>
+    <rect x="173" y="525" width="32" height="36" fill="#8a8275" stroke="#3a3025" stroke-width="2"/><circle cx="189" cy="543" r="6" fill="#d49538"/><text x="189" y="575" text-anchor="middle" font-size="9" fill="#f3e1b0">Tempus</text>
+    <rect x="228" y="525" width="32" height="36" fill="#5a1010" stroke="#3a3025" stroke-width="2"/><circle cx="244" cy="543" r="6" fill="#d44848"/><text x="244" y="575" text-anchor="middle" font-size="9" fill="#f3e1b0">Blood</text>
+  </g>
+  <text x="230" y="620" text-anchor="middle" font-size="9" fill="#f3e1b0" font-style="italic">Place left palm → wall slides open</text>
+  <text x="230" y="634" text-anchor="middle" font-size="9" fill="#f3e1b0" font-style="italic">→ stairs down to dorms</text>
+  <rect x="120" y="320" width="220" height="50" fill="url(#floorStone)" stroke="#3a3025" stroke-width="2"/>
+  <text x="230" y="350" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Lead Mage Offices</text>
+  <rect x="1100" y="320" width="220" height="50" fill="url(#floorStone)" stroke="#3a3025" stroke-width="2"/>
+  <text x="1210" y="350" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Infirmary</text>
+  <rect x="500" y="320" width="400" height="50" fill="url(#floorStone)" stroke="#3a3025" stroke-width="2"/>
+  <text x="700" y="350" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Originators' Hall (stairs up to Tower Suites)</text>
+  <rect x="500" y="770" width="400" height="30" fill="#9a8a5a" stroke="#3a3025" stroke-width="2"/>
+  <text x="700" y="790" text-anchor="middle" font-size="11" fill="#2b1d0f" font-style="italic">Cloister Walk (windows to Inner Courtyard)</text>
+  <rect x="120" y="700" width="200" height="120" fill="url(#floorStone)" stroke="#3a3025" stroke-width="2"/>
+  <text x="220" y="730" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Storage</text>
+  <rect x="1080" y="700" width="200" height="120" fill="url(#floorStone)" stroke="#3a3025" stroke-width="2"/>
+  <text x="1180" y="730" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Guard Room</text>
+  <g transform="translate(140,930)"><circle r="32" fill="#f3e1b0" stroke="#5d3010" stroke-width="2"/><polygon points="0,-24 5,0 0,24 -5,0" fill="#5d3010"/><polygon points="-24,0 0,5 24,0 0,-5" fill="#a86838"/><text y="-36" text-anchor="middle" font-size="11" font-weight="bold" fill="#2b1d0f">N</text><text y="45" text-anchor="middle" font-size="11" font-weight="bold" fill="#2b1d0f">S</text><text x="-40" y="4" text-anchor="middle" font-size="11" font-weight="bold" fill="#2b1d0f">W</text><text x="40" y="4" text-anchor="middle" font-size="11" font-weight="bold" fill="#2b1d0f">E</text></g>
+</svg>

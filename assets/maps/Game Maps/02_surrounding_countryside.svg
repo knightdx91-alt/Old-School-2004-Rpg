@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" font-family="Georgia, serif">
+  <defs>
+    <pattern id="forest1" patternUnits="userSpaceOnUse" width="28" height="28"><rect width="28" height="28" fill="#3d6030"/><circle cx="7" cy="8" r="5" fill="#2a4520"/><circle cx="20" cy="20" r="6" fill="#1f3818"/></pattern>
+    <pattern id="forestDark" patternUnits="userSpaceOnUse" width="28" height="28"><rect width="28" height="28" fill="#1d3818"/><circle cx="7" cy="8" r="5" fill="#0d2010"/><circle cx="20" cy="20" r="6" fill="#0d2010"/></pattern>
+    <pattern id="mountains" patternUnits="userSpaceOnUse" width="60" height="50"><rect width="60" height="50" fill="#7a6e5a"/><polygon points="0,50 15,15 30,50" fill="#5a4e3a"/><polygon points="30,50 45,20 60,50" fill="#6a5e4a"/></pattern>
+  </defs>
+  <rect width="1400" height="900" fill="#7a9a55"/>
+  <rect x="450" y="20" width="500" height="55" rx="6" fill="#2b1d0f" stroke="#d4a64a" stroke-width="3"/>
+  <text x="700" y="58" text-anchor="middle" font-size="26" fill="#f3e1b0" font-weight="bold">SURROUNDING COUNTRYSIDE</text>
+  <path d="M 0,180 L 200,140 L 300,100 L 450,150 L 600,90 L 750,140 L 900,110 L 1100,160 L 1300,120 L 1400,170 L 1400,0 L 0,0 Z" fill="url(#mountains)" stroke="#3a2e1a" stroke-width="2"/>
+  <text x="200" y="60" font-size="14" fill="#f3e1b0" font-weight="bold" font-style="italic">— Northern Mountains —</text>
+  <g><path d="M 1080,200 L 1100,260 L 1130,290 L 1150,260 L 1170,200 Z" fill="#5a4e3a" stroke="#3a2e1a" stroke-width="2"/><text x="1125" y="180" text-anchor="middle" font-size="12" fill="#2b1d0f" font-weight="bold">Mountain Pass</text></g>
+  <path d="M 1150,250 Q 1180,290 1200,360 Q 1220,450 1190,540 Q 1170,620 1230,690 L 1400,700 L 1400,260 Z" fill="url(#forestDark)" stroke="#0d2010" stroke-width="3"/>
+  <text x="1290" y="450" text-anchor="middle" font-size="20" fill="#d4a64a" font-weight="bold" font-style="italic">Saegen Woods</text>
+  <text x="1290" y="478" text-anchor="middle" font-size="10" fill="#d4a64a" font-style="italic">(ley line — danger)</text>
+  <path d="M 1130,210 Q 1180,300 1220,400 Q 1240,520 1260,650 Q 1270,720 1300,800" stroke="#4a7ab8" stroke-width="9" fill="none"/>
+  <text x="1240" y="700" font-size="11" fill="#f3e1b0" font-weight="bold" font-style="italic">River</text>
+  <ellipse cx="120" cy="430" rx="100" ry="60" fill="url(#forest1)" stroke="#1f3818" stroke-width="2"/>
+  <text x="120" y="435" text-anchor="middle" font-size="12" fill="#f3e1b0" font-weight="bold" font-style="italic">West Wood</text>
+  <ellipse cx="200" cy="700" rx="140" ry="80" fill="url(#forest1)" stroke="#1f3818" stroke-width="2"/>
+  <text x="200" y="705" text-anchor="middle" font-size="12" fill="#f3e1b0" font-weight="bold" font-style="italic">South Pine Wood</text>
+  <ellipse cx="850" cy="650" rx="130" ry="70" fill="url(#forest1)" stroke="#1f3818" stroke-width="2"/>
+  <text x="850" y="655" text-anchor="middle" font-size="12" fill="#f3e1b0" font-weight="bold" font-style="italic">Hollow Wood</text>
+  <ellipse cx="400" cy="780" rx="70" ry="35" fill="#4a7ab8" stroke="#2a4a78" stroke-width="2"/>
+  <text x="400" y="785" text-anchor="middle" font-size="11" fill="#f3e1b0" font-weight="bold" font-style="italic">Lake Aedun</text>
+  <path d="M 540,820 L 540,500" stroke="#a8895a" stroke-width="14" fill="none"/>
+  <path d="M 580,460 L 850,460 L 950,420 L 1120,260" stroke="#a8895a" stroke-width="14" fill="none"/>
+  <g transform="translate(440,790)"><rect x="0" y="0" width="200" height="100" fill="#9a9a9a" stroke="#3a3a3a" stroke-width="3"/><circle cx="15" cy="15" r="15" fill="#7a7a7a"/><circle cx="185" cy="15" r="15" fill="#7a7a7a"/><circle cx="15" cy="85" r="15" fill="#7a7a7a"/><circle cx="185" cy="85" r="15" fill="#7a7a7a"/><circle cx="100" cy="50" r="20" fill="#6a6a6a"/><text x="100" y="125" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">The Heir's School</text></g>
+  <g transform="translate(460,400)"><rect width="160" height="120" rx="10" fill="#c8a878" stroke="#5d3010" stroke-width="3"/><text x="80" y="138" text-anchor="middle" font-size="14" fill="#2b1d0f" font-weight="bold">New Spring</text></g>
+  <g transform="translate(810,420)"><rect width="100" height="80" rx="8" fill="#c8a878" stroke="#5d3010" stroke-width="3"/><text x="50" y="95" text-anchor="middle" font-size="13" fill="#2b1d0f" font-weight="bold">Whitehaven</text></g>
+  <g transform="translate(960,560)"><polygon points="0,-12 -10,8 10,8" fill="#5a2010"/><text x="0" y="22" text-anchor="middle" font-size="10" fill="#2b1d0f" font-weight="bold">⚔ Bandit Ambush Site</text></g>
+  <g transform="translate(1230,520)"><circle r="8" fill="#d44848"/><circle r="4" fill="#f3e1b0"/><text x="0" y="25" text-anchor="middle" font-size="10" fill="#d4a64a" font-weight="bold">✿ Aurora Felis</text></g>
+  <text x="555" y="640" font-size="11" fill="#2b1d0f" font-weight="bold" font-style="italic">~5 mi</text>
+  <text x="700" y="453" font-size="11" fill="#2b1d0f" font-weight="bold" font-style="italic">~12 mi</text>
+  <g transform="translate(80,120)"><circle r="38" fill="#f3e1b0" stroke="#5d3010" stroke-width="2"/><polygon points="0,-30 6,0 0,30 -6,0" fill="#5d3010"/><polygon points="-30,0 0,6 30,0 0,-6" fill="#a86838"/><text y="-42" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">N</text><text y="52" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">S</text><text x="-48" y="5" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">W</text><text x="48" y="5" text-anchor="middle" font-size="13" font-weight="bold" fill="#2b1d0f">E</text></g>
+</svg>
