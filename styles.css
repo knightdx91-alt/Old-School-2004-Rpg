@@ -466,24 +466,6 @@
 }
 .topbar .time-of-day { margin-right: 160px; }
 
-/* iOS portrait fallback hint */
-#rotate-hint {
-  position: fixed; inset: 0;
-  background: rgba(13,10,8,0.95);
-  z-index: 200;
-  display: none;
-  align-items: center; justify-content: center;
-  text-align: center; padding: 24px;
-}
-#rotate-hint.active { display: flex; }
-.rotate-hint-inner { color: var(--parchment); }
-.rotate-icon {
-  font-size: 4rem; color: var(--gold);
-  animation: rotateHint 2s ease-in-out infinite;
-  margin-bottom: 16px;
-}
-.rotate-text { font-family: 'Cinzel', serif; letter-spacing: 0.1em; font-size: 1rem; }
-@keyframes rotateHint { 0%, 100% { transform: rotate(-15deg); } 50% { transform: rotate(75deg); } }
 
 /* Portrait stub — session 2 handles this properly */
 @media (orientation: portrait) { /* TODO session 2 */ }

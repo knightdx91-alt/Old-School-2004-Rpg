@@ -213,13 +213,7 @@ hud.initLayout = function() {
     '<button id="chat-toggle" class="dock-toggle" aria-label="Open chat">💬</button>' +
     '<button id="menu-toggle" class="dock-toggle" aria-label="Open menu">☰</button>' +
     '<button id="fullscreen-btn" aria-label="Fullscreen">⛶</button>' +
-    '<div id="minimap-zone" aria-hidden="true"></div>' +
-    '<div id="rotate-hint">' +
-      '<div class="rotate-hint-inner">' +
-        '<div class="rotate-icon">↻</div>' +
-        '<div class="rotate-text">Please rotate your device to landscape</div>' +
-      '</div>' +
-    '</div>'
+    '<div id="minimap-zone" aria-hidden="true"></div>'
   );
 
   // Wire events
@@ -234,13 +228,7 @@ hud.initLayout = function() {
   });
   document.getElementById('player-chat-form').addEventListener('submit', hud.sendChat);
 
-  window.addEventListener('resize', hud.checkOrientation);
-  window.addEventListener('orientationchange', hud.checkOrientation);
-  document.addEventListener('fullscreenchange', hud.checkOrientation);
-  document.addEventListener('webkitfullscreenchange', hud.checkOrientation);
-
   hud.applyDockState();
-  hud.checkOrientation();
   // Canvas container changed shape — tell Babylon
   setTimeout(() => state.engine && state.engine.resize(), 50);
   setTimeout(() => state.engine && state.engine.resize(), 400);
@@ -322,18 +310,5 @@ hud.enterFullscreen = async function() {
   setTimeout(hud.checkOrientation, 300);
 };
 
-hud.checkOrientation = function() {
-  const hint = document.getElementById('rotate-hint');
-  if (!hint) return;
-  const portrait = window.innerHeight > window.innerWidth;
-  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  const inFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  const show = portrait && isTouch && inFullscreen;
-  hint.classList.toggle('active', show);
-  if (show && !hint._dismissBound) {
-    hint._dismissBound = true;
-    hint.addEventListener('click', () => hint.classList.remove('active'));
-  }
-};
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(() => hud.initLayout(), 0));
