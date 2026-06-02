@@ -38,12 +38,12 @@ const world = {
     cam.lowerBetaLimit = 0.35;
     cam.upperBetaLimit = Math.PI / 2.4;
     cam.wheelPrecision = 30;
-    cam.pinchPrecision = 60;
     cam.panningSensibility = 0;
-    cam.useNaturalPinchZoom = true;
     cam.attachControl(canvas, true);
     if (cam.inputs.attached.pointers) {
       cam.inputs.attached.pointers.buttons = [0];
+      cam.inputs.attached.pointers.pinchPrecision = 12;
+      cam.inputs.attached.pointers.useNaturalPinchZoom = false;
     }
     state.camera = cam;
 
