@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sygl â€” A Magykal RPG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+
+<!-- These two MUST run before everything else (sync, no defer) -->
+<script src="js/gamepad-patch.js"></script>
+<script src="js/babylon-loader.js"></script>
+
+<!-- Game code, deferred so it runs after the body parses -->
+<script defer src="js/data.js"></script>
+<script defer src="js/state.js"></script>
+<script defer src="js/quiz.js"></script>
+<script defer src="js/world.js"></script>
+<script defer src="js/combat.js"></script>
+<script defer src="js/hud.js"></script>
+<script defer src="js/main.js"></script>
+</head>
+<body>
+
+<!-- TITLE -->
+<div id="title-screen" class="screen active">
+  <h1>SYGL</h1>
+    <div class="subtitle">â€” A Tale of the Magyk Arts â€”</div>
+      <div class="menu">
+          <button class="btn primary" onclick="game.startNewGame()">Begin Anew</button>
+              <button class="btn" id="continue-btn" onclick="game.continueGame()" style="display:none;">Continue</button>
+                  <button class="btn" onclick="game.skipQuiz()">Skip Quiz â€” Choose Sygl</button>
+                    </div>
+                      <div style="margin-top: 4rem; max-width: 540px; text-align: center; font-style: italic; color: rgba(217,201,168,0.5); line-height: 1.6;">
+                          Five Originators wove the world from raw magyk. Their sygls mark the chosen.<br>
+                              Without one, you should be powerless â€” and yet, here you are.
+                                </div>
+                                </div>
+
+                                <!-- QUIZ -->
+                                <div id="quiz-screen" class="screen">
+                                  <div class="quiz-container">
+                                      <div class="quiz-progress" id="quiz-progress">Question 1 of 6</div>
+                                          <div class="quiz-question" id="quiz-question"></div>
+                                              <div class="quiz-options" id="quiz-options"></div>
+                                                </div>
+                                                </div>
+
+                                                <!-- SYGL SELECT -->
+                                                <div id="sygl-screen" class="screen">
+                                                  <h2>Choose Your Sygl</h2>
+                                                    <div class="recommendation" id="recommendation"></div>
+                                                      <div class="sygl-grid" id="sygl-grid"></div>
+                                                        <button class="btn primary" id="confirm-sygl" disabled onclick="game.confirmSygl()">Embrace This Path</button>
+                                                        </div>
+
+                                                        <!-- ORIGINATOR INTRO -->
+                                                        <div id="intro-screen" class="screen">
+                                                          <div class="intro-stage" id="intro-stage" onclick="intro.advance()">
+                                                              <div class="intro-portrait" id="intro-portrait">
+                                                                    <div class="orig-aura"></div>
+                                                                          <svg id="orig-svg" viewBox="0 0 300 400" style="position:relative; z-index:1; width:100%; height:100%; filter: drop-shadow(0 0 30px var(--accent));"></svg>
+                                                                              </div>
+                                                                                  <div class="intro-text-wrap">
+                                                                                        <div class="intro-name" id="intro-name">â€”</div>
+                                                                                              <div class="intro-title" id="intro-title">â€”</div>
+                                                                                                    <div class="intro-dialogue" id="intro-dialogue">â€”</div>
+                                                                                                          <div class="intro-advance">CLICK TO CONTINUE â–¸</div>
+                                                                                                              </div>
+                                                                                                                </div>
+                                                                                                                </div>
+
+                                                                                                                <!-- GAME -->
+                                                                                                                <div id="game-screen" class="screen">
+                                                                                                                  <div class="game-root">
+                                                                                                                      <div class="canvas-wrap" id="canvas-wrap">
+                                                                                                                            <div class="topbar">
+                                                                                                                                    <div>
+                                                                                                                                              <div class="area-name" id="area-name">Sygldry Academy Grounds</div>
+                                                                                                                                                        <div class="time-of-day" id="time-of-day">â€” Dawn â€”</div>
+                                                                                                                                                                </div>
+                                                                                                                                                                        <div style="display:flex; gap:8px;">
+                                                                                                                                                                                  <button class="btn small" onclick="game.saveNow()">Save</button>
+                                                                                                                                                                                            <button class="btn small danger" onclick="game.confirmQuit()">Title</button>
+                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                          </div>
+                                                                                                                                                                                                                <canvas id="render-canvas"></canvas>
+                                                                                                                                                                                                                      <div class="cursor-target" id="cursor-target"></div>
+                                                                                                                                                                                                                          </div>
+
+                                                                                                                                                                                                                              <div class="hud" id="hud">
+                                                                                                                                                                                                                                    <div class="hud-tabs" id="hud-tabs">
+                                                                                                                                                                                                                                            <button class="hud-tab active" data-tab="stats" onclick="hud.switchTab('stats')">Stats</button>
+                                                                                                                                                                                                                                                    <button class="hud-tab" data-tab="inventory" onclick="hud.switchTab('inventory')">Inventory</button>
+                                                                                                                                                                                                                                                            <button class="hud-tab" data-tab="spellbook" onclick="hud.switchTab('spellbook')">Spellbook</button>
+                                                                                                                                                                                                                                                                    <button class="hud-tab" data-tab="quests" onclick="hud.switchTab('quests')">Quests</button>
+                                                                                                                                                                                                                                                                            <button class="hud-tab" data-tab="options" onclick="hud.switchTab('options')">Options</button>
+                                                                                                                                                                                                                                                                                    <button class="hud-tab combat-tab" data-tab="combat" id="combat-tab" style="display:none;" onclick="hud.switchTab('combat')">âš” Combat</button>
+                                                                                                                                                                                                                                                                                          </div>
+                                                                                                                                                                                                                                                                                                <div class="hud-content">
+                                                                                                                                                                                                                                                                                                        <div class="hud-log" id="log"></div>
+                                                                                                                                                                                                                                                                                                                <div class="hud-panel" id="hud-panel"></div>
+                                                                                                                                                                                                                                                                                                                      </div>
+                                                                                                                                                                                                                                                                                                                          </div>
+                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                            </div>
+
+                                                                                                                                                                                                                                                                                                                            <!-- Context menu -->
+                                                                                                                                                                                                                                                                                                                            <div class="ctx-menu" id="ctx-menu"></div>
+
+                                                                                                                                                                                                                                                                                                                            <!-- Dialogue -->
+                                                                                                                                                                                                                                                                                                                            <div class="dialogue-overlay" id="dialogue-overlay" onclick="dialogue.advance()">
+                                                                                                                                                                                                                                                                                                                              <div class="dialogue-box">
+                                                                                                                                                                                                                                                                                                                                  <div class="dialogue-speaker" id="dialogue-speaker">â€”</div>
+                                                                                                                                                                                                                                                                                                                                      <div class="dialogue-text" id="dialogue-text">â€”</div>
+                                                                                                                                                                                                                                                                                                                                          <div class="dialogue-advance">CLICK TO CONTINUE â–¸</div>
+                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                            </div>
+
+                                                                                                                                                                                                                                                                                                                                            </body>
+                                                                                                                                                                                                                                                                                                                                            </html>
