@@ -101,6 +101,11 @@ localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player
 
 6. **Companion / party system** — single companion recruited from Dawn Hall. Follows player, auto-fights in combat, has personality dialogue that reacts to events. Start simple (one companion, follow AI, auto-combat), then expand to party inventory and player-directed orders (Attack/Defend/Cast) once inventory system exists. Designed for solo players who don't want multiplayer.
 
+7. **Profession system (WoW-style)** — Secondary skills learned from profession trainers at Dawn Hall, separate from and stackable with the player's sygl. Players can learn 1-2 professions. When the game starts, two professions are *suggested* (not forced) based on the player's chosen sygl — e.g. a Fire sygl might be nudged toward Runesmith and Blade-for-Hire, a Nature sygl toward Herbalist and Alchemist. Professions have skill tiers: Apprentice → Journeyman → Expert → Master, leveled through use not just gold.
+   - **Planned professions:** Alchemist (brew potions from herbs), Runesmith (craft sygl-infused gear), Scholar (identify items, translate texts for quests), Herbalist (gather ingredients in the world), Blade-for-Hire (combat perks, ties into Dawn Faction jobs)
+   - **Synergies:** Herbalist feeds Alchemist; Alchemist potions usable from hotbar in combat; Runesmith gear feeds into equip system
+   - **Dependencies:** Requires inventory system (#4), shop system (#4), and NPC dialogue UI (#5) to be built first. Profession tab added to menu dock once implemented.
+
 ## Lore context
 - Game: Sygl — based on user's book series
 - Town: **New Spring** (starting town)
