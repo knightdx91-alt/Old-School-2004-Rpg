@@ -250,8 +250,8 @@ hud.applyDockState = function() {
   const { chatOpen, menuOpen } = hud.ui;
   document.getElementById('chat-dock').classList.toggle('open', chatOpen);
   document.getElementById('menu-dock').classList.toggle('open', menuOpen);
-  document.getElementById('chat-toggle').classList.toggle('hidden', chatOpen);
-  document.getElementById('menu-toggle').classList.toggle('hidden', menuOpen);
+  document.getElementById('chat-toggle').classList.toggle('hidden', chatOpen || menuOpen);
+  document.getElementById('menu-toggle').classList.toggle('hidden', menuOpen || chatOpen);
   hudEl.classList.toggle('both-open',  chatOpen && menuOpen);
   hudEl.classList.toggle('only-chat',  chatOpen && !menuOpen);
   hudEl.classList.toggle('only-menu', !chatOpen &&  menuOpen);

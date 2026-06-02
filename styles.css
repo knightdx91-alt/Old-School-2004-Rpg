@@ -352,9 +352,15 @@
 
 /* Flex sharing — class on .hud drives widths */
 .hud.both-open > #chat-dock.open,
-.hud.both-open > #menu-dock.open { flex: 1 1 50%; }
+.hud.both-open > #menu-dock.open { flex: 1 1 50%; max-width: 50%; }
 .hud.only-chat > #chat-dock.open { flex: 1 1 90%; }
 .hud.only-menu > #menu-dock.open { flex: 1 1 90%; }
+
+/* Landscape: never exceed 50% width regardless of state */
+@media (orientation: landscape) {
+  .hud.only-chat > #chat-dock.open { flex: 1 1 50%; max-width: 50%; }
+  .hud.only-menu > #menu-dock.open { flex: 1 1 50%; max-width: 50%; }
+}
 
 /* DOCK headers */
 .dock-header {
