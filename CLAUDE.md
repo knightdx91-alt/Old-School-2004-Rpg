@@ -99,6 +99,8 @@ localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player
 
 5. **Better NPC dialogue** — proper dialogue box UI instead of just logging to chat
 
+6. **Companion / party system** — single companion recruited from Dawn Hall. Follows player, auto-fights in combat, has personality dialogue that reacts to events. Start simple (one companion, follow AI, auto-combat), then expand to party inventory and player-directed orders (Attack/Defend/Cast) once inventory system exists. Designed for solo players who don't want multiplayer.
+
 ## Lore context
 - Game: Sygl — based on user's book series
 - Town: **New Spring** (starting town)
