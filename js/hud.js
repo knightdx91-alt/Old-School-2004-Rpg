@@ -297,6 +297,7 @@ hud.sendChat = function(e) {
   line.innerHTML = '<span class="chat-author">You:</span> ' + safe;
   msgs.appendChild(line);
   msgs.scrollTop = msgs.scrollHeight;
+  hud.showHeadBubble(text);
   input.value = '';
   return false;
 };
@@ -407,5 +408,57 @@ hud.drawMinimap = function() {
 
 // Draw minimap every ~200ms
 setInterval(() => { if (state.ready) hud.drawMinimap(); }, 200);
+
+/* ================================================================
+   HEAD BUBBLE — chat text floats above player like RS2004
+   ================================================================ */
+hud._bubble = null;
+
+hud.showHeadBubble = function(text) {
+  // Remove any existing bubble
+  if (hud._bubble) { hud._bubble.remove(); hud._bubble = null; }
+
+  const el = document.createElement('div');
+  el.className = 'head-bubble';
+  // Clamp long messages to ~60 chars
+  el.textContent = text.length > 60 ? text.slice(0, 57) + '…' : text;
+  document.getElementById('canvas-wrap').appendChild(el);
+  hud._bubble = el;
+
+  // Fade out after 4s
+  const DURATION = 4000;
+  const FADE = 800;
+  setTimeout(() => {
+    if (hud._bubble !== el) return;
+    el.style.transition = `opacity ${FADE}ms`;
+    el.style.opacity = '0';
+    setTimeout(() => { if (hud._bubble === el) { el.remove(); hud._bubble = null; } }, FADE);
+  }, DURATION - FADE);
+};
+
+hud.updateBubblePos = function() {
+  if (!hud._bubble || !state.playerMesh || !state.scene || !state.engine) return;
+  const mesh = state.playerMesh;
+  // Project a point ~1.8 units above the player mesh
+  const above = mesh.position.clone();
+  above.y += 1.8;
+  const viewport = state.scene.activeCamera.viewport.toGlobal(
+    state.engine.getRenderWidth(), state.engine.getRenderHeight()
+  );
+  const projected = BABYLON.Vector3.Project(
+    above,
+    BABYLON.Matrix.Identity(),
+    state.scene.getTransformMatrix(),
+    viewport
+  );
+  // Only show if in front of camera (z < 1)
+  if (projected.z < 0 || projected.z > 1) {
+    hud._bubble.style.display = 'none';
+    return;
+  }
+  hud._bubble.style.display = '';
+  hud._bubble.style.left = projected.x + 'px';
+  hud._bubble.style.top = projected.y + 'px';
+};
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(() => hud.initLayout(), 0));

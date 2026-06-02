@@ -498,3 +498,23 @@
 
 /* Portrait stub — session 2 handles this properly */
 @media (orientation: portrait) { /* TODO session 2 */ }
+
+/* Head bubble — chat text above player */
+.head-bubble {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffff80;
+  font-family: 'EB Garamond', serif;
+  font-size: 13px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,160,0.3);
+  white-space: nowrap;
+  max-width: 220px;
+  white-space: normal;
+  text-align: center;
+  pointer-events: none;
+  z-index: 20;
+  line-height: 1.3;
+}

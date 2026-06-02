@@ -81,6 +81,7 @@ function loop(now) {
       state.playerMesh.rotation.y = Math.atan2(dx, dz);
     }
   }
+  hud.updateBubblePos && hud.updateBubblePos();
   requestAnimationFrame(loop);
 }
 
