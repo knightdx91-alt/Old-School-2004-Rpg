@@ -178,9 +178,10 @@
 
                                    .hud { background: linear-gradient(180deg, #1a140f, #0d0a08); border-top: 2px solid var(--gold-dim); box-shadow: 0 -4px 20px rgba(0,0,0,0.6); transform-origin: bottom center; transform: scale(var(--hud-scale)); transition: transform 0.2s; height: calc(220px * var(--hud-scale)); flex-shrink: 0; display: flex; flex-direction: column; }
 
-                                   .hud-tabs { display: flex; border-bottom: 1px solid var(--gold-dim); background: rgba(0,0,0,0.4); }
+                                   .hud-tabs { display: flex; border-bottom: 1px solid var(--gold-dim); background: rgba(0,0,0,0.4); overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.hud-tabs::-webkit-scrollbar { display: none; }
 
-                                   .hud-tab { flex: 1; padding: 8px 4px; background: transparent; border: none; border-right: 1px solid rgba(212,168,71,0.2); color: rgba(217,201,168,0.6); font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 0.15em; cursor: pointer; text-transform: uppercase; transition: all 0.15s; }
+                                   .hud-tab { flex: 0 0 auto; padding: 8px 12px; background: transparent; border: none; border-right: 1px solid rgba(212,168,71,0.2); color: rgba(217,201,168,0.6); font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 0.15em; cursor: pointer; text-transform: uppercase; transition: all 0.15s; }
 
                                    .hud-tab:hover { background: rgba(212,168,71,0.1); color: var(--parchment); }
 
