@@ -28,12 +28,30 @@ js/
 ## Active branch
 `main` — this is the only working branch. Always commit and push to `main`. Never commit to any other branch. Run `git pull origin main` in Codespace to get changes.
 
-## Deploying to itch.io
-Butler is installed in the Codespace. To deploy, run from the repo root:
+**Push = live.** Every push to `main` auto-deploys (see below), so anything committed and pushed goes live automatically. The working rule for this project: finish a change → commit → push to `main`. Don't leave work uncommitted; pushing is how it reaches players.
+
+## Deploying / Hosting
+
+### Live links
+- **GitHub Pages (auto, primary):** https://knightdx91-alt.github.io/Old-School-2004-Rpg/ — free, always-current; republishes on every push to `main`.
+- **itch.io (storefront):** https://Knightdx91.itch.io/sygl — channel `Knightdx91/sygl:html5`.
+
+Saves use `localStorage`, which is **per-domain** — progress on the Pages URL and the itch URL are separate stores.
+
+### Auto-deploy (GitHub Actions) — runs on every push to `main`
+- `.github/workflows/pages.yml` → builds + publishes to **GitHub Pages**. Reliable; this is the primary auto-deploy.
+- `.github/workflows/deploy.yml` → pushes to **itch.io** via butler. Needs the `BUTLER_API_KEY` repo secret (already set). Butler is downloaded from `broth.itch.ovh`; if that CDN is unreachable from the runner the step fails — that's an itch-side outage, not a config problem, and it recovers on its own (the download retries).
+
+Both builds bundle Babylon + loaders locally and ship only runtime assets (`.glb`/`.png`), excluding source-format duplicates (`.zip/.fbx/.obj/.mtl/.stl/.dae`) — ~72M vs ~211M.
+
+**One-time settings that make Pages work** (already configured — don't undo): Settings → Pages → **Source = GitHub Actions**; Settings → Actions → General → **Workflow permissions = Read and write**.
+
+### Manual itch deploy (fallback)
+Butler is installed in the Codespace. To deploy by hand from the repo root:
 ```bash
 BUTLER_API_KEY=your_key_here ./deploy.sh
 ```
-Replace `your_key_here` with your itch.io API key (generate one at itch.io → Account Settings → API keys). Do **not** run `butler login` — it hangs waiting for browser auth. The `BUTLER_API_KEY` env var bypasses that. The script builds the game into `build/` and pushes it to `Knightdx91/sygl:html5` automatically.
+Replace `your_key_here` with your itch.io API key (itch.io → Account Settings → API keys). Do **not** run `butler login` — it hangs waiting for browser auth; the `BUTLER_API_KEY` env var bypasses that. The script builds the game into `build/` and pushes it to `Knightdx91/sygl:html5` automatically.
 
 ## World: New Spring (current zone)
 100×100 tile grid, TILE_SIZE=2 (each tile = 2 world units). gridToWorld(gx,gz) = {x: gx*2, z: gz*2}.
