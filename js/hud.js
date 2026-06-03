@@ -225,7 +225,7 @@ function updateDayNight() {
    HUD LAYOUT — Session 1 (landscape, floating corner docks)
    Adds methods to existing `hud` object. Append-only.
    ================================================================ */
-hud.ui = { chatOpen: false, menuOpen: false, chatMode: 'log', fullscreenAttempted: false };
+hud.ui = { chatOpen: false, menuOpen: false, rsMenuOpen: false, chatMode: 'log', fullscreenAttempted: false };
 
 hud.initLayout = function() {
   const hudEl = document.querySelector('.hud');
@@ -287,15 +287,25 @@ hud.initLayout = function() {
 
   TABS.forEach(t => {
     const btn = document.createElement('button');
-    btn.className = 'rs-btn';
+    btn.className = 'rs-btn rs-tab-btn';
     btn.dataset.tab = t.id;
     btn.id = `rs-btn-${t.id}`;
     btn.title = t.label;
     btn.textContent = t.icon;
-    if (t.hidden) btn.style.display = 'none';
+    // combat btn starts truly hidden (shown only when in combat); others shown when menu expands
+    if (t.hidden) btn.dataset.combatOnly = 'true';
     btn.addEventListener('click', () => hud.rsTab(t.id));
     btnCol.appendChild(btn);
   });
+
+  // ☰ menu toggle — always visible at the bottom
+  const menuBtn = document.createElement('button');
+  menuBtn.id = 'rs-menu-toggle';
+  menuBtn.className = 'rs-btn rs-menu-btn';
+  menuBtn.title = 'Menu';
+  menuBtn.textContent = '☰';
+  menuBtn.addEventListener('click', hud.toggleRsMenu);
+  btnCol.appendChild(menuBtn);
 
   sidebar.appendChild(rsPanel);
   sidebar.appendChild(btnCol);
@@ -334,7 +344,26 @@ hud.initLayout = function() {
   setTimeout(() => state.engine && state.engine.resize(), 400);
 };
 
+hud.toggleRsMenu = function() {
+  hud.ui.rsMenuOpen = !hud.ui.rsMenuOpen;
+  const btnCol = document.getElementById('rs-btn-col');
+  if (btnCol) btnCol.classList.toggle('expanded', hud.ui.rsMenuOpen);
+  if (!hud.ui.rsMenuOpen) {
+    // Collapse: close the panel and clear active state
+    const panel = document.getElementById('rs-panel');
+    if (panel) panel.classList.remove('open');
+    document.querySelectorAll('.rs-btn').forEach(b => b.classList.remove('active'));
+    state.currentTab = null;
+  }
+};
+
 hud.rsTab = function(tab) {
+  // Ensure the menu is expanded (handles calls from code like combat.start)
+  if (!hud.ui.rsMenuOpen) {
+    hud.ui.rsMenuOpen = true;
+    const btnCol = document.getElementById('rs-btn-col');
+    if (btnCol) btnCol.classList.add('expanded');
+  }
   const panel = document.getElementById('rs-panel');
   if (!panel) return;
   // Toggle: clicking the active tab closes the panel
@@ -349,10 +378,9 @@ hud.rsTab = function(tab) {
 
 hud.applyDockState = function() {
   const chatDock = document.getElementById('chat-dock');
-  const chatToggle = document.getElementById('chat-toggle');
   if (!chatDock) return;
   chatDock.classList.toggle('open', hud.ui.chatOpen);
-  if (chatToggle) chatToggle.classList.toggle('hidden', hud.ui.chatOpen);
+  // Keep the toggle button visible — it doubles as the close button
 };
 
 hud.toggleMenu = function() {};

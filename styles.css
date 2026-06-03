@@ -790,3 +790,13 @@
 #minimap-zone { right: 62px !important; }
 /* Loot overlay backdrop */
 .loot-overlay.active { background: rgba(0,0,0,0.45); }
+
+/* ── RS menu expand/collapse ─────────────────────────────────── */
+/* Tab buttons hidden until the ☰ menu is expanded */
+.rs-tab-btn { display: none !important; }
+#rs-btn-col.expanded .rs-tab-btn { display: flex !important; }
+/* Combat button overrides: only show when combat.js sets inline display */
+#rs-btn-combat { display: none !important; }
+#rs-btn-col.expanded #rs-btn-combat[style*="flex"] { display: flex !important; }
+/* ☰ menu button always visible */
+.rs-menu-btn { display: flex !important; }
