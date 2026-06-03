@@ -24,59 +24,57 @@ mkdir -p "$BUILD_DIR"
 cp index.html styles.css "$BUILD_DIR/"
 cp -r js "$BUILD_DIR/"
 
-# Only copy the specific GLB files actually used in the game
-# (skips zips, FBX, preview PNGs, source SVGs — keeps file count well under itch.io's 1000 limit)
-
+# Helper: copy a single GLB into the build, mirroring directory structure
 copy_glb() {
   local src="$1"
-  local dest="$BUILD_DIR/$1"
-  mkdir -p "$(dirname "$dest")"
-  cp "$src" "$dest"
+  local dst="$BUILD_DIR/$1"
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
 }
 
-# Polygonal Mind medieval fair props (assets/models/)
+# Polygonal Mind medieval fair props
 for f in assets/models/*.glb; do
-  copy_glb "$f"
+  [ -f "$f" ] && copy_glb "$f"
 done
 
-# Nature kit — trees used in town
-NATURE="assets/kenney/nature-kit/Models/GLB format"
+# Nature kit trees
+N="assets/kenney/nature-kit/Models/GLTF format"
 for name in tree_default tree_oak tree_fat tree_pineDefaultA tree_small; do
-  copy_glb "$NATURE/$name.glb"
+  copy_glb "$N/$name.glb"
 done
 
-# Fantasy town kit — stalls, fountain, cart, lantern
-FANTASY="assets/kenney/fantasy-town-kit/Models/GLB format"
+# Fantasy town kit
+F="assets/kenney/fantasy-town-kit/Models/GLB format"
 for name in stall stall-green stall-red fountain-round cart lantern; do
-  copy_glb "$FANTASY/$name.glb"
+  copy_glb "$F/$name.glb"
 done
 
-# Graveyard kit — lightpost, brazier, characters
-GRAVEYARD="assets/kenney/graveyard-kit/Models/GLB format"
+# Graveyard kit
+G="assets/kenney/graveyard-kit/Models/GLB format"
 for name in lightpost-single fire-basket character-keeper character-skeleton character-zombie character-vampire character-ghost; do
-  copy_glb "$GRAVEYARD/$name.glb"
+  copy_glb "$G/$name.glb"
 done
 
-# Retro fantasy kit — barrel prop
-RETRO="assets/kenney/retro-fantasy-kit/Models/GLB format"
+# Retro fantasy kit
+R="assets/kenney/retro-fantasy-kit/Models/GLB format"
 for name in detail-barrel detail-crate; do
-  copy_glb "$RETRO/$name.glb"
+  copy_glb "$R/$name.glb"
 done
 
-# Castle kit — corner towers, walls
-CASTLE="assets/kenney/castle-kit/Models/GLB format"
+# Castle kit
+C="assets/kenney/castle-kit/Models/GLB format"
 for name in tower-square wall wall-corner wall-doorway flag-banner-long; do
-  copy_glb "$CASTLE/$name.glb"
+  copy_glb "$C/$name.glb"
 done
 
-# Modular buildings — sample houses and towers
-MODULAR="assets/kenney/modular-buildings/Models/GLB format"
-for name in building-sample-house-a building-sample-house-b building-sample-house-c building-sample-tower-a building-sample-tower-b building-sample-tower-c building-sample-tower-d; do
-  copy_glb "$MODULAR/$name.glb"
+# Modular buildings
+M="assets/kenney/modular-buildings/Models/GLB format"
+for name in building-sample-house-a building-sample-house-b building-sample-house-c \
+            building-sample-tower-a building-sample-tower-b building-sample-tower-c building-sample-tower-d; do
+  copy_glb "$M/$name.glb"
 done
 
-echo "==> File count in build:"
-find "$BUILD_DIR" | wc -l
+echo "==> File count in build: $(find "$BUILD_DIR" | wc -l)"
 
 echo "==> Pushing to itch.io as $ITCH_USER/$ITCH_GAME:$CHANNEL..."
 BUTLER=$(command -v butler 2>/dev/null || echo "./butler")

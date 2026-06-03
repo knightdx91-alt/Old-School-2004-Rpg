@@ -283,7 +283,7 @@ const world = {
       world._loadProp(scene, v.file, gx, gz, {
         scale: v.scale,
         ry: (gx * 0.7 + gz * 0.3) % (Math.PI * 2),
-        basePath: 'assets/kenney/nature-kit/Models/GLB format/'
+        basePath: 'assets/kenney/nature-kit/Models/GLTF format/'
       });
     };
 
@@ -294,7 +294,7 @@ const world = {
       world._loadProp(scene, 'tree_small.glb', gx, gz, {
         scale: 1.5,
         ry: (gx + gz) % (Math.PI * 2),
-        basePath: 'assets/kenney/nature-kit/Models/GLB format/'
+        basePath: 'assets/kenney/nature-kit/Models/GLTF format/'
       });
     };
 
