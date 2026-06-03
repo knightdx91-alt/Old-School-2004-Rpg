@@ -160,6 +160,28 @@ localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player
 - Academy: **Sygldry Academy** — north of New Spring, separate zone
 - 5 Sygls (magic types): each tied to an "Originator" — defines player stats, spell, and accent color
 
+## Asset & library ideas (future sessions)
+
+### Audio
+- **Kenney sound packs** — RPG audio, UI sounds, ambient town noise. Free, direct zip download from kenney.nl same as other packs.
+- **Howler.js** (CDN) — standard browser audio library. Handles positional audio, looping, format fallbacks. One `<script>` tag, no build needed.
+
+### Character animations
+- **Mixamo** (Adobe, free) — upload the Kenney FBX character model, download idle/walk/run/attack animations as FBX, convert to GLB. No CLI download — manual export from the Mixamo website.
+- The animated-characters-protagonists and animated-characters-survivors packs already downloaded have `idle.fbx`, `run.fbx`, `jump.fbx` — could be converted to GLB and wired up in BabylonJS.
+
+### JS libraries (CDN drop-in, no build needed)
+- **nipplejs** — virtual joystick for mobile. Much better than tap-to-move for RPG feel. One script tag.
+- **animejs** — lightweight tweening for UI animations (health bar drops, damage numbers floating up, etc.).
+
+### More Kenney packs worth grabbing
+- **Kenney UI pack** — button sprites, health bar frames, inventory slot icons — good for upgrading the plain HUD.
+- **Kenney RPG audio** — footsteps, sword hits, magic sounds, ambient town noise.
+
+### 3D asset sources
+- **assets/kenney/** — already downloaded: fantasy-town-kit, nature-kit, castle-kit, retro-fantasy-kit, graveyard-kit, modular-buildings, animated characters, and more. Use `_loadProp(scene, filename, gx, gz, { basePath, scale, ry })` to place any GLB from these packs.
+- GLB files are in subfolders like `assets/kenney/<pack>/Models/GLB format/<name>.glb`
+
 ## Code conventions
 - No build system — plain JS, all globals
 - state.obstacles = Set of "gx,gz" strings for pathfinding
