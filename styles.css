@@ -134,17 +134,19 @@
 
                                    #intro-screen { padding: 0; }
 
-                                   .intro-stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, var(--bg-mid), var(--bg-deep) 70%); }
+                                   .intro-stage { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; background: radial-gradient(ellipse at center, var(--bg-mid), var(--bg-deep) 70%); overflow-y: auto; padding: 2rem 1rem; box-sizing: border-box; }
 
-                                   .intro-portrait { width: min(420px, 35vw); aspect-ratio: 3/4; margin-right: 4vw; position: relative; }
+                                   .intro-portrait { width: min(260px, 40vw); height: min(260px, 40vw); position: relative; }
 
-                                   .intro-text-wrap { max-width: 500px; padding: 20px; }
+                                   #orig-canvas { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 0 30px var(--accent); display: block; }
+
+                                   .intro-text-wrap { max-width: 520px; width: 100%; padding: 0 20px; text-align: center; }
 
                                    .intro-name { font-family: 'Cinzel', serif; font-size: 2.4rem; letter-spacing: 0.15em; color: var(--accent); text-shadow: 0 0 20px var(--accent); margin-bottom: 4px; }
 
                                    .intro-title { font-style: italic; color: rgba(217, 201, 168, 0.7); margin-bottom: 2rem; letter-spacing: 0.05em; }
 
-                                   .intro-dialogue { font-size: 1.25rem; line-height: 1.7; min-height: 200px; padding: 20px; border-left: 3px solid var(--accent); background: rgba(0,0,0,0.4); font-style: italic; }
+                                   .intro-dialogue { font-size: 1.15rem; line-height: 1.7; min-height: 80px; padding: 20px; border-left: 3px solid var(--accent); border-right: 3px solid var(--accent); background: rgba(0,0,0,0.4); font-style: italic; }
 
                                    .intro-advance { margin-top: 1.5rem; text-align: right; color: var(--accent); font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.15em; cursor: pointer; animation: pulse 1.5s ease-in-out infinite; }
 

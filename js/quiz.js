@@ -86,13 +86,12 @@ const intro = {
     this.index = 0;
     showScreen('intro-screen');
     const s = SYGLS[state.player.sygl];
-    document.getElementById('intro-portrait').style.setProperty('--accent', s.accent);
     document.getElementById('intro-stage').style.setProperty('--accent', s.accent);
     document.getElementById('intro-name').textContent = s.originator;
     document.getElementById('intro-name').style.color = s.accent;
     document.getElementById('intro-name').style.textShadow = `0 0 20px ${s.accent}`;
     document.getElementById('intro-title').textContent = s.title;
-    this.renderPortrait(state.player.sygl);
+    world.buildOriginatorPortrait(state.player.sygl);
     this.show();
   },
   renderPortrait(key) {
@@ -164,6 +163,7 @@ const intro = {
     const s = SYGLS[state.player.sygl];
     this.index++;
     if (this.index >= s.dialogue.length) {
+      world.disposePortrait();
       game.startWorld();
     } else {
       this.show();

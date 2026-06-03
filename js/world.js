@@ -1353,6 +1353,19 @@ const world = {
       waitTimer: Math.floor(Math.random() * 60)
     });
 
+    root.scaling = new BABYLON.Vector3(scale, scale, scale);
+    const limbs = world._buildNPCMeshes(scene, id, root, robeColor, accentColor);
+
+    // Store limb refs for walk animation and seed target position
+    const npcEntry = world.npcs[world.npcs.length - 1];
+    npcEntry.limbs = limbs;
+    npcEntry.walkPhase = 0;
+    npcEntry.targetPos = { x: wp.x, z: wp.z };
+    npcEntry.isMoving = false;
+  },
+
+  // Shared NPC mesh builder — used by both _spawnNPC and the portrait renderer
+  _buildNPCMeshes(scene, id, parent, robeColor, accentColor) {
     const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
     robeMat.diffuseColor = robeColor;
     const headMat = new BABYLON.StandardMaterial(`npcHeadMat_${id}`, scene);
@@ -1361,55 +1374,104 @@ const world = {
     accentMat.diffuseColor = accentColor;
     accentMat.emissiveColor = accentColor.scale(0.3);
 
-    root.scaling = new BABYLON.Vector3(scale, scale, scale);
-
-    // Torso — octagonal cylinder
     const body = BABYLON.MeshBuilder.CreateCylinder(`npcBody_${id}`, { height: 0.65, diameterTop: 0.40, diameterBottom: 0.34, tessellation: 8 }, scene);
-    body.material = robeMat; body.position.y = 1.00; body.parent = root;
+    body.material = robeMat; body.position.y = 1.00; body.parent = parent;
     body.metadata = { npcId: id };
 
-    // Legs — slim tapered, pivot at hip
     const legMat = new BABYLON.StandardMaterial(`npcLegMat_${id}`, scene);
     legMat.diffuseColor = robeColor.scale(0.75);
     const legL = BABYLON.MeshBuilder.CreateCylinder(`npcLegL_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legL.material = legMat;
-    legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = root;
+    legL.material = legMat; legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = parent;
     legL.metadata = { npcId: id };
     const legR = BABYLON.MeshBuilder.CreateCylinder(`npcLegR_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legR.material = legMat;
-    legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = root;
+    legR.material = legMat; legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = parent;
     legR.metadata = { npcId: id };
 
-    // Arms — slim cylinders, pivot at shoulder
     const armMat = new BABYLON.StandardMaterial(`npcArmMat_${id}`, scene);
     armMat.diffuseColor = robeColor.scale(0.85);
     const armL = BABYLON.MeshBuilder.CreateCylinder(`npcArmL_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armL.material = armMat;
-    armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armL.position = new BABYLON.Vector3(-0.27, 1.25, 0); armL.parent = root;
+    armL.material = armMat; armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armL.position = new BABYLON.Vector3(-0.27, 1.25, 0); armL.parent = parent;
     armL.metadata = { npcId: id };
     const armR = BABYLON.MeshBuilder.CreateCylinder(`npcArmR_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armR.material = armMat;
-    armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armR.position = new BABYLON.Vector3(0.27, 1.25, 0); armR.parent = root;
+    armR.material = armMat; armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armR.position = new BABYLON.Vector3(0.27, 1.25, 0); armR.parent = parent;
     armR.metadata = { npcId: id };
 
     const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.40, segments: 8 }, scene);
-    head.material = headMat; head.position.y = 1.52; head.parent = root;
+    head.material = headMat; head.position.y = 1.52; head.parent = parent;
     head.metadata = { npcId: id };
 
     const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.12, segments: 6 }, scene);
-    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = root;
+    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = parent;
     orb.metadata = { npcId: id };
 
-    // Store limb refs for walk animation and seed target position
-    const npcEntry = world.npcs[world.npcs.length - 1];
-    npcEntry.limbs = { armL, armR, legL, legR, body };
-    npcEntry.walkPhase = 0;
-    npcEntry.targetPos = { x: wp.x, z: wp.z };
-    npcEntry.isMoving = false;
+    return { armL, armR, legL, legR, body };
+  },
+
+  // Portrait renderer for the originator intro screen
+  _portraitEngine: null,
+  buildOriginatorPortrait(syglKey) {
+    const s = SYGLS[syglKey];
+    const canvas = document.getElementById('orig-canvas');
+    if (!canvas) return;
+
+    // Dispose previous portrait engine if any
+    if (world._portraitEngine) {
+      world._portraitEngine.dispose();
+      world._portraitEngine = null;
+    }
+
+    const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+    world._portraitEngine = engine;
+
+    const scene = new BABYLON.Scene(engine);
+    scene.clearColor = new BABYLON.Color4(0.07, 0.05, 0.10, 1);
+
+    // Camera — angled slightly down to show full character
+    const cam = new BABYLON.ArcRotateCamera('portCam', -Math.PI / 2, 1.15, 3.2, new BABYLON.Vector3(0, 0.9, 0), scene);
+
+    // Lighting
+    const amb = new BABYLON.HemisphericLight('portAmb', new BABYLON.Vector3(0, 1, 0), scene);
+    amb.intensity = 0.6;
+    amb.diffuse = new BABYLON.Color3(0.95, 0.88, 0.75);
+    const sun = new BABYLON.DirectionalLight('portSun', new BABYLON.Vector3(-0.5, -1, -0.5), scene);
+    sun.intensity = 0.8;
+    const accent = SYGLS[syglKey].accentRGB;
+    const accentColor = new BABYLON.Color3(accent[0]/255, accent[1]/255, accent[2]/255);
+    const fill = new BABYLON.PointLight('portFill', new BABYLON.Vector3(0, 1.5, 1), scene);
+    fill.diffuse = accentColor;
+    fill.intensity = 0.5;
+    fill.range = 6;
+
+    // Build the character using the shared NPC mesh helper
+    const root = new BABYLON.TransformNode('portRoot', scene);
+    root.rotation.y = Math.PI / 12; // slight 3/4 angle
+    const robeColor = new BABYLON.Color3(
+      (accent[0] / 255) * 0.5 + 0.1,
+      (accent[1] / 255) * 0.5 + 0.1,
+      (accent[2] / 255) * 0.5 + 0.1
+    );
+    world._buildNPCMeshes(scene, 'orig', root, robeColor, accentColor);
+
+    // Gentle idle rotation
+    let t = 0;
+    scene.onBeforeRenderObservable.add(() => {
+      t += 0.01;
+      root.rotation.y = Math.PI / 12 + Math.sin(t) * 0.15;
+    });
+
+    engine.runRenderLoop(() => scene.render());
+    engine.resize();
+  },
+
+  disposePortrait() {
+    if (world._portraitEngine) {
+      world._portraitEngine.dispose();
+      world._portraitEngine = null;
+    }
   },
 
   _generateNPCs(scene) {
