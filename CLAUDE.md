@@ -144,6 +144,14 @@ The `placeBuilding` helper in `_buildNewSpring` loads modular-building GLBs asyn
 - Replace corner tower GLBs with procedural stone towers (stacked cylinders or boxes, wallStoneMat).
 - Keep barrels/carts/lantern as GLBs only if they load reliably — otherwise replace with simple box primitives.
 
+**Exception — town walls and corner towers CAN use castle-kit GLBs via cloning:**
+The castle-kit has modular pieces (`wall.glb`, `wall-corner.glb`, `wall-doorway.glb`, `gate.glb`, `tower-square-base/mid/roof.glb`, `flag-banner-long.glb`) that are designed to be tiled. Load each unique GLB **once** with `ImportMeshAsync`, then call `.clone()` for every repeated placement — clones are instant since geometry is already in memory. This avoids the async timing problem that broke the building GLBs. Suggested approach:
+1. Load `wall.glb` once → clone it for every wall segment tile around the perimeter
+2. Stack `tower-square-base` + `tower-square-mid` + `tower-square-roof` clones at each corner
+3. Place `gate.glb` / `wall-doorway.glb` clones at the 4 gate openings
+4. Add `flag-banner-long.glb` clones on the corner towers
+This would make the town walls look significantly better with minimal code change.
+
 ### 2. Fix player model — revert to procedural capsule
 `buildPlayerMesh()` uses `character-keeper.glb` which looks wrong. Revert to the procedural capsule (simple coloured cylinder+sphere with an accent-coloured orb). The GLB character is not the right look for the game right now.
 
