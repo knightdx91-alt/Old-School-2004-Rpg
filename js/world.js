@@ -567,9 +567,50 @@ const world = {
       state.brazierLight = brazierLight;
     }
 
-    // ── BUILDINGS (all procedural) ─────────────────────────────
-    // Dawn Hall — NW, 3 floors (gx=28-40, gz=29-40, door south)
-    world._buildBuilding(scene, 'dawnHall', 28, 29, 13, 12, 3, amberC, amberR, 'south', 2);
+    // ── BUILDINGS ──────────────────────────────────────────────
+    // Obstacle/roof registration done via _buildBuilding (glbReplaced=true skips visual meshes).
+    // GLBs are loaded once per unique file, then cloned for each placement — avoids async timing issues.
+    const BMOD = 'assets/kenney/modular-buildings/Models/GLB format/';
+    const buildingDefs = [
+      { name: 'dawnHall',         gx: 28, gz: 29, w: 13, d: 12, floors: 3, wC: amberC,  rC: amberR,  door: 'south', dw: 2, file: 'building-sample-tower-a.glb', scale: 5.5, ry: 0 },
+      { name: 'inn',              gx: 60, gz: 29, w: 13, d: 12, floors: 2, wC: woodC,   rC: woodR,   door: 'south', dw: 2, file: 'building-sample-tower-b.glb', scale: 5.0, ry: 0 },
+      { name: 'enchantedWeapons', gx: 24, gz: 55, w: 10, d:  9, floors: 1, wC: purpleC, rC: purpleR, door: 'east',  dw: 1, file: 'building-sample-house-a.glb', scale: 4.0, ry: -Math.PI/2 },
+      { name: 'jeweler',          gx: 24, gz: 65, w:  9, d:  7, floors: 1, wC: redC,    rC: redR,    door: 'east',  dw: 1, file: 'building-sample-house-b.glb', scale: 3.5, ry: -Math.PI/2 },
+      { name: 'apothecary',       gx: 34, gz: 65, w:  9, d:  7, floors: 1, wC: greenC,  rC: greenR,  door: 'east',  dw: 1, file: 'building-sample-house-c.glb', scale: 3.5, ry: -Math.PI/2 },
+      { name: 'familiarSupplies', gx: 66, gz: 55, w: 10, d:  9, floors: 1, wC: blueC,   rC: blueR,   door: 'west',  dw: 1, file: 'building-sample-house-a.glb', scale: 4.0, ry: Math.PI/2 },
+      { name: 'restaurant',       gx: 60, gz: 65, w:  8, d:  7, floors: 1, wC: shopC,   rC: shopR,   door: 'west',  dw: 1, file: 'building-sample-house-b.glb', scale: 3.5, ry: Math.PI/2 },
+      { name: 'teaHouse',         gx: 68, gz: 65, w:  8, d:  7, floors: 1, wC: amberC,  rC: amberR,  door: 'west',  dw: 1, file: 'building-sample-house-c.glb', scale: 3.5, ry: Math.PI/2 },
+    ];
+
+    // Register obstacles/roofs now (synchronous); GLB visuals load after
+    buildingDefs.forEach(def => {
+      world._buildBuilding(scene, def.name, def.gx, def.gz, def.w, def.d, def.floors, def.wC, def.rC, def.door, def.dw, { glbReplaced: true });
+    });
+
+    // Preload each unique GLB file once, then clone per building
+    const uniqueFiles = [...new Set(buildingDefs.map(d => d.file))];
+    const templateMap = {};
+    Promise.all(uniqueFiles.map(file =>
+      BABYLON.SceneLoader.ImportMeshAsync('', BMOD, file, scene)
+        .then(r => { templateMap[file] = r.meshes[0]; templateMap[file].setEnabled(false); })
+        .catch(e => console.warn('Building template load failed:', file, e))
+    )).then(() => {
+      buildingDefs.forEach(def => {
+        const template = templateMap[def.file];
+        if (!template) return;
+        const clone = template.clone(`bldg_${def.name}`);
+        clone.setEnabled(true);
+        const cx = (def.gx + def.w / 2) * TILE_SIZE;
+        const cz = (def.gz + def.d / 2) * TILE_SIZE;
+        clone.position = new BABYLON.Vector3(cx, 0, cz);
+        clone.scaling = new BABYLON.Vector3(def.scale, def.scale, def.scale);
+        clone.rotation.y = def.ry;
+        const b = world.buildings.find(b => b.name === def.name);
+        if (b) b.glbRoot = clone;
+      });
+    });
+
+    // Porch columns + signs for Dawn Hall and Inn
     const porchMat = new BABYLON.StandardMaterial('porchMat', scene);
     porchMat.diffuseColor = new BABYLON.Color3(0.45, 0.38, 0.22);
     [[33, 41], [37, 41]].forEach(([gx, gz], i) => {
@@ -585,8 +626,6 @@ const world = {
     const dawnPath = BABYLON.MeshBuilder.CreateGround('dawnPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
     dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.02, 42*TILE_SIZE);
 
-    // Inn & Tavern — NE, 2 floors (gx=60-72, gz=29-40, door south)
-    world._buildBuilding(scene, 'inn', 60, 29, 13, 12, 2, woodC, woodR, 'south', 2);
     const innSignMat = new BABYLON.StandardMaterial('innSignMat', scene);
     innSignMat.emissiveColor = new BABYLON.Color3(0.55, 0.30, 0.10);
     const innSign = BABYLON.MeshBuilder.CreateBox('innSign', { width: 2.0, height: 0.4, depth: 0.1 }, scene);
@@ -594,24 +633,6 @@ const world = {
     innSign.position = new BABYLON.Vector3(66 * TILE_SIZE, 4.3, 41 * TILE_SIZE + 0.3);
     const innPath = BABYLON.MeshBuilder.CreateGround('innPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
     innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.02, 42*TILE_SIZE);
-
-    // Enchanted Weapons — W side (gx=24-33, gz=55-63, door east)
-    world._buildBuilding(scene, 'enchantedWeapons', 24, 55, 10, 9, 1, purpleC, purpleR, 'east', 1);
-
-    // Jeweler — SW (gx=24-32, gz=65-71, door east)
-    world._buildBuilding(scene, 'jeweler', 24, 65, 9, 7, 1, redC, redR, 'east', 1);
-
-    // Apothecary — SW (gx=34-42, gz=65-71, door east)
-    world._buildBuilding(scene, 'apothecary', 34, 65, 9, 7, 1, greenC, greenR, 'east', 1);
-
-    // Familiar Supplies — E side (gx=66-75, gz=55-63, door west)
-    world._buildBuilding(scene, 'familiarSupplies', 66, 55, 10, 9, 1, blueC, blueR, 'west', 1);
-
-    // Restaurant — SE (gx=60-67, gz=65-71, door west)
-    world._buildBuilding(scene, 'restaurant', 60, 65, 8, 7, 1, shopC, shopR, 'west', 1);
-
-    // Tea House — SE (gx=68-75, gz=65-71, door west)
-    world._buildBuilding(scene, 'teaHouse', 68, 65, 8, 7, 1, amberC, amberR, 'west', 1);
 
     // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
@@ -662,7 +683,7 @@ const world = {
     const centerZ = originZ + worldD / 2;
 
     // Register building bounds for roof transparency
-    const buildingEntry = { name, gxMin: gx, gxMax: gx + w, gzMin: gz, gzMax: gz + d, roofMeshes: [] };
+    const buildingEntry = { name, gxMin: gx, gxMax: gx + w, gzMin: gz, gzMax: gz + d, roofMeshes: [], glbRoot: null };
     world.buildings.push(buildingEntry);
 
     // Mark perimeter as obstacles (door tiles left walkable)
@@ -682,6 +703,9 @@ const world = {
       if (!doorTiles.has(kW)) state.obstacles.add(kW);
       if (!doorTiles.has(kE)) state.obstacles.add(kE);
     }
+
+    // If replaced by a GLB, skip all visual mesh creation
+    if (options.glbReplaced) return;
 
     const wallT = 0.3;
     const floorH = 3.0;
@@ -1116,6 +1140,7 @@ const world = {
     for (const b of world.buildings) {
       const inside = pgx > b.gxMin && pgx < b.gxMax && pgz > b.gzMin && pgz < b.gzMax;
       if (b.roofMeshes) for (const m of b.roofMeshes) m.isVisible = !inside;
+      if (b.glbRoot) b.glbRoot.setEnabled(!inside);
     }
   },
 
