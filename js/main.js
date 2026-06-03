@@ -174,9 +174,11 @@ const game = {
   },
   deleteSave() {
     if (!confirm('Delete the saved game? This cannot be undone.')) return;
+    state.ready = false;
     localStorage.removeItem(SAVE_KEY);
     document.getElementById('continue-btn').style.display = 'none';
-    log('Save deleted. Refresh to start fresh.', 'system');
+    log('Save deleted. Refreshing...', 'system');
+    setTimeout(() => location.reload(), 1000);
   },
   confirmQuit() {
     if (!confirm('Return to title? Current progress will be auto-saved.')) return;
