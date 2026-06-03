@@ -158,8 +158,17 @@ This would make the town walls look significantly better with minimal code chang
 ### 3. Fix NPC models — revert to procedural boxes
 `_spawnNPC()` uses `character-keeper.glb` which looks wrong. Revert to the procedural robed figure (body box + head sphere + colour from `robeColor` param). Keep the `metadata: { npcId }` tagging for click detection.
 
-### 4. Fix ground flicker
+### 4. Fix ground flicker + upgrade ground textures
 The ground plane and road planes at y=0/0.01/0.013/0.014 are z-fighting. Consolidate: set the main grass ground to y=0, dirt roads to y=0.02, cobblestone roads/square to y=0.03, farmland to y=0.02. Each layer must be clearly separated to stop flicker.
+
+**Also upgrade ground textures using existing assets:**
+- Roads and town square: replace the dynamic canvas cobblestone with `assets/kenney/retro-fantasy-kit/Models/GLB format/Textures/cobblestone.png` — load as `BABYLON.Texture` and tile it (uScale/vScale ~8). Use `cobblestoneAlternative.png` for the E-W road to vary it.
+- Water (fountain basin, future river): use `retro-fantasy-kit/Textures/water.png`
+- Scatter survival-kit ground detail props across the countryside for RS2004-style terrain variation:
+  - `patch-grass.glb` and `grass-large.glb` — random grass tufts on the open terrain
+  - `rock-flat.glb` and `rock-flat-grass.glb` — flat rocks scattered outside the walls
+  - `rock-a/b/c.glb` — larger rocks near the tree lines
+  - Load these via the clone approach (load once, clone for each placement)
 
 ### 5. Wolf enemy (after fixes above)
 Spawn near market square (gx=52, gz=45). Wolf mesh from primitives (body, 4 legs, head, snout, ears, tail — grey-brown). Chase AI: pursues player if within 8 tiles, auto-starts combat at distance 1. Flee by walking. Combat ends if distance > 12 ("You escaped") or wolf/player dies. Respawns after 60s.
@@ -203,9 +212,16 @@ Spawn near market square (gx=52, gz=45). Wolf mesh from primitives (body, 4 legs
 - **nipplejs** — virtual joystick for mobile. Much better than tap-to-move for RPG feel. One script tag.
 - **animejs** — lightweight tweening for UI animations (health bar drops, damage numbers floating up, etc.).
 
+### UI packs to download BEFORE next session (user action required)
+Download these from kenney.nl and unzip into `assets/kenney/` the same way as the other packs:
+1. **kenney.nl/assets/ui-pack-rpg-expansion** — RPG-specific: health/mana orbs, hotbar slots, inventory grid, skill icons, potion icons. This is the one closest to the OSRS UI style.
+2. **kenney.nl/assets/ui-pack** — base UI pack: buttons, panels, scrollbars, window frames. Needed alongside the RPG expansion.
+3. **kenney.nl/assets/game-icons** — 1000+ RPG icons (swords, shields, potions, spells) in a consistent style. Free, CC0.
+
+These are needed before building the inventory system, hotbar, and skill/spell icons.
+
 ### More Kenney packs worth grabbing
-- **Kenney UI pack** — button sprites, health bar frames, inventory slot icons — good for upgrading the plain HUD.
-- **Kenney RPG audio** — footsteps, sword hits, magic sounds, ambient town noise.
+- **Kenney RPG audio** — footsteps, sword hits, magic sounds, ambient town noise. Download from kenney.nl same as other packs.
 
 ### 3D asset sources
 - **assets/kenney/** — already downloaded: fantasy-town-kit, nature-kit, castle-kit, retro-fantasy-kit, graveyard-kit, modular-buildings, animated characters, and more. Use `_loadProp(scene, filename, gx, gz, { basePath, scale, ry })` to place any GLB from these packs.
