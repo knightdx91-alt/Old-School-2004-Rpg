@@ -40,7 +40,27 @@
     const s = document.createElement('script');
     s.src = sources[i++];
     s.crossOrigin = 'anonymous';
-    s.onload = () => { window.__babylonLoaded = true; loadScriptsSequentially(gameScripts); };
+    s.onload = () => {
+      window.__babylonLoaded = true;
+      // Load the GLTF/GLB loader plugin before game scripts
+      const loaderSrc = sources[i-1].includes('cdn.babylonjs.com')
+        ? 'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js'
+        : sources[i-1].includes('jsdelivr')
+          ? 'https://cdn.jsdelivr.net/npm/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
+          : sources[i-1].includes('unpkg')
+            ? 'https://unpkg.com/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
+            : null;
+      if (loaderSrc) {
+        const ls = document.createElement('script');
+        ls.src = loaderSrc;
+        ls.crossOrigin = 'anonymous';
+        ls.onload = () => loadScriptsSequentially(gameScripts);
+        ls.onerror = () => loadScriptsSequentially(gameScripts); // proceed even if loaders fail
+        document.head.appendChild(ls);
+      } else {
+        loadScriptsSequentially(gameScripts);
+      }
+    };
     s.onerror = () => tryNext();
     document.head.appendChild(s);
   }

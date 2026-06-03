@@ -587,27 +587,19 @@ const world = {
       world._buildBuilding(scene, def.name, def.gx, def.gz, def.w, def.d, def.floors, def.wC, def.rC, def.door, def.dw, { glbReplaced: true });
     });
 
-    // Preload each unique GLB file once, then clone per building
-    const uniqueFiles = [...new Set(buildingDefs.map(d => d.file))];
-    const templateMap = {};
-    Promise.all(uniqueFiles.map(file =>
-      BABYLON.SceneLoader.ImportMeshAsync('', BMOD, file, scene)
-        .then(r => { templateMap[file] = r.meshes[0]; templateMap[file].setEnabled(false); })
-        .catch(e => console.warn('Building template load failed:', file, e))
-    )).then(() => {
-      buildingDefs.forEach(def => {
-        const template = templateMap[def.file];
-        if (!template) return;
-        const clone = template.clone(`bldg_${def.name}`);
-        clone.setEnabled(true);
-        const cx = (def.gx + def.w / 2) * TILE_SIZE;
-        const cz = (def.gz + def.d / 2) * TILE_SIZE;
-        clone.position = new BABYLON.Vector3(cx, 0, cz);
-        clone.scaling = new BABYLON.Vector3(def.scale, def.scale, def.scale);
-        clone.rotation.y = def.ry;
+    // Load all buildings in parallel — each independently placed when ready
+    buildingDefs.forEach(def => {
+      const cx = (def.gx + def.w / 2) * TILE_SIZE;
+      const cz = (def.gz + def.d / 2) * TILE_SIZE;
+      BABYLON.SceneLoader.ImportMeshAsync('', BMOD, def.file, scene).then(r => {
+        const root = r.meshes[0];
+        root.name = `bldg_${def.name}`;
+        root.position = new BABYLON.Vector3(cx, 0, cz);
+        root.scaling = new BABYLON.Vector3(def.scale, def.scale, def.scale);
+        root.rotation.y = def.ry;
         const b = world.buildings.find(b => b.name === def.name);
-        if (b) b.glbRoot = clone;
-      });
+        if (b) b.glbRoot = root;
+      }).catch(e => console.warn('Building load failed:', def.file, e));
     });
 
     // Porch columns + signs for Dawn Hall and Inn
