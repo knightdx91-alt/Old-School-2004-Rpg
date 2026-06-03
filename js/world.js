@@ -182,20 +182,42 @@ const world = {
   _buildGround(scene) {
     const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
     groundMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
-    const grassTex = new BABYLON.DynamicTexture('grassTex', { width: 256, height: 256 }, scene);
+
+    // Rich procedural grass: base colour + darker/lighter patches + blade strokes
+    const grassTex = new BABYLON.DynamicTexture('grassTex', { width: 512, height: 512 }, scene);
     const gc = grassTex.getContext();
-    gc.fillStyle = '#3a4f18'; gc.fillRect(0, 0, 256, 256);
-    for (let i = 0; i < 120; i++) {
-      const hue = (Math.sin(i * 47.1) * 0.5 + 0.5);
-      const lum = 22 + Math.floor(hue * 10);
-      gc.fillStyle = `hsl(88,50%,${lum}%)`;
-      const tx = (Math.sin(i * 31.7) * 0.5 + 0.5) * 256;
-      const tz = (Math.cos(i * 17.3) * 0.5 + 0.5) * 256;
-      gc.fillRect(tx, tz, 2 + (i % 3), 7 + (i % 4));
+
+    // Base dark green
+    gc.fillStyle = '#2e4412'; gc.fillRect(0, 0, 512, 512);
+
+    // Broad colour patches for variety
+    const patches = [
+      ['#3a5518', 80], ['#263a0e', 60], ['#425e1a', 70],
+      ['#304810', 50], ['#4a6820', 45], ['#1e300a', 55],
+    ];
+    for (const [col, count] of patches) {
+      gc.fillStyle = col;
+      for (let i = 0; i < count; i++) {
+        const px = (Math.sin(i * 73.1 + patches.indexOf([col, count]) * 200) * 0.5 + 0.5) * 512;
+        const pz = (Math.cos(i * 51.7 + patches.indexOf([col, count]) * 300) * 0.5 + 0.5) * 512;
+        const r = 12 + (i % 5) * 6;
+        gc.beginPath(); gc.arc(px, pz, r, 0, Math.PI * 2); gc.fill();
+      }
     }
+
+    // Blade strokes
+    for (let i = 0; i < 600; i++) {
+      const lum = 18 + Math.floor((Math.sin(i * 37.3) * 0.5 + 0.5) * 16);
+      gc.fillStyle = `hsl(90,52%,${lum}%)`;
+      const tx = (Math.sin(i * 31.7) * 0.5 + 0.5) * 512;
+      const tz = (Math.cos(i * 17.3) * 0.5 + 0.5) * 512;
+      gc.fillRect(tx, tz, 1 + (i % 2), 5 + (i % 5));
+    }
+
     grassTex.update();
-    grassTex.uScale = 25; grassTex.vScale = 25;
+    grassTex.uScale = 30; grassTex.vScale = 30;
     groundMat.diffuseTexture = grassTex;
+
     const ground = BABYLON.MeshBuilder.CreateGround('ground', {
       width: GRID_SIZE * TILE_SIZE,
       height: GRID_SIZE * TILE_SIZE,
@@ -212,22 +234,18 @@ const world = {
     state.torchLights = [];
 
     // ── MATERIALS ──────────────────────────────────────────────
+    const TEX = 'assets/kenney/retro-fantasy-kit/Models/GLB format/Textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobTex = new BABYLON.DynamicTexture('cobTex', { width: 256, height: 256 }, scene);
-    const cc = cobTex.getContext();
-    cc.fillStyle = '#3a3228'; cc.fillRect(0, 0, 256, 256);
-    const sh = (r, c) => (Math.sin(r * 127.3 + c * 311.7) * 0.5 + 0.5);
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const ofs = (r % 2) * 16;
-        const sx = (c * 32 + ofs) % 256, sy = r * 32;
-        cc.fillStyle = `hsl(26,16%,${30 + Math.floor(sh(r, c) * 12)}%)`;
-        cc.fillRect(sx + 2, sy + 2, 28, 28);
-      }
-    }
-    cobTex.update(); cobTex.uScale = 8; cobTex.vScale = 8;
+    const cobTex = new BABYLON.Texture(TEX + 'cobblestone.png', scene);
+    cobTex.uScale = 8; cobTex.vScale = 8;
     cobbleMat.diffuseTexture = cobTex;
+
+    const cobbleAltMat = new BABYLON.StandardMaterial('cobbleAltMat', scene);
+    cobbleAltMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
+    const cobAltTex = new BABYLON.Texture(TEX + 'cobblestoneAlternative.png', scene);
+    cobAltTex.uScale = 8; cobAltTex.vScale = 8;
+    cobbleAltMat.diffuseTexture = cobAltTex;
 
     const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
     dirtMat.diffuseColor = new BABYLON.Color3(0.50, 0.36, 0.18);
@@ -372,11 +390,15 @@ const world = {
       const r = BABYLON.MeshBuilder.CreateGround(`dirtRd_${i}`, { width: w, height: h }, scene);
       r.material = dirtMat; r.position = new BABYLON.Vector3(cx, 0.02, cz);
     });
-    // Cobblestone inside: N-S road gz=27-73, E-W road gx=22-78
+    // Cobblestone inside: N-S and E-W roads at different Y to prevent z-fighting
+    // Intersection square sits on top of both
     const nsRd = BABYLON.MeshBuilder.CreateGround('nsRoad', { width: 7*TILE_SIZE, height: 46*TILE_SIZE }, scene);
     nsRd.material = cobbleMat; nsRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.04, 50*TILE_SIZE);
     const ewRd = BABYLON.MeshBuilder.CreateGround('ewRoad', { width: 56*TILE_SIZE, height: 7*TILE_SIZE }, scene);
-    ewRd.material = cobbleMat; ewRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.04, 50*TILE_SIZE);
+    ewRd.material = cobbleAltMat; ewRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.06, 50*TILE_SIZE);
+    // Intersection patch on top of both roads
+    const crossRd = BABYLON.MeshBuilder.CreateGround('crossRoad', { width: 7*TILE_SIZE, height: 7*TILE_SIZE }, scene);
+    crossRd.material = cobbleMat; crossRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.08, 50*TILE_SIZE);
 
     // ── TOWN WALLS ─────────────────────────────────────────────
     const WALL_H = 2.8, WALL_T = 0.5;
@@ -505,8 +527,8 @@ const world = {
     const sq = BABYLON.MeshBuilder.CreateGround('townSquare', {
       width: (SQ2X - SQ1X) * TILE_SIZE, height: (SQ2Z - SQ1Z) * TILE_SIZE
     }, scene);
-    sq.material = cobbleMat;
-    sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.04, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
+    sq.material = cobbleAltMat;
+    sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.10, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
 
     // Fountain — procedural
     ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
@@ -591,7 +613,7 @@ const world = {
     dawnSign.material = dawnSignMat;
     dawnSign.position = new BABYLON.Vector3(35 * TILE_SIZE, 4.3, 40 * TILE_SIZE + 0.3);
     const dawnPath = BABYLON.MeshBuilder.CreateGround('dawnPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
-    dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.02, 42*TILE_SIZE);
+    dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.12, 42*TILE_SIZE);
 
     const innSignMat = new BABYLON.StandardMaterial('innSignMat', scene);
     innSignMat.emissiveColor = new BABYLON.Color3(0.55, 0.30, 0.10);
@@ -599,7 +621,7 @@ const world = {
     innSign.material = innSignMat;
     innSign.position = new BABYLON.Vector3(66 * TILE_SIZE, 4.3, 41 * TILE_SIZE + 0.3);
     const innPath = BABYLON.MeshBuilder.CreateGround('innPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
-    innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.02, 42*TILE_SIZE);
+    innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.12, 42*TILE_SIZE);
 
     // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
