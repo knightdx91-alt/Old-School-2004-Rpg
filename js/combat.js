@@ -47,10 +47,19 @@ const actions = {
   talkTo(npcId) {
     const npc = world.npcs.find(n => n.id === npcId);
     if (!npc) return;
-    if (npc.dialogueOptions) {
-      dialogue.startOptions(npc);
+    const dist = Math.abs(state.player.gx - npc.gx) + Math.abs(state.player.gz - npc.gz);
+    if (dist <= 1) {
+      if (npc.dialogueOptions) dialogue.startOptions(npc);
+      else dialogue.start(npc.name, null, npc.dialogue);
     } else {
-      dialogue.start(npc.name, null, npc.dialogue);
+      const path = world.findPathAdjacent(state.player.gx, state.player.gz, npc.gx, npc.gz);
+      if (!path) { log('You cannot reach them.', 'system'); return; }
+      state.path = path; state.pathStep = 0;
+      state.pendingAction = { type: 'talk', npcId };
+      const wp = world.gridToWorld(npc.gx, npc.gz);
+      state.targetMarker.position.x = wp.x;
+      state.targetMarker.position.z = wp.z;
+      state.targetMarker.isVisible = true;
     }
   },
   examine(target) {
@@ -319,7 +328,8 @@ const dialogue = {
     this.active = true; this.lines = lines; this.index = 0; this._npc = null;
     const ol = document.getElementById('dialogue-overlay');
     ol.classList.add('active');
-    ol.onclick = () => this.advance();
+    // Click the backdrop (not the box) to dismiss; click the box/advance to continue
+    ol.onclick = (e) => { if (e.target === ol) this.end(); };
     document.getElementById('dialogue-speaker').textContent = speaker;
     document.getElementById('dialogue-speaker').style.color = color || 'var(--gold)';
     document.getElementById('dialogue-options').innerHTML = '';
@@ -338,7 +348,7 @@ const dialogue = {
     this.active = true; this._npc = npc; this.lines = []; this.index = 0;
     const ol = document.getElementById('dialogue-overlay');
     ol.classList.add('active');
-    ol.onclick = null;
+    ol.onclick = (e) => { if (e.target === ol) this.end(); };
     document.getElementById('dialogue-speaker').textContent = npc.name;
     document.getElementById('dialogue-speaker').style.color = 'var(--gold)';
     document.getElementById('dialogue-advance').style.display = 'none';

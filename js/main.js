@@ -69,6 +69,17 @@ function gameTick() {
             const dist = Math.abs(state.player.gx - e.gx) + Math.abs(state.player.gz - e.gz);
             if (dist === 1) combat.start(e);
           }
+        } else if (state.pendingAction && state.pendingAction.type === 'talk') {
+          const npcId = state.pendingAction.npcId;
+          state.pendingAction = null;
+          const npc = world.npcs.find(n => n.id === npcId);
+          if (npc) {
+            const dist = Math.abs(state.player.gx - npc.gx) + Math.abs(state.player.gz - npc.gz);
+            if (dist <= 1) {
+              if (npc.dialogueOptions) dialogue.startOptions(npc);
+              else dialogue.start(npc.name, null, npc.dialogue);
+            }
+          }
         }
         break;
       }
@@ -149,7 +160,10 @@ const game = {
       hp: s.stats.hp, hpMax: s.stats.hp,
       mp: s.stats.mp, mpMax: s.stats.mp,
       atk: s.stats.atk, def: s.stats.def,
-      level: 1, xp: 0, xpNext: 100
+      level: 1, xp: 0, xpNext: 100,
+      inventory: [],
+      equipped: { head:null, cape:null, amulet:null, weapon:null, body:null,
+                  shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null }
     };
     intro.start();
   },
@@ -181,6 +195,12 @@ const game = {
       if (!raw) return;
       const data = JSON.parse(raw);
       state.player = data.player;
+      // Ensure older saves have the new inventory/equipped fields
+      if (!state.player.inventory) state.player.inventory = [];
+      if (!state.player.equipped) state.player.equipped = {
+        head:null, cape:null, amulet:null, weapon:null, body:null,
+        shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null
+      };
       state.worldClock = data.worldClock || 0;
       state.hudScale = data.hudScale || 1;
       document.documentElement.style.setProperty('--hud-scale', state.hudScale);

@@ -13,7 +13,7 @@ const hud = {
     if (tab === 'stats') panel.innerHTML = this.renderStats();
     else if (tab === 'combat') panel.innerHTML = this.renderCombat();
     else if (tab === 'options') panel.innerHTML = this.renderOptions();
-    else if (tab === 'inventory') panel.innerHTML = this.renderPlaceholder('Inventory', 'Your pack is empty. Items, pickups, and crafted goods will appear here in a coming update.');
+    else if (tab === 'inventory') panel.innerHTML = this.renderInventory();
     else if (tab === 'spellbook') panel.innerHTML = this.renderSpellbook();
     else if (tab === 'quests') panel.innerHTML = this.renderPlaceholder('Quests', 'No quests yet. Speak with the academy faculty in a coming update to take on your first task.');
   },
@@ -61,6 +61,49 @@ const hud = {
         <div style="font-size:0.85rem; font-style:italic; margin-top:6px; color:rgba(217,201,168,0.75)">${sp.desc}</div>
       </div>
       <div style="font-style:italic; font-size:0.8rem; color:rgba(217,201,168,0.5); margin-top:12px;">More spells will reveal themselves as you grow in power...</div>`;
+  },
+  renderInventory() {
+    const p = state.player;
+    const eq = p.equipped || {};
+    const inv = p.inventory || [];
+    const bonuses = typeof getEquipBonuses === 'function' ? getEquipBonuses() : { atk: 0, def: 0 };
+    const slot = (id, label) => {
+      const itemId = eq[id];
+      const item = itemId ? ITEMS[itemId] : null;
+      const icon = item ? (item.icon || '⬜') : '';
+      const name = item ? item.name : label;
+      const cls = item ? 'pd-slot filled' : 'pd-slot empty';
+      const click = item
+        ? `onclick="unequipSlot('${id}')" title="Unequip ${item.name}"`
+        : `title="${label} slot"`;
+      return `<div class="${cls}" data-slot="${id}" ${click}>${icon}<span>${name}</span></div>`;
+    };
+    const bonusStr = `+${bonuses.atk} ATK  +${bonuses.def} DEF`;
+    // Pack items
+    const packRows = inv.length === 0
+      ? '<div style="color:rgba(217,201,168,0.45);font-style:italic;font-size:0.8rem;padding:4px 0;">Empty pack</div>'
+      : inv.map(id => {
+          const item = ITEMS[id];
+          if (!item) return '';
+          const action = item.type === 'consumable'
+            ? `<button class="btn small" onclick="useItem('${id}')">Use</button>`
+            : `<button class="btn small" onclick="equipItem('${id}')">Equip</button>`;
+          return `<div class="pack-row">${item.icon||'📦'} <span class="pack-name">${item.name}</span><span class="pack-desc">${item.desc}</span>${action}</div>`;
+        }).join('');
+    return `
+      <div class="inv-root">
+        <div class="pd-bonuses">${bonusStr}</div>
+        <div class="paperdoll">
+          <div class="pd-row pd-r1">${slot('head','Head')}</div>
+          <div class="pd-row pd-r2">${slot('cape','Cape')}${slot('amulet','Amulet')}<div class="pd-spacer"></div></div>
+          <div class="pd-row pd-r3">${slot('weapon','Weapon')}<div class="pd-figure">⚗</div>${slot('shield','Shield')}</div>
+          <div class="pd-row pd-r4"><div class="pd-spacer"></div>${slot('body','Body')}<div class="pd-spacer"></div></div>
+          <div class="pd-row pd-r5">${slot('legs','Legs')}<div class="pd-spacer"></div>${slot('ring','Ring')}</div>
+          <div class="pd-row pd-r6">${slot('gloves','Gloves')}${slot('boots','Boots')}<div class="pd-spacer"></div></div>
+        </div>
+        <div class="pack-label">Pack</div>
+        <div class="pack-grid">${packRows}</div>
+      </div>`;
   },
   renderPlaceholder(title, text) {
     return `<div class="placeholder-tab"><div class="pt-title">${title}</div>${text}</div>`;

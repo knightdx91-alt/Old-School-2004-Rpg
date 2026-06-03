@@ -18,6 +18,7 @@
   const gameScripts = [
     'js/data.js',
     'js/state.js',
+    'js/items.js',
     'js/quiz.js',
     'js/world.js',
     'js/combat.js',

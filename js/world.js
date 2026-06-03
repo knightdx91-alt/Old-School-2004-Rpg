@@ -67,6 +67,19 @@ const world = {
       cam.inputs.attached.pointers.pinchPrecision = 12;
       cam.inputs.attached.pointers.useNaturalPinchZoom = false;
     }
+    // Fix zoom getting stuck: reset pinch tracking on pointer cancel or multi-finger lift
+    const _resetCamPinch = () => {
+      const p = cam.inputs.attached.pointers;
+      if (p) { p._pointA = null; p._pointB = null; }
+    };
+    canvas.addEventListener('pointercancel', _resetCamPinch);
+    // When two-finger pinch ends (one finger lifts), BabylonJS sometimes keeps _pointB
+    // active. Force a reset whenever all fingers are up.
+    canvas.addEventListener('pointerup', () => {
+      if (!canvas.getPointerCapture) return;
+      // slight delay so BabylonJS processes its own pointerup first
+      setTimeout(_resetCamPinch, 50);
+    });
     state.camera = cam;
 
     state.ambientLight = new BABYLON.HemisphericLight('amb', new BABYLON.Vector3(0, 1, 0), scene);
