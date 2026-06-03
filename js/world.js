@@ -95,6 +95,7 @@ const world = {
     state.obstacles.clear();
     world.buildings = [];
     world.npcs = [];
+    world.chests = {}; // chestId → { lidMesh }
 
     // Ground
     world._buildGround(scene);
@@ -601,6 +602,9 @@ const world = {
       brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2); brazierLight.intensity = 0; brazierLight.range = 12;
       state.brazierLight = brazierLight;
     }
+
+    // ── CHEST (beside fountain) ────────────────────────────────
+    world._buildChest(scene, 'fountain', 52, 53);
 
     // ── BUILDINGS (procedural — supports walking inside) ───────
     world._buildBuilding(scene, 'dawnHall',         28, 29, 13, 12, 3, amberC,  amberR,  'south', 2);
@@ -1152,6 +1156,66 @@ const world = {
     }).catch(err => console.warn('Failed to load prop ' + modelName, err));
   },
 
+  _buildChest(scene, chestId, gx, gz) {
+    state.obstacles.add(`${gx},${gz}`);
+    const wp = world.gridToWorld(gx, gz);
+    const woodMat = new BABYLON.StandardMaterial(`chestWood_${chestId}`, scene);
+    woodMat.diffuseColor = new BABYLON.Color3(0.32, 0.20, 0.10);
+    const bandMat = new BABYLON.StandardMaterial(`chestBand_${chestId}`, scene);
+    bandMat.diffuseColor = new BABYLON.Color3(0.55, 0.45, 0.15);
+    bandMat.emissiveColor = new BABYLON.Color3(0.12, 0.10, 0.03);
+
+    // Body
+    const body = BABYLON.MeshBuilder.CreateBox(`chest_${chestId}`, { width: 1.1, height: 0.6, depth: 0.75 }, scene);
+    body.material = woodMat;
+    body.position = new BABYLON.Vector3(wp.x, 0.30, wp.z);
+    body.metadata = { chestId };
+
+    // Bands
+    [-0.3, 0.3].forEach((ox, i) => {
+      const band = BABYLON.MeshBuilder.CreateBox(`chestBand_${chestId}_${i}`, { width: 0.06, height: 0.65, depth: 0.78 }, scene);
+      band.material = bandMat; band.position = new BABYLON.Vector3(wp.x + ox, 0.30, wp.z);
+      band.metadata = { chestId };
+    });
+
+    // Lid (pivots from back edge — offset pivot via parent)
+    const lidPivot = new BABYLON.TransformNode(`chestLidPivot_${chestId}`, scene);
+    lidPivot.position = new BABYLON.Vector3(wp.x, 0.60, wp.z - 0.375);
+    const lid = BABYLON.MeshBuilder.CreateBox(`chestLid_${chestId}`, { width: 1.1, height: 0.12, depth: 0.75 }, scene);
+    lid.material = woodMat;
+    lid.parent = lidPivot;
+    lid.position = new BABYLON.Vector3(0, 0.06, 0.375);
+    lid.metadata = { chestId };
+    // Gold latch
+    const latch = BABYLON.MeshBuilder.CreateBox(`chestLatch_${chestId}`, { width: 0.18, height: 0.10, depth: 0.07 }, scene);
+    latch.material = bandMat;
+    latch.parent = lidPivot;
+    latch.position = new BABYLON.Vector3(0, 0.06, 0.76);
+    latch.metadata = { chestId };
+
+    world.chests[chestId] = { lidPivot, opened: false };
+
+    // If already opened (loaded save), tilt the lid
+    if (typeof CHESTS !== 'undefined' && CHESTS[chestId] && CHESTS[chestId].opened) {
+      lidPivot.rotation.x = -Math.PI * 0.65;
+    }
+  },
+
+  openChestLid(chestId) {
+    const c = world.chests[chestId];
+    if (!c || c.opened) return;
+    c.opened = true;
+    const pivot = c.lidPivot;
+    if (!pivot) return;
+    // Animate lid opening over ~400ms using a simple frame observer
+    let t = 0;
+    const obs = state.scene.onBeforeRenderObservable.add(() => {
+      t += state.engine.getDeltaTime() / 400;
+      pivot.rotation.x = -Math.PI * 0.65 * Math.min(t, 1);
+      if (t >= 1) state.scene.onBeforeRenderObservable.remove(obs);
+    });
+  },
+
   _buildStall(scene, gx, gz, idx) {
     const tableMat = new BABYLON.StandardMaterial(`stallTableMat_${idx}`, scene);
     tableMat.diffuseColor = new BABYLON.Color3(0.40, 0.28, 0.14);
@@ -1653,7 +1717,7 @@ const world = {
 
   handleTap(ev) {
     if (!state.ready) return;
-    if (dialogue.active) return;
+    if (dialogue.active || loot.active) return;
     ctxMenu.hide();
     const scene = state.scene;
     const pick = scene.pick(scene.pointerX, scene.pointerY);
@@ -1671,6 +1735,12 @@ const world = {
     }
     if (enemyClicked) {
       actions.attack(enemyClicked);
+      return;
+    }
+
+    // Did we click a chest?
+    if (pick.pickedMesh && pick.pickedMesh.metadata && pick.pickedMesh.metadata.chestId) {
+      actions.openChest(pick.pickedMesh.metadata.chestId);
       return;
     }
 

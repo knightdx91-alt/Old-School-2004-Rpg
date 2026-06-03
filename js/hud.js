@@ -71,7 +71,9 @@ const hud = {
       const itemId = eq[id];
       const item = itemId ? ITEMS[itemId] : null;
       const icon = item ? (item.icon || '⬜') : '';
-      const name = item ? item.name : label;
+      let name = item ? item.name : label;
+      // Show arrow count on quiver
+      if (itemId === 'quiver_arrows') name = `${p.ammoCount || 0}/25`;
       const cls = item ? 'pd-slot filled' : 'pd-slot empty';
       const click = item
         ? `onclick="unequipSlot('${id}')" title="Unequip ${item.name}"`

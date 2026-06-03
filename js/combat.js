@@ -62,6 +62,26 @@ const actions = {
       state.targetMarker.isVisible = true;
     }
   },
+  openChest(chestId) {
+    // Find chest grid position from world.chests entry
+    const chestMesh = state.scene && state.scene.getMeshByName(`chest_${chestId}`);
+    if (!chestMesh) return;
+    const wp = chestMesh.position;
+    const { gx, gz } = world.worldToGrid(wp.x, wp.z);
+    const dist = Math.abs(state.player.gx - gx) + Math.abs(state.player.gz - gz);
+    if (dist <= 1) {
+      loot.open(chestId);
+    } else {
+      const path = world.findPathAdjacent(state.player.gx, state.player.gz, gx, gz);
+      if (!path) { log('You cannot reach the chest.', 'system'); return; }
+      state.path = path; state.pathStep = 0;
+      state.pendingAction = { type: 'chest', chestId };
+      const wp2 = world.gridToWorld(gx, gz);
+      state.targetMarker.position.x = wp2.x;
+      state.targetMarker.position.z = wp2.z;
+      state.targetMarker.isVisible = true;
+    }
+  },
   examine(target) {
     if (target.type === 'enemy') {
       const e = target.enemy;

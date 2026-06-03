@@ -69,6 +69,10 @@ function gameTick() {
             const dist = Math.abs(state.player.gx - e.gx) + Math.abs(state.player.gz - e.gz);
             if (dist === 1) combat.start(e);
           }
+        } else if (state.pendingAction && state.pendingAction.type === 'chest') {
+          const chestId = state.pendingAction.chestId;
+          state.pendingAction = null;
+          loot.open(chestId);
         } else if (state.pendingAction && state.pendingAction.type === 'talk') {
           const npcId = state.pendingAction.npcId;
           state.pendingAction = null;
@@ -163,7 +167,8 @@ const game = {
       level: 1, xp: 0, xpNext: 100,
       inventory: [],
       equipped: { head:null, cape:null, amulet:null, weapon:null, body:null,
-                  shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null }
+                  shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null },
+      ammoCount: 0
     };
     intro.start();
   },
@@ -197,6 +202,7 @@ const game = {
       state.player = data.player;
       // Ensure older saves have the new inventory/equipped fields
       if (!state.player.inventory) state.player.inventory = [];
+      if (state.player.ammoCount === undefined) state.player.ammoCount = 0;
       if (!state.player.equipped) state.player.equipped = {
         head:null, cape:null, amulet:null, weapon:null, body:null,
         shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null

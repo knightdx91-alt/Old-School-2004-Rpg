@@ -102,6 +102,18 @@
                                                                                                                                                                                                                                                                                                                             <!-- Context menu -->
                                                                                                                                                                                                                                                                                                                             <div class="ctx-menu" id="ctx-menu"></div>
 
+            <!-- Loot -->
+            <div class="loot-overlay" id="loot-overlay">
+              <div class="loot-box">
+                <div class="loot-header">
+                  <span class="loot-title" id="loot-title">Chest</span>
+                  <button class="btn small" id="loot-take-all" onclick="loot.takeAll()">Take All</button>
+                  <button class="btn small" onclick="loot.close()">Close</button>
+                </div>
+                <div class="loot-items" id="loot-items"></div>
+              </div>
+            </div>
+
             <!-- Dialogue -->
             <div class="dialogue-overlay" id="dialogue-overlay">
               <div class="dialogue-box">
