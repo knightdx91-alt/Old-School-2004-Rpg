@@ -377,10 +377,16 @@ hud.rsTab = function(tab) {
 };
 
 hud.applyDockState = function() {
+  const hudEl = document.querySelector('.hud');
   const chatDock = document.getElementById('chat-dock');
-  if (!chatDock) return;
-  chatDock.classList.toggle('open', hud.ui.chatOpen);
-  // Keep the toggle button visible — it doubles as the close button
+  const chatToggle = document.getElementById('chat-toggle');
+  if (!chatDock || !hudEl) return;
+  const open = hud.ui.chatOpen;
+  chatDock.classList.toggle('open', open);
+  // These classes drive the flex-basis rules that give the dock its width
+  hudEl.classList.toggle('only-chat', open);
+  hudEl.classList.toggle('all-closed', !open);
+  if (chatToggle) chatToggle.classList.toggle('hidden', open);
 };
 
 hud.toggleMenu = function() {};
