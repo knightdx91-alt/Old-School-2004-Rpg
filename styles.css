@@ -712,6 +712,61 @@
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
   padding: 0; line-height: 1;
 }
+.rs-btn:hover {
+  border-color: var(--gold);
+  background: rgba(58,42,22,0.95);
+}
+.rs-btn.active {
+  border-color: var(--gold);
+  background: rgba(212,168,71,0.18);
+  box-shadow: 0 0 10px rgba(212,168,71,0.35);
+}
+#rs-panel {
+  display: none;
+  flex-direction: column;
+  width: 256px;
+  max-height: calc(100vh - 20px);
+  background: rgba(14,10,6,0.97);
+  border: 1px solid rgba(212,168,71,0.4);
+  border-right: none;
+  overflow-y: auto;
+  padding: 14px;
+  pointer-events: all;
+}
+#rs-panel.open { display: flex; }
+/* Minimap shifts left to clear the button column */
+#minimap-zone { right: 62px !important; }
+
+/* ── RS2004 icon sidebar ─────────────────────────────────────── */
+#rs-sidebar {
+  position: fixed;
+  right: 0; bottom: 0; top: 0;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 400;
+}
+#rs-btn-col {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 6px 14px;
+  background: rgba(10,7,5,0.9);
+  border-left: 1px solid rgba(212,168,71,0.28);
+  pointer-events: all;
+}
+.rs-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(212,168,71,0.35);
+  background: rgba(26,18,10,0.95);
+  color: var(--gold);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  padding: 0; line-height: 1;
+}
 .rs-btn:hover { border-color: var(--gold); background: rgba(58,42,22,0.95); }
 .rs-btn.active {
   border-color: var(--gold);
