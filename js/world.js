@@ -269,39 +269,45 @@ const world = {
     const shopC   = new BABYLON.Color3(0.72, 0.50, 0.18), shopR   = new BABYLON.Color3(0.34, 0.20, 0.07);
 
     // ── HELPERS ────────────────────────────────────────────────
-    const placeTree = (gx, gz, sfx) => {
+    const placeTree = (gx, gz) => {
       const key = `${gx},${gz}`;
       if (state.obstacles.has(key)) return;
       state.obstacles.add(key);
-      const wp = world.gridToWorld(gx, gz);
-      const id = sfx || `${gx}_${gz}`;
-      const trunk = BABYLON.MeshBuilder.CreateCylinder(`tr_${id}`, { height: 1.4, diameterTop: 0.35, diameterBottom: 0.5 }, scene);
-      trunk.material = trunkMat; trunk.position = new BABYLON.Vector3(wp.x, 0.7, wp.z);
-      const canopy = BABYLON.MeshBuilder.CreateSphere(`tc_${id}`, { diameter: 2.6, segments: 6 }, scene);
-      canopy.material = treeMat; canopy.position = new BABYLON.Vector3(wp.x, 2.0, wp.z); canopy.scaling.y = 1.3;
+      const variants = [
+        { file: 'tree_default.glb',     scale: 2.2 },
+        { file: 'tree_oak.glb',         scale: 2.0 },
+        { file: 'tree_fat.glb',         scale: 1.8 },
+        { file: 'tree_pineDefaultA.glb', scale: 2.0 },
+      ];
+      const v = variants[(gx + gz) % 4];
+      world._loadProp(scene, v.file, gx, gz, {
+        scale: v.scale,
+        ry: (gx * 0.7 + gz * 0.3) % (Math.PI * 2),
+        basePath: 'assets/kenney/nature-kit/Models/GLB format/'
+      });
     };
 
     const placeOrchard = (gx, gz) => {
       const key = `${gx},${gz}`;
       if (state.obstacles.has(key)) return;
       state.obstacles.add(key);
-      const wp = world.gridToWorld(gx, gz);
-      const t = BABYLON.MeshBuilder.CreateCylinder(`otr_${gx}_${gz}`, { height: 1.0, diameterTop: 0.2, diameterBottom: 0.3 }, scene);
-      t.material = orchTrunkMat; t.position = new BABYLON.Vector3(wp.x, 0.5, wp.z);
-      const c = BABYLON.MeshBuilder.CreateSphere(`otc_${gx}_${gz}`, { diameter: 1.8, segments: 5 }, scene);
-      c.material = orchLeafMat; c.position = new BABYLON.Vector3(wp.x, 1.6, wp.z);
+      world._loadProp(scene, 'tree_small.glb', gx, gz, {
+        scale: 1.5,
+        ry: (gx + gz) % (Math.PI * 2),
+        basePath: 'assets/kenney/nature-kit/Models/GLB format/'
+      });
     };
 
     const placeTorch = (gx, gz) => {
+      world._loadProp(scene, 'lightpost-single.glb', gx, gz, {
+        scale: 2.5,
+        basePath: 'assets/kenney/graveyard-kit/Models/GLB format/'
+      });
       const wp = world.gridToWorld(gx, gz);
-      const post = BABYLON.MeshBuilder.CreateCylinder(`tpost_${gx}_${gz}`, { height: 2.0, diameter: 0.1 }, scene);
-      post.material = torchMat; post.position = new BABYLON.Vector3(wp.x, 1.0, wp.z);
-      const bkt = BABYLON.MeshBuilder.CreateBox(`tbkt_${gx}_${gz}`, { width: 0.18, height: 0.08, depth: 0.18 }, scene);
-      bkt.material = torchMat; bkt.position = new BABYLON.Vector3(wp.x, 2.05, wp.z);
-      const fl = BABYLON.MeshBuilder.CreateSphere(`tflame_${gx}_${gz}`, { diameter: 0.22 }, scene);
-      fl.material = torchFlameMat; fl.position = new BABYLON.Vector3(wp.x, 2.25, wp.z);
-      const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 2.3, wp.z), scene);
-      tl.diffuse = new BABYLON.Color3(1, 0.55, 0.2); tl.intensity = 0; tl.range = 9;
+      const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 3.5, wp.z), scene);
+      tl.diffuse = new BABYLON.Color3(1, 0.75, 0.4);
+      tl.intensity = 0;
+      tl.range = 9;
       state.torchLights.push(tl);
     };
 
@@ -494,31 +500,26 @@ const world = {
     sq.material = cobbleMat;
     sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.013, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
 
-    // Fountain basin
-    const basinMat = new BABYLON.StandardMaterial('basinMat', scene);
-    basinMat.diffuseColor = new BABYLON.Color3(0.38, 0.33, 0.24);
-    const basin = BABYLON.MeshBuilder.CreateCylinder('fountainBasin', {
-      height: 0.32, diameterTop: 3.2, diameterBottom: 3.5, tessellation: 20
-    }, scene);
-    basin.material = basinMat; basin.position = new BABYLON.Vector3(50*TILE_SIZE, 0.16, 50*TILE_SIZE);
-    const fWater = BABYLON.MeshBuilder.CreateDisc('fountainWater', { radius: 1.45, tessellation: 20 }, scene);
-    fWater.material = waterMat; fWater.rotation.x = Math.PI / 2;
-    fWater.position = new BABYLON.Vector3(50*TILE_SIZE, 0.3, 50*TILE_SIZE);
-    const pillar = BABYLON.MeshBuilder.CreateCylinder('fPillar', { height: 1.3, diameterTop: 0.18, diameterBottom: 0.38, tessellation: 10 }, scene);
-    pillar.material = basinMat; pillar.position = new BABYLON.Vector3(50*TILE_SIZE, 0.65, 50*TILE_SIZE);
-    const fTop = BABYLON.MeshBuilder.CreateCylinder('fTop', { height: 0.1, diameterTop: 0.7, diameterBottom: 0.7, tessellation: 10 }, scene);
-    fTop.material = waterMat; fTop.position = new BABYLON.Vector3(50*TILE_SIZE, 1.35, 50*TILE_SIZE);
+    // Fountain
     ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
+    world._loadProp(scene, 'fountain-round.glb', 50, 50, {
+      scale: 3.0,
+      basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/'
+    });
 
-    // ── MARKET STALLS (GLB booths) ─────────────────────────────
+    // ── MARKET STALLS (Kenney fantasy-town-kit) ────────────────
     const stallConfigs = [
-      { gx: 44, gz: 43, model: 'Booth_Food01', ry: Math.PI / 2 },
-      { gx: 56, gz: 43, model: 'Booth_Food02', ry: -Math.PI / 2 },
-      { gx: 44, gz: 57, model: 'Booth_Food02', ry: Math.PI / 2 },
-      { gx: 56, gz: 57, model: 'Booth_Food01', ry: -Math.PI / 2 },
+      { gx: 44, gz: 43, model: 'stall-green.glb', ry: 0 },
+      { gx: 56, gz: 43, model: 'stall-red.glb',   ry: 0 },
+      { gx: 44, gz: 57, model: 'stall-red.glb',   ry: Math.PI },
+      { gx: 56, gz: 57, model: 'stall-green.glb', ry: Math.PI },
     ];
     stallConfigs.forEach(({ gx, gz, model, ry }) => {
-      world._loadProp(scene, model, gx, gz, { ry, scale: 0.012 });
+      world._loadProp(scene, model, gx, gz, {
+        scale: 2.0,
+        ry,
+        basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/'
+      });
       state.obstacles.add(`${gx},${gz}`);
       state.obstacles.add(`${gx},${gz - 1}`);
       state.obstacles.add(`${gx},${gz + 1}`);
@@ -526,34 +527,25 @@ const world = {
       state.obstacles.add(`${gx + 1},${gz}`);
     });
 
-    // ── MARKET PROPS (barrels, carts, lamps) ───────────────────
+    // ── MARKET PROPS (barrels, carts, lanterns) ────────────────
     // Barrels near tavern and apothecary
     [[62,42],[64,42],[27,58],[27,60]].forEach(([gx,gz],i) =>
-      world._loadProp(scene, 'Barrel', gx, gz, { scale: 0.008, ry: i * 0.9 }));
+      world._loadProp(scene, 'detail-barrel.glb', gx, gz, { scale: 2.0, ry: i * 0.9, basePath: 'assets/kenney/retro-fantasy-kit/Models/GLB format/' }));
     // Carts near market stalls
     [[47,44],[53,44]].forEach(([gx,gz],i) =>
-      world._loadProp(scene, 'Cart', gx, gz, { scale: 0.010, ry: i * Math.PI }));
-    // Street lamps along E-W road inside town
-    [[40,50],[44,50],[58,50],[62,50],[50,43],[50,57]].forEach(([gx,gz],i) =>
-      world._loadProp(scene, 'Lamp', gx, gz, { scale: 0.009, ry: 0 }));
-    // Signpost near Dawn Hall entrance
-    world._loadProp(scene, 'SignPost', 35, 42, { scale: 0.009, ry: 0.3 });
+      world._loadProp(scene, 'cart.glb', gx, gz, { scale: 2.0, ry: i * Math.PI, basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/' }));
+    // Lantern near Dawn Hall entrance
+    world._loadProp(scene, 'lantern.glb', 35, 42, { scale: 2.0, ry: 0.3, basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/' });
 
     // ── BRAZIER (south of fountain) ────────────────────────────
-    const brazierMat = new BABYLON.StandardMaterial('brazMat', scene);
-    brazierMat.diffuseColor = new BABYLON.Color3(0.25, 0.15, 0.08);
-    const brazier = BABYLON.MeshBuilder.CreateCylinder('brazier', { height: 1.0, diameterTop: 0.7, diameterBottom: 0.4 }, scene);
-    brazier.material = brazierMat;
-    const brazWP = world.gridToWorld(50, 55);
-    brazier.position = new BABYLON.Vector3(brazWP.x, 0.5, brazWP.z);
     state.obstacles.add('50,55');
-    const flameMat = new BABYLON.StandardMaterial('flameMat', scene);
-    flameMat.emissiveColor = new BABYLON.Color3(1, 0.6, 0.2);
-    flameMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.1);
-    const flame = BABYLON.MeshBuilder.CreateSphere('flame', { diameter: 0.5 }, scene);
-    flame.material = flameMat; flame.position = new BABYLON.Vector3(brazWP.x, 1.1, brazWP.z);
-    state.flame = flame;
-    const brazierLight = new BABYLON.PointLight('brzL', flame.position.clone(), scene);
+    state.flame = null;
+    world._loadProp(scene, 'fire-basket.glb', 50, 55, {
+      scale: 2.0,
+      basePath: 'assets/kenney/graveyard-kit/Models/GLB format/'
+    });
+    const brazWP = world.gridToWorld(50, 55);
+    const brazierLight = new BABYLON.PointLight('brzL', new BABYLON.Vector3(brazWP.x, 1.5, brazWP.z), scene);
     brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2); brazierLight.intensity = 0; brazierLight.range = 12;
     state.brazierLight = brazierLight;
 
@@ -992,9 +984,10 @@ const world = {
     }
   },
 
-  _loadProp(scene, modelName, gx, gz, { scale = 0.01, ry = 0 } = {}) {
+  _loadProp(scene, modelName, gx, gz, { scale = 0.01, ry = 0, basePath = 'assets/models/' } = {}) {
     const wp = world.gridToWorld(gx, gz);
-    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/models/', modelName + '.glb', scene).then(result => {
+    const filename = modelName.endsWith('.glb') ? modelName : modelName + '.glb';
+    BABYLON.SceneLoader.ImportMeshAsync('', basePath, filename, scene).then(result => {
       const root = result.meshes[0];
       root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
       root.scaling = new BABYLON.Vector3(scale, scale, scale);
