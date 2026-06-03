@@ -186,14 +186,17 @@ const game = {
     state.ready = false;
     state.combat = null;
     state.path = null;
+    if (state.engine) state.engine.stopRenderLoop();
     if (state.scene) {
       state.scene.dispose(); state.scene = null;
-      state.engine.dispose(); state.engine = null;
-      state.playerMesh = null;
-      state.enemies = [];
-      state.enemyMeshes.clear();
-      state.obstacles.clear();
     }
+    if (state.engine) {
+      state.engine.dispose(); state.engine = null;
+    }
+    state.playerMesh = null;
+    state.enemies = [];
+    state.enemyMeshes.clear();
+    state.obstacles.clear();
     showScreen('title-screen');
     game.init();
   }
