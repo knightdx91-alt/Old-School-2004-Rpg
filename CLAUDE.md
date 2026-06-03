@@ -131,8 +131,18 @@ localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player
 
 ## Next coding session — start here (CRITICAL FIXES FIRST)
 
-### 1. Fix buildings not showing — GLB approach is broken, revert to procedural
-The `placeBuilding` helper in `_buildNewSpring` loads modular-building GLBs asynchronously. They are not showing up. **Revert to the original procedural `_buildBuilding` approach** — remove the `placeBuilding` helper entirely and call `world._buildBuilding` directly for all 8 buildings with their proper colours (dawnHall=amber, inn=wood, enchantedWeapons=purple, jeweler=red, apothecary=green, familiarSupplies=blue, restaurant=amber, teaHouse=amber). Remove the `glbReplaced` option from `_buildBuilding` entirely — it is no longer needed. Keep the Kenney GLBs only for small props (fountain, stalls, torches, barrels, carts, corner towers).
+### 1. Fix buildings, stalls, and props not showing — GLB approach is broken, revert to procedural
+The `placeBuilding` helper in `_buildNewSpring` loads modular-building GLBs asynchronously — they are not showing up. The Kenney stall GLBs (stall-green, stall-red), fountain, barrels, carts, lantern, and fire-basket are also not appearing. The entire `_loadProp` / async GLB approach for scene props is unreliable in this setup.
+
+**Fix:** Revert everything to procedural meshes:
+- Remove the `placeBuilding` helper entirely. Call `world._buildBuilding` directly for all 8 buildings with proper colours: dawnHall=amber, inn=wood, enchantedWeapons=purple, jeweler=red, apothecary=green, familiarSupplies=blue, restaurant=amber, teaHouse=amber.
+- Remove the `glbReplaced` option from `_buildBuilding` — no longer needed.
+- Replace the Kenney stall GLBs with the existing procedural `_buildStall` helper (already in world.js — just call it for the 4 stall positions).
+- Replace the fountain GLB with a procedural fountain (cylinder basin + sphere top, water material).
+- Replace fire-basket GLB with the old procedural brazier (box + emissive flame cone).
+- Replace lightpost GLBs with the old procedural torch (thin cylinder + emissive flame orb + PointLight).
+- Replace corner tower GLBs with procedural stone towers (stacked cylinders or boxes, wallStoneMat).
+- Keep barrels/carts/lantern as GLBs only if they load reliably — otherwise replace with simple box primitives.
 
 ### 2. Fix player model — revert to procedural capsule
 `buildPlayerMesh()` uses `character-keeper.glb` which looks wrong. Revert to the procedural capsule (simple coloured cylinder+sphere with an accent-coloured orb). The GLB character is not the right look for the game right now.
