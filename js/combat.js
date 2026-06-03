@@ -338,21 +338,29 @@ const dialogue = {
     this.active = true; this._npc = npc; this.lines = []; this.index = 0;
     const ol = document.getElementById('dialogue-overlay');
     ol.classList.add('active');
-    ol.onclick = null; // options handle their own clicks
+    ol.onclick = null;
     document.getElementById('dialogue-speaker').textContent = npc.name;
     document.getElementById('dialogue-speaker').style.color = 'var(--gold)';
     document.getElementById('dialogue-advance').style.display = 'none';
     document.getElementById('dialogue-text').textContent = npc.greeting || '"What do you need?"';
-    this._renderOptions(npc.dialogueOptions);
+    // Merge base options with any injected quest options
+    const merged = Object.assign({}, npc.dialogueOptions, npc.questOptions || {});
+    this._renderOptions(merged, npc);
   },
-  _renderOptions(options) {
+  _renderOptions(options, npc) {
     const el = document.getElementById('dialogue-options');
     el.innerHTML = '';
-    for (const [label, responses] of Object.entries(options)) {
+    for (const [label, handler] of Object.entries(options)) {
       const btn = document.createElement('button');
       btn.className = 'dialogue-opt';
-      btn.textContent = label;
-      btn.onclick = (e) => { e.stopPropagation(); this._pickResponse(responses); };
+      // Quest options can pass a function for custom behaviour; plain arrays = random response
+      if (typeof handler === 'function') {
+        btn.textContent = label;
+        btn.onclick = (e) => { e.stopPropagation(); handler(npc, this); };
+      } else {
+        btn.textContent = label;
+        btn.onclick = (e) => { e.stopPropagation(); this._pickResponse(handler); };
+      }
       el.appendChild(btn);
     }
     const bye = document.createElement('button');

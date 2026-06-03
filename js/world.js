@@ -624,42 +624,162 @@ const world = {
     innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.12, 42*TILE_SIZE);
 
     // ── NPCS ───────────────────────────────────────────────────
-    world._spawnNPC(scene, {
-      id: 'soren', name: 'Soren', gx: 33, gz: 36, wander: false,
-      dialogue: [
-        'Welcome to the Dawn Hall. Premier guild of New Spring.',
-        'We post quests, take contracts, and train adventurers.',
-        'Speak to Kim at the counter for available work.'
-      ],
+    world._spawnNamedNPC(scene, {
+      id: 'soren', name: 'Soren', gx: 33, gz: 36,
       robeColor: new BABYLON.Color3(0.12, 0.12, 0.30),
-      accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
+      accentColor: new BABYLON.Color3(0.80, 0.55, 0.15),
+      greeting: '"Welcome to the Dawn Faction. What brings you to me?"',
+      dialogueOptions: {
+        'Tell me about the Dawn Faction.': [
+          "We are the premier adventurers guild of New Spring. Founded three generations ago.",
+          "The Dawn Faction takes contracts, posts jobs, and trains those with potential.",
+          "Our symbol is the rising sun — warmth, purpose, a new day. We take that seriously.",
+          "We have members from every walk of life. Fighters, scholars, scouts, mages.",
+        ],
+        'How do I join?': [
+          "Any willing person may join. Speak to Kim at the counter — she handles membership.",
+          "Membership costs a modest monthly due. In return you get access to posted work and our resources.",
+          "We do not turn away the sincere. If you are committed, we will find a place for you.",
+          "Kim will sort out the paperwork. I handle the harder conversations.",
+        ],
+        'What work is available?': [
+          "Nothing on the board today. Check back — jobs are posted regularly.",
+          "Kim keeps the board updated. She will know better than I do right now.",
+          "We are between contracts at the moment. Come back tomorrow.",
+        ],
+        'Tell me about New Spring.': [
+          "A good town. Honest people, mostly. The market draws traders from three roads.",
+          "It sits at the crossroads of the north-south and east-west trade routes. Always busy.",
+          "The Academy is north of here. Many of our members came through there first.",
+          "New Spring has been peaceful since the last bandit trouble. I intend to keep it that way.",
+        ],
+        'Who are you?': [
+          "Soren. I have run this hall for eleven years. Before that I was a field agent.",
+          "Guild master of the New Spring chapter. The job is less glamorous than it sounds.",
+          "A former adventurer who traded the road for a desk. I do not regret it.",
+        ],
+      }
     });
-    world._spawnNPC(scene, {
-      id: 'kim', name: 'Kim', gx: 36, gz: 37, wander: false,
-      dialogue: [
-        'No quests posted yet — check back soon.',
-        'Guild membership is open to any willing adventurer.'
-      ],
+
+    world._spawnNamedNPC(scene, {
+      id: 'kim', name: 'Kim', gx: 36, gz: 37,
       robeColor: new BABYLON.Color3(0.12, 0.12, 0.30),
-      accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
+      accentColor: new BABYLON.Color3(0.80, 0.55, 0.15),
+      greeting: '"Hello! Can I help you with something?"',
+      dialogueOptions: {
+        'I want to join the guild.': [
+          "Wonderful! Membership is open to all. The dues are modest and the benefits are real.",
+          "I can get you set up. The process is simple — just a pledge and a monthly contribution.",
+          "Soren will want to meet you properly, but I can handle the paperwork today.",
+        ],
+        'Are there any jobs posted?': [
+          "The board is quiet today, sorry. We update it each morning — come back tomorrow.",
+          "Nothing new since yesterday. Soren is waiting on a contract from the east.",
+          "Not at the moment. I expect something will come in by week's end.",
+        ],
+        'What do you do here?': [
+          "I keep the hall running. Membership records, job postings, supply orders — all of it.",
+          "Counter work, mostly. But I know more about this guild than anyone.",
+          "Someone has to manage the paperwork. Soren is brilliant but hopeless with records.",
+        ],
+        'Tell me about Soren.': [
+          "Eleven years as guild master. Before that, twenty years in the field. Very experienced.",
+          "Stern but fair. She genuinely cares about every member.",
+          "She does not say much, but when she does, it is worth listening to.",
+        ],
+        'What is the Dawn Faction symbol?': [
+          "A rising sun over crossed blades. The sun represents new beginnings; the blades, readiness.",
+          "Members carry a carved wooden card. Simple, but we take pride in it.",
+          "Amber and gold are our colours. You will see them around the hall.",
+        ],
+      }
     });
-    world._spawnNPC(scene, {
-      id: 'vendor1', name: 'Market Vendor', gx: 44, gz: 44, wander: false,
-      dialogue: ['Fresh goods! Wares coming soon.'],
+
+    world._spawnNamedNPC(scene, {
+      id: 'vendor1', name: 'Aldric', gx: 44, gz: 44,
       robeColor: new BABYLON.Color3(0.40, 0.26, 0.14),
-      accentColor: new BABYLON.Color3(0.60, 0.42, 0.20)
+      accentColor: new BABYLON.Color3(0.60, 0.42, 0.20),
+      greeting: '"Welcome to my stall. See anything you like?"',
+      dialogueOptions: {
+        'What are you selling?': [
+          "General goods — tools, rope, cloth, the usual traveller kit.",
+          "A bit of everything. If I do not have it, I can probably get it.",
+          "Practical wares. Nothing fancy, nothing useless.",
+        ],
+        'Any good bargains today?': [
+          "The rope is priced well today. Good quality too.",
+          "Honestly, everything is fairly priced. I do not believe in false bargains.",
+          "Come back in a few days. I may have surplus from a new shipment.",
+        ],
+        'How long have you had this stall?': [
+          "Eight years in this exact spot. The cobblestones know my footsteps.",
+          "Since my father retired. The stall has been in the family much longer than that.",
+          "Long enough to know every face in this market.",
+        ],
+        'Tell me about the market.': [
+          "Best market between here and Whitehaven. That is not just my opinion.",
+          "We get traders from the south road twice a week. Fresh stock regularly.",
+          "The square has been a market since before the walls were built.",
+        ],
+      }
     });
-    world._spawnNPC(scene, {
-      id: 'vendor2', name: 'Reagent Seller', gx: 50, gz: 44, wander: false,
-      dialogue: ['Finest magyk reagents in the region. Stock coming soon.'],
+
+    world._spawnNamedNPC(scene, {
+      id: 'vendor2', name: 'Mira', gx: 50, gz: 44,
       robeColor: new BABYLON.Color3(0.18, 0.10, 0.28),
-      accentColor: new BABYLON.Color3(0.55, 0.30, 0.70)
+      accentColor: new BABYLON.Color3(0.55, 0.30, 0.70),
+      greeting: '"Reagents, components, curios. What do you need?"',
+      dialogueOptions: {
+        'What reagents do you stock?': [
+          "Dried moonbloom, iron dust, crystallised sap — the standard components.",
+          "I carry what sygl-bearers need most. Fire, nature, and water components in stock.",
+          "My stock changes with the season. Right now I have a good supply of void residue.",
+        ],
+        'Tell me about sygls.': [
+          "Each sygl draws on a different aspect of the world. The reagents they use reflect that.",
+          "I have sold to every sygl type over the years. Fire-bearers are the most impulsive buyers.",
+          "The right reagent in the right hands can accomplish remarkable things.",
+        ],
+        'Do you have anything rare?': [
+          "I might. What are you looking for specifically?",
+          "Rare stock comes and goes. Check back — I get unusual shipments now and then.",
+          "I had starfire dust last week. Sold out in a day. Come back next month.",
+        ],
+        'Where do you get your stock?': [
+          "Suppliers near the Academy, mostly. They deal in quality.",
+          "I have sources I do not discuss publicly. Trade secrets.",
+          "Some I gather myself. The west wood has useful materials if you know what to look for.",
+        ],
+      }
     });
-    world._spawnNPC(scene, {
-      id: 'vendor3', name: 'Food Merchant', gx: 56, gz: 44, wander: false,
-      dialogue: ['Fresh bread and provisions. Come back when stock arrives.'],
+
+    world._spawnNamedNPC(scene, {
+      id: 'vendor3', name: 'Fen', gx: 56, gz: 44,
       robeColor: new BABYLON.Color3(0.55, 0.46, 0.30),
-      accentColor: new BABYLON.Color3(0.70, 0.60, 0.35)
+      accentColor: new BABYLON.Color3(0.70, 0.60, 0.35),
+      greeting: '"Fresh bread, dried meats, and more. Hungry?"',
+      dialogueOptions: {
+        'What food do you have?': [
+          "Bread, dried meat, pickled vegetables, oat biscuits. Good travelling food.",
+          "Whatever came fresh this morning. Usually bread and smoked fish.",
+          "I also do hot meals when the coals are going. Not today, sadly.",
+        ],
+        'Where does your food come from?': [
+          "The farms to the north mostly. Short road, fresh produce.",
+          "The orchards south of town supply my fruit. Best apples in the region.",
+          "I bake the bread myself. Start before dawn every day.",
+        ],
+        'Any recommendations?': [
+          "The oat biscuits travel well. Good for long journeys.",
+          "Smoked river fish. Caught local, cured well. Will last a week.",
+          "Honestly, the bread today is exceptional. Fresh this morning.",
+        ],
+        'How is business?': [
+          "Market days are good. The rest of the week is steady.",
+          "The Dawn Hall folk eat well. Good regular customers.",
+          "Could always be busier. But I am not complaining.",
+        ],
+      }
     });
 
     world._generateNPCs(scene);
@@ -1064,6 +1184,16 @@ const world = {
       goods.material = goodsMat;
       goods.position = new BABYLON.Vector3(cx + ox, 0.95, cz + oz);
     });
+  },
+
+  _spawnNamedNPC(scene, { id, name, gx, gz, robeColor, accentColor, greeting, dialogueOptions }) {
+    world._spawnNPC(scene, { id, name, gx, gz, dialogue: [], robeColor, accentColor, wander: false });
+    const entry = world.npcs.find(n => n.id === id);
+    if (entry) {
+      entry.greeting = greeting;
+      entry.dialogueOptions = dialogueOptions;
+      entry.questOptions = {}; // quest system populates this later
+    }
   },
 
   _spawnNPC(scene, { id, name, gx, gz, dialogue, robeColor, accentColor, wander = false, scale = 1 }) {
