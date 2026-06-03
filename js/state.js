@@ -19,6 +19,7 @@ const state = {
   enemies: [],
   enemyMeshes: new Map(),
   playerMesh: null,
+  playerWeaponNode: null,
   scene: null, engine: null, camera: null, sunLight: null, ambientLight: null,
   targetMarker: null,
   hudScale: 1,

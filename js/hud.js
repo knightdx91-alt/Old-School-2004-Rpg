@@ -5,7 +5,14 @@ const hud = {
   switchTab(tab) {
     state.currentTab = tab;
     document.querySelectorAll('.hud-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-    this.render();
+    if (tab === 'inventory') {
+      this._ensureWindows();
+      this.showWindows();
+      document.getElementById('hud-panel').innerHTML = '';
+    } else {
+      this.hideWindows();
+      this.render();
+    }
   },
   render() {
     const panel = document.getElementById('hud-panel');
@@ -13,9 +20,131 @@ const hud = {
     if (tab === 'stats') panel.innerHTML = this.renderStats();
     else if (tab === 'combat') panel.innerHTML = this.renderCombat();
     else if (tab === 'options') panel.innerHTML = this.renderOptions();
-    else if (tab === 'inventory') panel.innerHTML = this.renderInventory();
+    else if (tab === 'inventory') { panel.innerHTML = ''; this._ensureWindows(); this.showWindows(); }
     else if (tab === 'spellbook') panel.innerHTML = this.renderSpellbook();
     else if (tab === 'quests') panel.innerHTML = this.renderPlaceholder('Quests', 'No quests yet. Speak with the academy faculty in a coming update to take on your first task.');
+  },
+
+  _ensureWindows() {
+    if (document.getElementById('equip-window')) return;
+
+    const eqWin = document.createElement('div');
+    eqWin.id = 'equip-window';
+    eqWin.className = 'game-window';
+    eqWin.innerHTML = `
+      <div class="window-titlebar" id="equip-win-bar">
+        <span>Equipment</span>
+        <button class="window-close" onclick="hud.hideWindows();hud.switchTab('stats')">✕</button>
+      </div>
+      <div class="window-body" id="equip-win-body"></div>`;
+    document.body.appendChild(eqWin);
+    this._makeDraggable(eqWin, document.getElementById('equip-win-bar'));
+
+    const invWin = document.createElement('div');
+    invWin.id = 'inv-window';
+    invWin.className = 'game-window';
+    invWin.innerHTML = `
+      <div class="window-titlebar" id="inv-win-bar">
+        <span>Inventory</span>
+        <button class="window-close" onclick="hud.hideWindows();hud.switchTab('stats')">✕</button>
+      </div>
+      <div class="window-body" id="inv-win-body"></div>`;
+    document.body.appendChild(invWin);
+    this._makeDraggable(invWin, document.getElementById('inv-win-bar'));
+  },
+
+  _makeDraggable(winEl, barEl) {
+    let dragging = false, ox = 0, oy = 0;
+    barEl.addEventListener('pointerdown', e => {
+      if (e.target.classList.contains('window-close')) return;
+      dragging = true;
+      const rect = winEl.getBoundingClientRect();
+      ox = e.clientX - rect.left;
+      oy = e.clientY - rect.top;
+      winEl.style.right = 'auto'; winEl.style.bottom = 'auto';
+      barEl.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    barEl.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      winEl.style.left = Math.max(0, e.clientX - ox) + 'px';
+      winEl.style.top = Math.max(0, e.clientY - oy) + 'px';
+    });
+    barEl.addEventListener('pointerup', () => { dragging = false; });
+  },
+
+  showWindows() {
+    const eq = document.getElementById('equip-window');
+    const inv = document.getElementById('inv-window');
+    if (eq) eq.classList.add('visible');
+    if (inv) inv.classList.add('visible');
+    this.renderWindows();
+  },
+
+  hideWindows() {
+    const eq = document.getElementById('equip-window');
+    const inv = document.getElementById('inv-window');
+    if (eq) eq.classList.remove('visible');
+    if (inv) inv.classList.remove('visible');
+  },
+
+  renderWindows() {
+    if (!state.player) return;
+    const eq = document.getElementById('equip-win-body');
+    const inv = document.getElementById('inv-win-body');
+    if (eq) eq.innerHTML = this.renderEquipContent();
+    if (inv) inv.innerHTML = this.renderInvContent();
+  },
+
+  renderEquipContent() {
+    const p = state.player;
+    const eq = p.equipped || {};
+    const s = SYGLS[p.sygl];
+    const slot = (id, label) => {
+      const itemId = eq[id];
+      const item = itemId ? ITEMS[itemId] : null;
+      const icon = item ? (item.icon || '') : '';
+      let name = item ? item.name : label;
+      if (itemId === 'quiver_arrows') name = `${p.ammoCount||0}/25`;
+      const cls = item ? 'pd-slot filled' : 'pd-slot empty';
+      const click = item ? `onclick="unequipSlot('${id}');hud.renderWindows()" title="Unequip ${item.name}"` : `title="${label}"`;
+      return `<div class="${cls}" ${click}><span class="pd-icon">${icon}</span><span class="pd-label">${name}</span></div>`;
+    };
+    const bonuses = getEquipBonuses();
+    return `
+      <div class="pd-sygl" style="color:${s.accent}">— ${s.name} —</div>
+      <div class="paperdoll">
+        <div class="pd-row"><div class="pd-spacer"></div>${slot('head','Head')}<div class="pd-spacer"></div></div>
+        <div class="pd-row">${slot('cape','Cape')}${slot('amulet','Amulet')}<div class="pd-spacer"></div></div>
+        <div class="pd-row">${slot('weapon','Weapon')}<div class="pd-figure">⚗</div>${slot('shield','Shield')}</div>
+        <div class="pd-row"><div class="pd-spacer"></div>${slot('body','Body')}<div class="pd-spacer"></div></div>
+        <div class="pd-row">${slot('legs','Legs')}<div class="pd-spacer"></div>${slot('ring','Ring')}</div>
+        <div class="pd-row">${slot('gloves','Gloves')}${slot('boots','Boots')}${slot('ammo','Ammo')}</div>
+      </div>
+      <div class="pd-bonuses">ATK +${bonuses.atk}  DEF +${bonuses.def}</div>`;
+  },
+
+  renderInvContent() {
+    const p = state.player;
+    const inv = p.inventory || [];
+    const max = p.maxInventory || 20;
+    const cells = [];
+    for (let i = 0; i < max; i++) {
+      const id = inv[i];
+      if (id) {
+        const item = ITEMS[id];
+        if (!item) { cells.push(`<div class="inv-cell empty"></div>`); continue; }
+        let action = '';
+        if (item.slot) action = `<div class="inv-actions"><button class="btn small" onclick="equipItem('${id}')">Equip</button></div>`;
+        else if (item.type === 'consumable') action = `<div class="inv-actions"><button class="btn small" onclick="useItem('${id}')">Use</button></div>`;
+        cells.push(`<div class="inv-cell filled" title="${item.name}&#10;${item.desc}">${item.icon}${action}</div>`);
+      } else {
+        cells.push(`<div class="inv-cell empty"></div>`);
+      }
+    }
+    return `
+      <div class="inv-count">${inv.length}/${max} items</div>
+      <div class="inv-grid">${cells.join('')}</div>`;
   },
   renderStats() {
     const p = state.player; const s = SYGLS[p.sygl];

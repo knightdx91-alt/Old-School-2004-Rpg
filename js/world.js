@@ -96,6 +96,7 @@ const world = {
     world.buildings = [];
     world.npcs = [];
     world.chests = {}; // chestId → { lidMesh }
+    world.groundBags = {};
 
     // Ground
     world._buildGround(scene);
@@ -1216,6 +1217,95 @@ const world = {
     });
   },
 
+  closeChestLid(chestId) {
+    const c = world.chests[chestId];
+    if (!c || !c.opened) return;
+    c.opened = false;
+    const pivot = c.lidPivot;
+    if (!pivot || !state.scene) return;
+    let t = 1;
+    const obs = state.scene.onBeforeRenderObservable.add(() => {
+      t -= state.engine.getDeltaTime() / 400;
+      pivot.rotation.x = -Math.PI * 0.65 * Math.max(t, 0);
+      if (t <= 0) { pivot.rotation.x = 0; state.scene.onBeforeRenderObservable.remove(obs); }
+    });
+  },
+
+  spawnGroundBag(gx, gz, items) {
+    const id = `bag_${Date.now()}`;
+    const scene = state.scene;
+    if (!scene) return;
+    // Find a free adjacent tile
+    let bgx = gx, bgz = gz;
+    for (const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1]]) {
+      if (world.walkable(gx+dx, gz+dz)) { bgx=gx+dx; bgz=gz+dz; break; }
+    }
+    const wp = world.gridToWorld(bgx, bgz);
+    const bagMat = new BABYLON.StandardMaterial(`bagMat_${id}`, scene);
+    bagMat.diffuseColor = new BABYLON.Color3(0.42, 0.28, 0.10);
+    const mesh = BABYLON.MeshBuilder.CreateBox(`groundBag_${id}`, { width: 0.44, height: 0.34, depth: 0.36 }, scene);
+    mesh.material = bagMat;
+    mesh.position = new BABYLON.Vector3(wp.x, 0.17, wp.z);
+    mesh.metadata = { bagId: id };
+    const glintMat = new BABYLON.StandardMaterial(`glintMat_${id}`, scene);
+    glintMat.emissiveColor = new BABYLON.Color3(0.9, 0.78, 0.2);
+    const glint = BABYLON.MeshBuilder.CreateSphere(`bagGlint_${id}`, { diameter: 0.09 }, scene);
+    glint.material = glintMat;
+    glint.position = new BABYLON.Vector3(wp.x, 0.38, wp.z);
+    glint.metadata = { bagId: id };
+    world.groundBags[id] = {
+      id, gx: bgx, gz: bgz,
+      name: 'Dropped Items',
+      loot: [...items],
+      taken: [],
+      meshes: [mesh, glint],
+      ticksLeft: 120
+    };
+  },
+
+  updatePlayerWeapon(itemId) {
+    // Remove existing weapon node
+    if (state.playerWeaponNode) {
+      state.playerWeaponNode.getChildMeshes(false).forEach(m => m.dispose());
+      state.playerWeaponNode.dispose();
+      state.playerWeaponNode = null;
+    }
+    if (!itemId || !state.playerMesh || !state.scene) return;
+    const scene = state.scene;
+    const item = typeof ITEMS !== 'undefined' ? ITEMS[itemId] : null;
+    if (!item) return;
+
+    const node = new BABYLON.TransformNode('plrWeapon', scene);
+    node.parent = state.playerMesh;
+    node.position = new BABYLON.Vector3(0.38, 0.2, 0);
+
+    const woodMat = new BABYLON.StandardMaterial(`wepMat_${itemId}`, scene);
+    woodMat.diffuseColor = new BABYLON.Color3(0.38, 0.26, 0.10);
+
+    if (itemId === 'magic_staff') {
+      const shaft = BABYLON.MeshBuilder.CreateCylinder('plrWepShaft', { height: 1.55, diameter: 0.065, tessellation: 8 }, scene);
+      shaft.material = woodMat; shaft.parent = node; shaft.position.y = 0.88;
+      const tipMat = new BABYLON.StandardMaterial('wepTipMat', scene);
+      const accent = SYGLS[state.player.sygl].accentRGB;
+      tipMat.emissiveColor = new BABYLON.Color3(accent[0]/255, accent[1]/255, accent[2]/255);
+      const tip = BABYLON.MeshBuilder.CreateSphere('plrWepTip', { diameter: 0.16, segments: 6 }, scene);
+      tip.material = tipMat; tip.parent = node; tip.position.y = 1.68;
+    } else if (itemId === 'oak_staff_melee' || itemId === 'oak_staff') {
+      const shaft = BABYLON.MeshBuilder.CreateCylinder('plrWepShaftM', { height: 1.35, diameter: 0.065, tessellation: 8 }, scene);
+      shaft.material = woodMat; shaft.parent = node; shaft.position.y = 0.78;
+    } else if (itemId === 'short_bow') {
+      const bowMat = new BABYLON.StandardMaterial('wepBowMat', scene);
+      bowMat.diffuseColor = new BABYLON.Color3(0.42, 0.30, 0.12);
+      const bow = BABYLON.MeshBuilder.CreateTorus('plrWepBow', { diameter: 0.65, thickness: 0.055, tessellation: 20 }, scene);
+      bow.material = bowMat; bow.parent = node; bow.position.y = 0.82;
+      const strMat = new BABYLON.StandardMaterial('wepStrMat', scene);
+      strMat.diffuseColor = new BABYLON.Color3(0.82, 0.78, 0.60);
+      const str = BABYLON.MeshBuilder.CreateCylinder('plrWepStr', { height: 0.65, diameter: 0.016, tessellation: 6 }, scene);
+      str.material = strMat; str.parent = node; str.position.y = 0.82;
+    }
+    state.playerWeaponNode = node;
+  },
+
   _buildStall(scene, gx, gz, idx) {
     const tableMat = new BABYLON.StandardMaterial(`stallTableMat_${idx}`, scene);
     tableMat.diffuseColor = new BABYLON.Color3(0.40, 0.28, 0.14);
@@ -1571,8 +1661,12 @@ const world = {
     glowLight.range = 5;
     glowLight.parent = root;
 
+    state.playerWeaponNode = null; // clear old ref
     state.playerMesh = root;
     state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
+    if (state.player.equipped && state.player.equipped.weapon) {
+      world.updatePlayerWeapon(state.player.equipped.weapon);
+    }
   },
 
   spawnEnemy(e) {
@@ -1741,6 +1835,12 @@ const world = {
     // Did we click a chest?
     if (pick.pickedMesh && pick.pickedMesh.metadata && pick.pickedMesh.metadata.chestId) {
       actions.openChest(pick.pickedMesh.metadata.chestId);
+      return;
+    }
+
+    // Did we click a ground bag?
+    if (pick.pickedMesh && pick.pickedMesh.metadata && pick.pickedMesh.metadata.bagId) {
+      actions.openBag(pick.pickedMesh.metadata.bagId);
       return;
     }
 

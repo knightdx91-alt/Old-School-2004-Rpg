@@ -31,6 +31,11 @@ const ITEMS = {
     desc: 'A simple oak staff. Can be used to strike foes.',
     icon: '🪄'
   },
+  oak_staff: {
+    name: 'Oak Staff', slot: 'weapon', atk: 4,
+    desc: 'A simple oak staff. Can be used to strike foes.',
+    icon: '🪄'
+  },
   // Magic ranged
   magic_staff: {
     name: 'Apprentice Staff', slot: 'weapon', atk: 6, range: true,
@@ -81,31 +86,43 @@ const CHESTS = {
 /* ── Loot overlay ───────────────────────────────────────────── */
 const loot = {
   active: false,
-  _chestId: null,
+  _sourceType: null, // 'chest' | 'bag'
+  _sourceId: null,
 
-  open(chestId) {
-    const chest = CHESTS[chestId];
-    if (!chest) return;
+  _getSource() {
+    if (this._sourceType === 'chest') return CHESTS[this._sourceId];
+    if (this._sourceType === 'bag') return (world.groundBags && world.groundBags[this._sourceId]);
+    return null;
+  },
+
+  open(sourceType, sourceId) {
+    const src = sourceType === 'chest' ? CHESTS[sourceId] : (world.groundBags && world.groundBags[sourceId]);
+    if (!src) return;
     this.active = true;
-    this._chestId = chestId;
-    chest.opened = true;
-    world.openChestLid(chestId);
+    this._sourceType = sourceType;
+    this._sourceId = sourceId;
+    if (sourceType === 'chest') {
+      src.opened = true;
+      world.openChestLid(sourceId);
+    }
     this._render();
     document.getElementById('loot-overlay').classList.add('active');
   },
 
   _render() {
-    const chest = CHESTS[this._chestId];
-    const remaining = chest.loot.filter(id => !chest.taken.includes(id));
+    const src = this._getSource();
+    if (!src) { this.close(); return; }
+    const remaining = src.loot.filter(id => !src.taken.includes(id));
     const el = document.getElementById('loot-items');
-    document.getElementById('loot-title').textContent = chest.name;
+    document.getElementById('loot-title').textContent = src.name || 'Chest';
     if (remaining.length === 0) {
-      el.innerHTML = '<div class="loot-empty">The chest is empty.</div>';
+      el.innerHTML = '<div class="loot-empty">Empty.</div>';
       document.getElementById('loot-take-all').style.display = 'none';
     } else {
       document.getElementById('loot-take-all').style.display = '';
       el.innerHTML = remaining.map(id => {
         const item = ITEMS[id];
+        if (!item) return '';
         const extra = id === 'quiver_arrows' ? ' (25 arrows)' : '';
         return `<div class="loot-row">
           <span class="loot-icon">${item.icon}</span>
@@ -117,39 +134,70 @@ const loot = {
     }
   },
 
+  // Returns true if item was taken, false if inventory full
   take(itemId) {
     const p = state.player;
-    const chest = CHESTS[this._chestId];
-    if (chest.taken.includes(itemId)) return;
-    chest.taken.push(itemId);
+    const src = this._getSource();
+    if (!src || src.taken.includes(itemId)) return true; // already taken, not a failure
+    const maxInv = p.maxInventory || 20;
     const item = ITEMS[itemId];
+    if (!item) return true;
+
     if (itemId === 'quiver_arrows') {
-      // If quiver already in ammo slot, refill arrows; otherwise add to inventory
       if (p.equipped.ammo === 'quiver_arrows') {
+        src.taken.push(itemId);
         p.ammoCount = item.maxArrows;
         log(`Refilled quiver — ${item.maxArrows} arrows.`, 'system');
-      } else {
+      } else if (p.inventory.length < maxInv) {
+        src.taken.push(itemId);
         if (!p.inventory.includes('quiver_arrows')) p.inventory.push('quiver_arrows');
         p.ammoCount = item.maxArrows;
         log(`Took ${item.name} — ${item.maxArrows} arrows.`, 'system');
+      } else {
+        return false; // inventory full
       }
     } else {
+      if (p.inventory.length >= maxInv) return false;
+      src.taken.push(itemId);
       p.inventory.push(itemId);
       log(`Took: ${item.name}.`, 'system');
     }
     this._render();
-    hud.render();
+    hud.renderWindows && hud.renderWindows();
+    return true;
   },
 
   takeAll() {
-    const chest = CHESTS[this._chestId];
-    const remaining = chest.loot.filter(id => !chest.taken.includes(id));
-    remaining.forEach(id => this.take(id));
+    const src = this._getSource();
+    if (!src) return;
+    const remaining = src.loot.filter(id => !src.taken.includes(id));
+    const overflow = [];
+    for (const id of remaining) {
+      if (!this.take(id)) overflow.push(id);
+    }
+    if (overflow.length > 0) {
+      world.spawnGroundBag(state.player.gx, state.player.gz, overflow);
+      log(`Inventory full — ${overflow.length} item(s) dropped nearby.`, 'system');
+    }
+    this.close();
   },
 
   close() {
+    if (this._sourceType === 'chest' && this._sourceId) {
+      world.closeChestLid(this._sourceId);
+    } else if (this._sourceType === 'bag' && this._sourceId) {
+      const bag = world.groundBags && world.groundBags[this._sourceId];
+      if (bag) {
+        const remaining = bag.loot.filter(id => !bag.taken.includes(id));
+        if (remaining.length === 0) {
+          bag.meshes.forEach(m => m.dispose && m.dispose());
+          delete world.groundBags[this._sourceId];
+        }
+      }
+    }
     this.active = false;
-    this._chestId = null;
+    this._sourceType = null;
+    this._sourceId = null;
     document.getElementById('loot-overlay').classList.remove('active');
   }
 };
@@ -175,14 +223,13 @@ function equipItem(itemId) {
   const item = ITEMS[itemId];
   if (!item || !item.slot) return;
   const prev = p.equipped[item.slot];
-  if (prev) {
-    if (!p.inventory.includes(prev)) p.inventory.push(prev);
-  }
+  if (prev && !p.inventory.includes(prev)) p.inventory.push(prev);
   p.equipped[item.slot] = itemId;
   const idx = p.inventory.indexOf(itemId);
   if (idx !== -1) p.inventory.splice(idx, 1);
+  if (item.slot === 'weapon') world.updatePlayerWeapon && world.updatePlayerWeapon(itemId);
   log(`Equipped: ${item.name}.`, 'system');
-  hud.render();
+  hud.renderWindows ? hud.renderWindows() : hud.render();
 }
 
 function unequipSlot(slot) {
@@ -191,8 +238,9 @@ function unequipSlot(slot) {
   if (!id) return;
   p.equipped[slot] = null;
   if (!p.inventory.includes(id)) p.inventory.push(id);
+  if (slot === 'weapon') world.updatePlayerWeapon && world.updatePlayerWeapon(null);
   log(`Unequipped: ${ITEMS[id].name}.`, 'system');
-  hud.render();
+  hud.renderWindows ? hud.renderWindows() : hud.render();
 }
 
 function useItem(itemId) {
@@ -207,5 +255,5 @@ function useItem(itemId) {
     log(`You drink the ${item.name}. Restored ${healed} HP.`, 'system');
   }
   p.inventory.splice(idx, 1);
-  hud.render();
+  hud.renderWindows ? hud.renderWindows() : hud.render();
 }

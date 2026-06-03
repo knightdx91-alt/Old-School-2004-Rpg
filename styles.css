@@ -569,3 +569,59 @@
 .loot-name { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--gold); white-space: nowrap; }
 .loot-desc { flex: 1; font-size: 0.75rem; font-style: italic; color: rgba(217,201,168,0.55); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .loot-empty { font-style: italic; color: rgba(217,201,168,0.45); font-size: 0.85rem; padding: 8px 0; }
+
+/* ── Floating game windows ──────────────────────────────────── */
+.game-window {
+  position: fixed;
+  display: none;
+  flex-direction: column;
+  background: rgba(14,10,6,0.97);
+  border: 1px solid rgba(212,168,71,0.5);
+  z-index: 500;
+  min-width: 190px;
+  max-height: 80vh;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+}
+.game-window.visible { display: flex; }
+#equip-window { left: calc(50vw - 230px); top: 60px; width: 210px; }
+#inv-window   { left: calc(50vw + 10px);  top: 60px; width: 210px; }
+.window-titlebar {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(212,168,71,0.12);
+  border-bottom: 1px solid rgba(212,168,71,0.25);
+  padding: 6px 10px; cursor: grab;
+  font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--gold);
+  letter-spacing: 0.08em; user-select: none;
+}
+.window-titlebar:active { cursor: grabbing; }
+.window-titlebar span { flex: 1; }
+.window-close {
+  background: none; border: none; color: rgba(217,201,168,0.5);
+  font-size: 0.9rem; cursor: pointer; padding: 0 2px;
+  line-height: 1;
+}
+.window-close:hover { color: var(--gold); }
+.window-body { padding: 8px; overflow-y: auto; flex: 1; }
+
+/* Inventory grid */
+.inv-count { font-family: 'Cinzel', serif; font-size: 0.7rem; color: var(--gold-dim); text-align: right; margin-bottom: 6px; letter-spacing: 0.06em; }
+.inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.inv-cell {
+  aspect-ratio: 1; border: 1px solid rgba(212,168,71,0.22);
+  background: rgba(20,14,10,0.6); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; font-size: 1.2rem;
+  position: relative; cursor: default;
+}
+.inv-cell.filled { border-color: rgba(212,168,71,0.5); cursor: pointer; }
+.inv-cell.filled:hover .inv-actions { display: flex; }
+.inv-cell.filled:hover { background: rgba(212,168,71,0.12); }
+.inv-actions {
+  display: none; position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(14,10,6,0.92); border-top: 1px solid rgba(212,168,71,0.25);
+  justify-content: center; padding: 2px;
+}
+.inv-actions button { font-size: 0.6rem; padding: 2px 5px; }
+.pd-sygl { font-family: 'Cinzel', serif; font-size: 0.72rem; text-align: center; margin-bottom: 6px; letter-spacing: 0.08em; }
+.pd-bonuses { font-family: 'Cinzel', serif; font-size: 0.68rem; color: var(--gold-dim); text-align: center; margin-top: 6px; }
+.pd-icon { font-size: 1.2rem; line-height: 1; }
+.pd-label { font-size: 0.5rem; color: rgba(217,201,168,0.55); font-family: 'Cinzel', serif; letter-spacing: 0.03em; text-align: center; max-width: 46px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

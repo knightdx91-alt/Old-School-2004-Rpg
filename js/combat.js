@@ -70,7 +70,7 @@ const actions = {
     const { gx, gz } = world.worldToGrid(wp.x, wp.z);
     const dist = Math.abs(state.player.gx - gx) + Math.abs(state.player.gz - gz);
     if (dist <= 1) {
-      loot.open(chestId);
+      loot.open('chest', chestId);
     } else {
       const path = world.findPathAdjacent(state.player.gx, state.player.gz, gx, gz);
       if (!path) { log('You cannot reach the chest.', 'system'); return; }
@@ -79,6 +79,23 @@ const actions = {
       const wp2 = world.gridToWorld(gx, gz);
       state.targetMarker.position.x = wp2.x;
       state.targetMarker.position.z = wp2.z;
+      state.targetMarker.isVisible = true;
+    }
+  },
+  openBag(bagId) {
+    const bag = world.groundBags && world.groundBags[bagId];
+    if (!bag) return;
+    const dist = Math.abs(state.player.gx - bag.gx) + Math.abs(state.player.gz - bag.gz);
+    if (dist <= 1) {
+      loot.open('bag', bagId);
+    } else {
+      const path = world.findPathAdjacent(state.player.gx, state.player.gz, bag.gx, bag.gz);
+      if (!path) { log('You cannot reach it.', 'system'); return; }
+      state.path = path; state.pathStep = 0;
+      state.pendingAction = { type: 'bag', bagId };
+      const wp = world.gridToWorld(bag.gx, bag.gz);
+      state.targetMarker.position.x = wp.x;
+      state.targetMarker.position.z = wp.z;
       state.targetMarker.isVisible = true;
     }
   },

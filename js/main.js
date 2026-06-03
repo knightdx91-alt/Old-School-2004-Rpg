@@ -72,7 +72,11 @@ function gameTick() {
         } else if (state.pendingAction && state.pendingAction.type === 'chest') {
           const chestId = state.pendingAction.chestId;
           state.pendingAction = null;
-          loot.open(chestId);
+          loot.open('chest', chestId);
+        } else if (state.pendingAction && state.pendingAction.type === 'bag') {
+          const bagId = state.pendingAction.bagId;
+          state.pendingAction = null;
+          if (world.groundBags && world.groundBags[bagId]) loot.open('bag', bagId);
         } else if (state.pendingAction && state.pendingAction.type === 'talk') {
           const npcId = state.pendingAction.npcId;
           state.pendingAction = null;
@@ -107,6 +111,19 @@ function gameTick() {
 
   // NPC wander
   tickNPCs();
+  // Tick ground bags — despawn after time
+  if (world.groundBags) {
+    for (const id of Object.keys(world.groundBags)) {
+      const bag = world.groundBags[id];
+      bag.ticksLeft--;
+      if (bag.ticksLeft <= 0) {
+        bag.meshes.forEach(m => m.dispose && m.dispose());
+        delete world.groundBags[id];
+        if (loot.active && loot._sourceId === id) loot.close();
+        log('Some dropped items have vanished.', 'system');
+      }
+    }
+  }
   // onPlayerStep hook
   world.onPlayerStep && world.onPlayerStep();
   // Combat
@@ -168,7 +185,8 @@ const game = {
       inventory: [],
       equipped: { head:null, cape:null, amulet:null, weapon:null, body:null,
                   shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null },
-      ammoCount: 0
+      ammoCount: 0,
+      maxInventory: 20
     };
     intro.start();
   },
@@ -203,6 +221,7 @@ const game = {
       // Ensure older saves have the new inventory/equipped fields
       if (!state.player.inventory) state.player.inventory = [];
       if (state.player.ammoCount === undefined) state.player.ammoCount = 0;
+      if (state.player.maxInventory === undefined) state.player.maxInventory = 20;
       if (!state.player.equipped) state.player.equipped = {
         head:null, cape:null, amulet:null, weapon:null, body:null,
         shield:null, legs:null, gloves:null, boots:null, ring:null, ammo:null
@@ -260,6 +279,11 @@ const game = {
     }
     if (state.engine) {
       state.engine.dispose(); state.engine = null;
+    }
+    if (state.playerWeaponNode) {
+      state.playerWeaponNode.getChildMeshes(false).forEach(m => m.dispose());
+      state.playerWeaponNode.dispose();
+      state.playerWeaponNode = null;
     }
     state.playerMesh = null;
     state.enemies = [];
