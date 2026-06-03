@@ -9,6 +9,7 @@
   ];
 
   const loaderSources = [
+    'js/babylonjs.loaders.min.js',
     'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js',
     'https://cdn.jsdelivr.net/npm/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js',
     'https://unpkg.com/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
