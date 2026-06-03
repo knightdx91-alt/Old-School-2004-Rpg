@@ -173,9 +173,10 @@ const game = {
     log('Progress saved.', 'system');
   },
   deleteSave() {
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-    try { document.getElementById('continue-btn').style.display = 'none'; } catch (e) {}
-    log('Save cleared. Refresh the page to start fresh.', 'system');
+    if (!confirm('Delete the saved game? This cannot be undone.')) return;
+    localStorage.removeItem(SAVE_KEY);
+    document.getElementById('continue-btn').style.display = 'none';
+    log('Save deleted. Refresh to start fresh.', 'system');
   },
   confirmQuit() {
     if (!confirm('Return to title? Current progress will be auto-saved.')) return;
