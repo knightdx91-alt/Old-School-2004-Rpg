@@ -283,6 +283,11 @@
                                    .dialogue-text { font-size: 1.05rem; line-height: 1.6; font-style: italic; }
 
                                    .dialogue-advance { text-align: right; color: var(--gold-dim); font-size: 0.75rem; font-family: 'Cinzel', serif; letter-spacing: 0.15em; margin-top: 12px; cursor: pointer; }
+                                   .dialogue-options { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+                                   .dialogue-options:empty { display: none; }
+                                   .dialogue-opt { background: rgba(255,255,255,0.05); border: 1px solid var(--gold-dim); color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.82rem; letter-spacing: 0.08em; padding: 7px 14px; cursor: pointer; text-align: left; transition: background 0.15s; }
+                                   .dialogue-opt:hover { background: rgba(212,168,71,0.18); }
+                                   .dialogue-opt.goodbye { color: #aaa; border-color: #555; }
 
 
 

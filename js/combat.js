@@ -47,8 +47,11 @@ const actions = {
   talkTo(npcId) {
     const npc = world.npcs.find(n => n.id === npcId);
     if (!npc) return;
-    log(`${npc.name}: "${npc.dialogue[npc.dialogueIndex % npc.dialogue.length]}"`, 'system');
-    npc.dialogueIndex++;
+    if (npc.dialogueOptions) {
+      dialogue.startOptions(npc);
+    } else {
+      dialogue.start(npc.name, null, npc.dialogue);
+    }
   },
   examine(target) {
     if (target.type === 'enemy') {
@@ -309,11 +312,18 @@ const dialogue = {
   active: false,
   lines: [],
   index: 0,
+  _npc: null,
+
+  // Linear mode (named NPCs)
   start(speaker, color, lines) {
-    this.active = true; this.lines = lines; this.index = 0;
-    document.getElementById('dialogue-overlay').classList.add('active');
+    this.active = true; this.lines = lines; this.index = 0; this._npc = null;
+    const ol = document.getElementById('dialogue-overlay');
+    ol.classList.add('active');
+    ol.onclick = () => this.advance();
     document.getElementById('dialogue-speaker').textContent = speaker;
     document.getElementById('dialogue-speaker').style.color = color || 'var(--gold)';
+    document.getElementById('dialogue-options').innerHTML = '';
+    document.getElementById('dialogue-advance').style.display = '';
     this.render();
   },
   render() { document.getElementById('dialogue-text').textContent = this.lines[this.index]; },
@@ -322,8 +332,46 @@ const dialogue = {
     if (this.index >= this.lines.length) this.end();
     else this.render();
   },
+
+  // Options mode (generated NPCs)
+  startOptions(npc) {
+    this.active = true; this._npc = npc; this.lines = []; this.index = 0;
+    const ol = document.getElementById('dialogue-overlay');
+    ol.classList.add('active');
+    ol.onclick = null; // options handle their own clicks
+    document.getElementById('dialogue-speaker').textContent = npc.name;
+    document.getElementById('dialogue-speaker').style.color = 'var(--gold)';
+    document.getElementById('dialogue-advance').style.display = 'none';
+    document.getElementById('dialogue-text').textContent = npc.greeting || '"What do you need?"';
+    this._renderOptions(npc.dialogueOptions);
+  },
+  _renderOptions(options) {
+    const el = document.getElementById('dialogue-options');
+    el.innerHTML = '';
+    for (const [label, responses] of Object.entries(options)) {
+      const btn = document.createElement('button');
+      btn.className = 'dialogue-opt';
+      btn.textContent = label;
+      btn.onclick = (e) => { e.stopPropagation(); this._pickResponse(responses); };
+      el.appendChild(btn);
+    }
+    const bye = document.createElement('button');
+    bye.className = 'dialogue-opt goodbye';
+    bye.textContent = 'Goodbye.';
+    bye.onclick = (e) => { e.stopPropagation(); this.end(); };
+    el.appendChild(bye);
+  },
+  _pickResponse(responses) {
+    const r = responses[Math.floor(Math.random() * responses.length)];
+    document.getElementById('dialogue-text').textContent = `"${r}"`;
+  },
+
   end() {
     document.getElementById('dialogue-overlay').classList.remove('active');
-    this.active = false;
+    document.getElementById('dialogue-options').innerHTML = '';
+    document.getElementById('dialogue-advance').style.display = '';
+    const ol = document.getElementById('dialogue-overlay');
+    ol.onclick = () => this.advance();
+    this.active = false; this._npc = null;
   }
 };

@@ -1120,74 +1120,158 @@ const world = {
       townsperson: {
         robes:  [new BABYLON.Color3(0.45,0.32,0.18), new BABYLON.Color3(0.38,0.28,0.14), new BABYLON.Color3(0.52,0.40,0.22), new BABYLON.Color3(0.30,0.22,0.10)],
         accent: [new BABYLON.Color3(0.70,0.55,0.30), new BABYLON.Color3(0.60,0.48,0.25)],
-        lines: [
-          "Good day to you.",
-          "New Spring is peaceful today.",
-          "Mind the cobblestones — they're slippery after rain.",
-          "The Dawn Hall is always looking for new recruits.",
-          "I've lived here since before the east gate was built.",
-          "Strange weather lately. The sygl-folk say it means something.",
-          "Have you seen the market? Best in the region.",
-          "My grandmother came to New Spring from the south road.",
-          "Keep your coin purse close in the market square.",
-          "The Academy folk came through town last week. Odd bunch.",
-        ]
+        greetings: ["What is it?", "Ah, a traveller. What do you need?", "Good day.", "Yes? Something I can help with?"],
+        options: {
+          'How is the town?': [
+            "New Spring is quiet today. That is usually a good sign.",
+            "Peaceful enough, if you keep to the main roads.",
+            "The cobblestones were just relaid. Town is proud of it.",
+            "There is always something happening near the market square.",
+          ],
+          'Any local news?': [
+            "Someone spotted strange lights near the north road last night.",
+            "The Dawn Hall posted three new jobs this morning, I heard.",
+            "A merchant caravan arrived from Whitehaven this morning.",
+            "The Jeweler had a break-in last week. Nothing taken, strangely.",
+            "The inn raised its prices again. Third time this season.",
+          ],
+          'Tell me about yourself.': [
+            "I was born here. I expect I will die here too.",
+            "Just an ordinary resident. Nothing remarkable to report.",
+            "I have lived in New Spring for as long as I can remember.",
+            "My family has kept a home here for three generations.",
+          ],
+          'What do you know about sygls?': [
+            "Everyone in this town has an opinion on sygls. Mine is: choose wisely.",
+            "My cousin chose the Fire sygl. Very dramatic person now.",
+            "The Academy is the place to learn about sygl-lore. North road.",
+            "I never had the gift for it myself. Just an ordinary soul.",
+          ],
+        }
       },
       merchant: {
         robes:  [new BABYLON.Color3(0.55,0.38,0.18), new BABYLON.Color3(0.48,0.30,0.12), new BABYLON.Color3(0.62,0.44,0.20)],
         accent: [new BABYLON.Color3(0.85,0.65,0.20), new BABYLON.Color3(0.75,0.55,0.15)],
-        lines: [
-          "Finest wares in all of New Spring, I assure you.",
-          "Business is slow today. Perhaps the weather.",
-          "I trade with travellers from as far as Whitehaven.",
-          "The new reagent shipment arrives tomorrow.",
-          "Buy something or move on — I haven't all day.",
-          "Quality goods, reasonable prices. What more could you want?",
-          "The market has been here longer than the walls.",
-          "Trade is the lifeblood of any town.",
-        ]
+        greetings: ["Looking to buy?", "I haven't all day. What do you need?", "Finest goods in New Spring. Can I help?"],
+        options: {
+          'What are you selling?': [
+            "Assorted wares. Come back when my stall is restocked.",
+            "Reagents, sundries, the occasional curiosity.",
+            "A bit of everything. Supply and demand, traveller.",
+            "Whatever the town needs, I try to have it.",
+          ],
+          'Where do your goods come from?': [
+            "Whitehaven, mostly. Some from the southern roads.",
+            "I have contacts in three towns. Very good contacts.",
+            "Trade secrets, friend. Let us leave it at that.",
+            "Far places. The roads are long but the profit is worth it.",
+          ],
+          'How is business?': [
+            "Slow today. Perhaps the weather keeps folk inside.",
+            "Brisk, actually. The market has been busy all week.",
+            "Could always be better. Could always be worse.",
+            "The Dawn Hall adventurers buy well. Good customers.",
+          ],
+          'Any news from the roads?': [
+            "Heard there is trouble on the eastern road. Nothing confirmed.",
+            "A merchant I know says the Academy is hiring. Good coin.",
+            "The road to Whitehaven is safe enough, last I heard.",
+            "Bandits were spotted south last month. I take the north route now.",
+          ],
+        }
       },
       guard: {
         robes:  [new BABYLON.Color3(0.25,0.28,0.38), new BABYLON.Color3(0.20,0.22,0.32)],
         accent: [new BABYLON.Color3(0.55,0.65,0.80), new BABYLON.Color3(0.60,0.70,0.85)],
-        lines: [
-          "Move along. Nothing to see here.",
-          "Keep the peace and we'll have no trouble.",
-          "The east gate closes at sundown.",
-          "I've walked this patrol for six years. Every stone is familiar.",
-          "Report any trouble to the Dawn Hall.",
-          "Stay on the roads after dark.",
-          "New Spring has been quiet. Let's keep it that way.",
-          "The wall patrols started after the last bandit raid.",
-        ]
+        greetings: ["State your business.", "Keep it brief. I am on patrol.", "Yes?"],
+        options: {
+          'Is the town safe?': [
+            "Safe enough. We patrol regularly.",
+            "New Spring has not had serious trouble in years.",
+            "There are always risks. Stay alert and you will be fine.",
+            "Within the walls? Yes. Outside is another matter.",
+          ],
+          'What should I watch out for?': [
+            "Keep your coin hidden in the market. Pickpockets.",
+            "Do not use the south road alone after dark.",
+            "The west wood has wolves. Not dangerous unless you provoke them.",
+            "Strange folk on the north road lately. Probably nothing.",
+          ],
+          'Tell me about the Dawn Hall.': [
+            "Legitimate guild. They keep the adventurers in line, mostly.",
+            "If you need work or protection, the Dawn Hall is the place.",
+            "I respect them. They take on jobs we cannot handle alone.",
+            "Ask there for anything involving combat. Not my department.",
+          ],
+          'How long have you served here?': [
+            "Six years on the wall patrol. I know every stone.",
+            "Long enough to know this town is worth protecting.",
+            "Three years. Transferred from the southern garrison.",
+            "Since before the east gate was reinforced. A long time.",
+          ],
+        }
       },
       scholar: {
         robes:  [new BABYLON.Color3(0.18,0.14,0.38), new BABYLON.Color3(0.22,0.16,0.44), new BABYLON.Color3(0.14,0.10,0.30)],
         accent: [new BABYLON.Color3(0.60,0.40,0.80), new BABYLON.Color3(0.50,0.30,0.70)],
-        lines: [
-          "The five sygls each carry their own resonance. Fascinating.",
-          "I'm researching the old texts from the Academy archives.",
-          "Sygldry is more complex than most people realise.",
-          "Have you chosen your sygl? The choice shapes everything.",
-          "The Originators were said to walk these very roads.",
-          "Magic is not power — it is understanding.",
-          "I came from the Academy to study the town's ley lines.",
-          "Every sygl-bearer changes the world in some small way.",
-        ]
+        greetings: ["Ah, an interesting face. Something on your mind?", "I am studying. But briefly — what is it?", "Yes? I do not mind the interruption."],
+        options: {
+          'Tell me about sygls.': [
+            "Each sygl resonates with a different aspect of the world. Choose in accordance with your nature.",
+            "The five Originators each discovered their sygl through adversity. Fascinating reading.",
+            "A sygl is not merely a power — it is an identity. Do not choose lightly.",
+            "The Academy has entire libraries on sygl theory. Worth a visit.",
+          ],
+          'What are you researching?': [
+            "The ley line convergence beneath New Spring. It is unusual.",
+            "Historical records of sygl-bearers who passed through this town.",
+            "The linguistic roots of the word 'sygl'. Older than you might think.",
+            "Nothing I can discuss openly. Sensitive material.",
+          ],
+          'What do you know about the Academy?': [
+            "Sygldry Academy is the foremost institution for magyk study in the region.",
+            "The north road leads straight there. An impressive place.",
+            "I studied there for eight years. Best years of my life.",
+            "They are selective. Only genuine sygl-bearers may enrol.",
+          ],
+          'Any advice for a traveller?': [
+            "Read everything you can find. Knowledge is the only true protection.",
+            "Learn your sygl deeply before you learn anything else.",
+            "The Dawn Hall has resources as well as jobs. Both are worth your time.",
+            "Do not trust anyone who claims to know what your sygl means for your fate.",
+          ],
+        }
       },
       elder: {
         robes:  [new BABYLON.Color3(0.35,0.28,0.20), new BABYLON.Color3(0.30,0.24,0.16)],
         accent: [new BABYLON.Color3(0.65,0.55,0.40), new BABYLON.Color3(0.70,0.60,0.45)],
-        lines: [
-          "I remember when this town was half its size.",
-          "The young never slow down long enough to listen.",
-          "New Spring has seen harder times than these.",
-          "The north road used to be a dirt track. Look at it now.",
-          "Sit a while. There's no hurry in this life.",
-          "My bones say rain is coming. My bones are never wrong.",
-          "The Dawn Hall used to be a grain storehouse, you know.",
-          "Every stone in this town has a story.",
-        ]
+        greetings: ["Come to talk with an old one? Sit, sit.", "Ah. A young face. What brings you my way?", "I was wondering when someone would stop by."],
+        options: {
+          'Tell me about this town.': [
+            "New Spring was built on trade and stubbornness. Not much has changed.",
+            "The walls went up after the bandit troubles, oh, fifty years ago now.",
+            "I remember the town square before the fountain. Hard to imagine.",
+            "Three generations of my family have lived and died here. Good town.",
+          ],
+          'What was it like before?': [
+            "Smaller. Quieter. People knew each other by name. Still do, mostly.",
+            "The Dawn Hall was a grain storehouse. Can you believe it?",
+            "The north road was mud. Every spring it washed away. Hence the name.",
+            "There were no shops on the south side. Just fields and orchards.",
+          ],
+          'Do you have any wisdom?': [
+            "The only wisdom worth having is knowing how little you know.",
+            "Do not mistake speed for progress, nor silence for agreement.",
+            "Every person you meet has a story longer than you will hear. Be patient.",
+            "New Spring taught me that a good community outlasts any individual. Build well.",
+          ],
+          'How are you today?': [
+            "Old. Tired. Grateful. The usual.",
+            "My bones ache, but I am here. That is something.",
+            "Better than yesterday. Worse than I was at your age.",
+            "Content. The sun is out and the bread is fresh. What more is there?",
+          ],
+        }
       },
     };
 
@@ -1209,18 +1293,17 @@ const world = {
       const robeColor = rng(arch.robes);
       const accentColor = rng(arch.accent);
 
-      // Pick 3 random unique dialogue lines from archetype
-      const shuffled = [...arch.lines].sort(() => Math.random() - 0.5);
-      const dialogue = shuffled.slice(0, 3);
-
-      // Slight body scale variation per NPC
+      const greeting = `"${rng(arch.greetings)}"`;
       const scale = 0.88 + Math.random() * 0.26;
 
-      world._spawnNPC(scene, {
+      const npc = world._spawnNPC(scene, {
         id: `gen_${placed}`, name, gx, gz,
-        dialogue, robeColor, accentColor,
+        dialogue: [], robeColor, accentColor,
         wander: true, scale
       });
+      // Attach options dialogue to the spawned NPC entry
+      const entry = world.npcs.find(n => n.id === `gen_${placed}`);
+      if (entry) { entry.greeting = greeting; entry.dialogueOptions = arch.options; }
       placed++;
     }
   },
@@ -1454,8 +1537,7 @@ const world = {
         (() => { let n = pick.pickedMesh; while (n && !n.name.startsWith('npc_')) n = n.parent; return n ? n.name.slice(4) : null; })();
       const npc = npcId ? world.npcs.find(n => n.id === npcId) : null;
       if (npc) {
-        log(`${npc.name}: "${npc.dialogue[npc.dialogueIndex % npc.dialogue.length]}"`, 'system');
-        npc.dialogueIndex++;
+        actions.talkTo(npc.id);
         return;
       }
     }
