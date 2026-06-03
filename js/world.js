@@ -249,17 +249,17 @@ const world = {
     state.torchLights = [];
 
     // ── MATERIALS ──────────────────────────────────────────────
-    const TEX = 'assets/kenney/retro-fantasy-kit/Textures/';
+    const RS_TEX = 'assets/rs225/textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobTex = new BABYLON.Texture(TEX + 'cobblestone.png', scene);
-    cobTex.uScale = 8; cobTex.vScale = 8;
+    const cobTex = new BABYLON.Texture(RS_TEX + 'tex_02.png', scene);
+    cobTex.uScale = 10; cobTex.vScale = 10;
     cobbleMat.diffuseTexture = cobTex;
 
     const cobbleAltMat = new BABYLON.StandardMaterial('cobbleAltMat', scene);
     cobbleAltMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobAltTex = new BABYLON.Texture(TEX + 'cobblestoneAlternative.png', scene);
-    cobAltTex.uScale = 8; cobAltTex.vScale = 8;
+    const cobAltTex = new BABYLON.Texture(RS_TEX + 'tex_04.png', scene);
+    cobAltTex.uScale = 10; cobAltTex.vScale = 10;
     cobbleAltMat.diffuseTexture = cobAltTex;
 
     const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
@@ -272,14 +272,20 @@ const world = {
     waterMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
 
     const wallStoneMat = new BABYLON.StandardMaterial('wallStoneMat', scene);
-    wallStoneMat.diffuseColor = new BABYLON.Color3(0.38, 0.33, 0.25);
     wallStoneMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+    const wallStoneTex = new BABYLON.Texture(RS_TEX + 'tex_03.png', scene);
+    wallStoneTex.uScale = 4; wallStoneTex.vScale = 4;
+    wallStoneMat.diffuseTexture = wallStoneTex;
+    wallStoneMat.diffuseColor = new BABYLON.Color3(0.45, 0.40, 0.30);
 
     const treeMat = new BABYLON.StandardMaterial('treeMat', scene);
     treeMat.diffuseColor = new BABYLON.Color3(0.08, 0.18, 0.06);
     treeMat.specularColor = new BABYLON.Color3(0, 0, 0);
     const trunkMat = new BABYLON.StandardMaterial('trunkMat', scene);
-    trunkMat.diffuseColor = new BABYLON.Color3(0.18, 0.11, 0.05);
+    const trunkTex = new BABYLON.Texture(RS_TEX + 'tex_05.png', scene);
+    trunkTex.uScale = 2; trunkTex.vScale = 3;
+    trunkMat.diffuseTexture = trunkTex;
+    trunkMat.diffuseColor = new BABYLON.Color3(0.30, 0.20, 0.10);
     trunkMat.specularColor = new BABYLON.Color3(0, 0, 0);
     const orchLeafMat = new BABYLON.StandardMaterial('orchLeafMat', scene);
     orchLeafMat.diffuseColor = new BABYLON.Color3(0.14, 0.32, 0.10);
@@ -839,17 +845,17 @@ const world = {
     const doorH = 2.6;
     const doorWW = doorWidth * TILE_SIZE;
 
-    const TEX_BASE = 'assets/kenney/retro-fantasy-kit/Textures/';
+    const RS_TEX_B = 'assets/rs225/textures/';
     const wallMat = new BABYLON.StandardMaterial(`wallMat_${name}`, scene);
     wallMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
-    const wallTex = new BABYLON.Texture(TEX_BASE + 'details.png', scene);
+    const wallTex = new BABYLON.Texture(RS_TEX_B + 'tex_22.png', scene);
     wallTex.uScale = Math.max(2, Math.round(worldW / 2));
     wallTex.vScale = Math.max(2, Math.round(totalH / 1.5));
     wallMat.diffuseTexture = wallTex;
     wallMat.diffuseColor = wallColor;
 
     const roofMat = new BABYLON.StandardMaterial(`roofMat_${name}`, scene);
-    const roofTex = new BABYLON.Texture(TEX_BASE + 'roof.png', scene);
+    const roofTex = new BABYLON.Texture(RS_TEX_B + 'tex_23.png', scene);
     roofTex.uScale = Math.max(2, Math.round(worldW / 2));
     roofTex.vScale = 2;
     roofMat.diffuseTexture = roofTex;
@@ -1048,7 +1054,7 @@ const world = {
 
   _addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH) {
     const timberMat = new BABYLON.StandardMaterial(`timberMat_${name}`, scene);
-    const plankTex = new BABYLON.Texture('assets/kenney/retro-fantasy-kit/Textures/planks.png', scene);
+    const plankTex = new BABYLON.Texture('assets/rs225/textures/tex_18.png', scene);
     plankTex.uScale = 1; plankTex.vScale = 4;
     timberMat.diffuseTexture = plankTex;
     timberMat.diffuseColor = new BABYLON.Color3(0.65, 0.45, 0.25);
@@ -1387,20 +1393,36 @@ const world = {
 
     root.scaling = new BABYLON.Vector3(scale, scale, scale);
 
-    const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.52, height: 1.1, depth: 0.36 }, scene);
-    body.material = robeMat; body.position.y = 0.75; body.parent = root;
+    const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.50, height: 0.70, depth: 0.32 }, scene);
+    body.material = robeMat; body.position.y = 0.95; body.parent = root;
     body.metadata = { npcId: id };
 
-    const skirt = BABYLON.MeshBuilder.CreateCylinder(`npcSkirt_${id}`, { height: 0.5, diameterTop: 0.52, diameterBottom: 0.72, tessellation: 8 }, scene);
-    skirt.material = robeMat; skirt.position.y = 0.25; skirt.parent = root;
-    skirt.metadata = { npcId: id };
+    // Legs
+    const legMat = new BABYLON.StandardMaterial(`npcLegMat_${id}`, scene);
+    legMat.diffuseColor = robeColor.scale(0.75);
+    const legL = BABYLON.MeshBuilder.CreateBox(`npcLegL_${id}`, { width: 0.18, height: 0.52, depth: 0.20 }, scene);
+    legL.material = legMat; legL.position = new BABYLON.Vector3(-0.14, 0.40, 0); legL.parent = root;
+    legL.metadata = { npcId: id };
+    const legR = BABYLON.MeshBuilder.CreateBox(`npcLegR_${id}`, { width: 0.18, height: 0.52, depth: 0.20 }, scene);
+    legR.material = legMat; legR.position = new BABYLON.Vector3(0.14, 0.40, 0); legR.parent = root;
+    legR.metadata = { npcId: id };
 
-    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.42, segments: 8 }, scene);
+    // Arms
+    const armMat = new BABYLON.StandardMaterial(`npcArmMat_${id}`, scene);
+    armMat.diffuseColor = robeColor.scale(0.85);
+    const armL = BABYLON.MeshBuilder.CreateBox(`npcArmL_${id}`, { width: 0.14, height: 0.52, depth: 0.18 }, scene);
+    armL.material = armMat; armL.position = new BABYLON.Vector3(-0.32, 0.92, 0); armL.parent = root;
+    armL.metadata = { npcId: id };
+    const armR = BABYLON.MeshBuilder.CreateBox(`npcArmR_${id}`, { width: 0.14, height: 0.52, depth: 0.18 }, scene);
+    armR.material = armMat; armR.position = new BABYLON.Vector3(0.32, 0.92, 0); armR.parent = root;
+    armR.metadata = { npcId: id };
+
+    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.40, segments: 8 }, scene);
     head.material = headMat; head.position.y = 1.52; head.parent = root;
     head.metadata = { npcId: id };
 
-    const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.14, segments: 6 }, scene);
-    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.32, 1.15, 0); orb.parent = root;
+    const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.12, segments: 6 }, scene);
+    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = root;
     orb.metadata = { npcId: id };
   },
 
@@ -1639,33 +1661,74 @@ const world = {
     const root = new BABYLON.TransformNode('playerRoot', scene);
     root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
 
-    const capMat = new BABYLON.StandardMaterial('plrCapMat', scene);
-    capMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
-    const body = BABYLON.MeshBuilder.CreateCylinder('plrBody', { height: 1.1, diameterTop: 0.42, diameterBottom: 0.58, tessellation: 10 }, scene);
-    body.material = capMat; body.position.y = 0.75; body.parent = root;
+    // Determine if player has armor equipped
+    const eq = state.player.equipped || {};
+    const hasArmor = !!(eq.body || eq.head || eq.legs);
+
+    // Clothing colors: plain clothes if no armor, armor color if equipped
+    const bodyColor = hasArmor
+      ? new BABYLON.Color3(0.22, 0.28, 0.40)   // armored: dark blue-grey
+      : new BABYLON.Color3(0.62, 0.50, 0.32);   // plain clothes: tan/linen
+
+    const legColor = hasArmor
+      ? new BABYLON.Color3(0.18, 0.22, 0.32)
+      : new BABYLON.Color3(0.42, 0.32, 0.18);   // plain trousers: brown
+
+    const bodyMat = new BABYLON.StandardMaterial('plrBodyMat', scene);
+    bodyMat.diffuseColor = bodyColor;
+    bodyMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    const legMat = new BABYLON.StandardMaterial('plrLegMat', scene);
+    legMat.diffuseColor = legColor;
+    legMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    const armMat = new BABYLON.StandardMaterial('plrArmMat', scene);
+    armMat.diffuseColor = hasArmor ? bodyColor : new BABYLON.Color3(0.80, 0.65, 0.50); // skin if no armor
+    armMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
     const headMat = new BABYLON.StandardMaterial('plrHeadMat', scene);
     headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    headMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    // Torso
+    const body = BABYLON.MeshBuilder.CreateBox('plrBody', { width: 0.50, height: 0.70, depth: 0.32 }, scene);
+    body.material = bodyMat; body.position.y = 0.95; body.parent = root;
+
+    // Legs
+    const legL = BABYLON.MeshBuilder.CreateBox('plrLegL', { width: 0.18, height: 0.52, depth: 0.20 }, scene);
+    legL.material = legMat; legL.position = new BABYLON.Vector3(-0.14, 0.40, 0); legL.parent = root;
+    const legR = BABYLON.MeshBuilder.CreateBox('plrLegR', { width: 0.18, height: 0.52, depth: 0.20 }, scene);
+    legR.material = legMat; legR.position = new BABYLON.Vector3(0.14, 0.40, 0); legR.parent = root;
+
+    // Arms
+    const armL = BABYLON.MeshBuilder.CreateBox('plrArmL', { width: 0.14, height: 0.52, depth: 0.18 }, scene);
+    armL.material = armMat; armL.position = new BABYLON.Vector3(-0.32, 0.92, 0); armL.parent = root;
+    const armR = BABYLON.MeshBuilder.CreateBox('plrArmR', { width: 0.14, height: 0.52, depth: 0.18 }, scene);
+    armR.material = armMat; armR.position = new BABYLON.Vector3(0.32, 0.92, 0); armR.parent = root;
+
+    // Head
     const head = BABYLON.MeshBuilder.CreateSphere('plrHead', { diameter: 0.44, segments: 8 }, scene);
     head.material = headMat; head.position.y = 1.52; head.parent = root;
 
+    // Sygl orb (floating beside head)
     const glowMat = new BABYLON.StandardMaterial('plrGlowMat', scene);
     glowMat.emissiveColor = accentColor;
     glowMat.diffuseColor = accentColor;
-    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 8 }, scene);
-    orb.material = glowMat; orb.position = new BABYLON.Vector3(0.38, 1.2, 0); orb.parent = root;
+    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.18, segments: 8 }, scene);
+    orb.material = glowMat; orb.position = new BABYLON.Vector3(0.36, 1.30, 0); orb.parent = root;
 
-    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.38, 1.2, 0), scene);
+    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.36, 1.30, 0), scene);
     glowLight.diffuse = accentColor;
     glowLight.intensity = 0.5;
     glowLight.range = 5;
     glowLight.parent = root;
 
-    state.playerWeaponNode = null; // clear old ref
+    state.playerWeaponNode = null;
     state.playerMesh = root;
     state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
-    if (state.player.equipped && state.player.equipped.weapon) {
-      world.updatePlayerWeapon(state.player.equipped.weapon);
+    // Only show weapon if one is actually equipped
+    if (eq.weapon) {
+      world.updatePlayerWeapon(eq.weapon);
     }
   },
 
