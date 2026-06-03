@@ -32,11 +32,12 @@ const world = {
     scene.fogDensity = 0.004;
     scene.fogColor = new BABYLON.Color3(0.08, 0.06, 0.05);
 
-    const cam = new BABYLON.ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 3.2, 22, BABYLON.Vector3.Zero(), scene);
+    const startWP = world.gridToWorld(34, 43);
+    const cam = new BABYLON.ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 2.6, 20, new BABYLON.Vector3(startWP.x, 0, startWP.z), scene);
     cam.lowerRadiusLimit = 8;
     cam.upperRadiusLimit = 45;
-    cam.lowerBetaLimit = 0.35;
-    cam.upperBetaLimit = Math.PI / 2.4;
+    cam.lowerBetaLimit = 0.6;
+    cam.upperBetaLimit = Math.PI / 2.15;
     cam.wheelPrecision = 30;
     cam.panningSensibility = 0;
     cam.attachControl(canvas, true);
@@ -1083,49 +1084,115 @@ const world = {
     const accentColor = new BABYLON.Color3(accent[0]/255, accent[1]/255, accent[2]/255);
 
     const root = new BABYLON.TransformNode('playerRoot', scene);
+
     const robeMat = new BABYLON.StandardMaterial('robeMat', scene);
-    robeMat.diffuseColor = new BABYLON.Color3(0.1, 0.08, 0.06);
-    robeMat.specularColor = new BABYLON.Color3(0, 0, 0);
-    const robe = BABYLON.MeshBuilder.CreateCylinder('robe', { height: 1.3, diameterTop: 0.55, diameterBottom: 0.85 }, scene);
-    robe.material = robeMat;
-    robe.position.y = 0.65;
-    robe.parent = root;
+    robeMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
+    robeMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
 
     const trimMat = new BABYLON.StandardMaterial('trimMat', scene);
     trimMat.diffuseColor = accentColor;
-    trimMat.emissiveColor = accentColor.scale(0.3);
-    const trim = BABYLON.MeshBuilder.CreateTorus('trim', { diameter: 0.85, thickness: 0.06 }, scene);
-    trim.material = trimMat;
-    trim.position.y = 0.05;
-    trim.parent = root;
+    trimMat.emissiveColor = accentColor.scale(0.25);
+    trimMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
-    const headMat = new BABYLON.StandardMaterial('headMat', scene);
-    headMat.diffuseColor = new BABYLON.Color3(0.85, 0.7, 0.55);
-    const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.42, segments: 12 }, scene);
-    head.material = headMat;
-    head.position.y = 1.55;
+    const skinMat = new BABYLON.StandardMaterial('skinMat', scene);
+    skinMat.diffuseColor = new BABYLON.Color3(0.85, 0.7, 0.55);
+    skinMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+    const staffMat = new BABYLON.StandardMaterial('staffMat', scene);
+    staffMat.diffuseColor = new BABYLON.Color3(0.35, 0.22, 0.1);
+    staffMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    // Robe body — tapered cylinder
+    const robe = BABYLON.MeshBuilder.CreateCylinder('robe', { height: 1.4, diameterTop: 0.52, diameterBottom: 0.88, tessellation: 12 }, scene);
+    robe.material = robeMat;
+    robe.position.y = 0.7;
+    robe.parent = root;
+
+    // Accent hem band at bottom
+    const hem = BABYLON.MeshBuilder.CreateTorus('hem', { diameter: 0.87, thickness: 0.055, tessellation: 20 }, scene);
+    hem.material = trimMat;
+    hem.position.y = 0.06;
+    hem.parent = root;
+
+    // Accent trim at chest
+    const chest = BABYLON.MeshBuilder.CreateTorus('chest', { diameter: 0.57, thickness: 0.045, tessellation: 20 }, scene);
+    chest.material = trimMat;
+    chest.position.y = 1.22;
+    chest.parent = root;
+
+    // Shoulders (two flattened spheres)
+    for (const side of [-1, 1]) {
+      const sh = BABYLON.MeshBuilder.CreateSphere(`shoulder${side}`, { diameter: 0.28, segments: 8 }, scene);
+      sh.material = robeMat;
+      sh.scaling.y = 0.7;
+      sh.position.set(side * 0.31, 1.25, 0);
+      sh.parent = root;
+
+      // Upper arm
+      const ua = BABYLON.MeshBuilder.CreateCylinder(`uarm${side}`, { height: 0.38, diameterTop: 0.14, diameterBottom: 0.17, tessellation: 8 }, scene);
+      ua.material = robeMat;
+      ua.rotation.z = side * 0.45;
+      ua.position.set(side * 0.44, 1.04, 0);
+      ua.parent = root;
+
+      // Forearm / sleeve
+      const fa = BABYLON.MeshBuilder.CreateCylinder(`farm${side}`, { height: 0.34, diameterTop: 0.1, diameterBottom: 0.14, tessellation: 8 }, scene);
+      fa.material = robeMat;
+      fa.rotation.z = side * 0.7;
+      fa.position.set(side * 0.56, 0.82, 0.08);
+      fa.parent = root;
+
+      // Hand
+      const hand = BABYLON.MeshBuilder.CreateSphere(`hand${side}`, { diameter: 0.13, segments: 6 }, scene);
+      hand.material = skinMat;
+      hand.position.set(side * 0.64, 0.67, 0.12);
+      hand.parent = root;
+    }
+
+    // Neck
+    const neck = BABYLON.MeshBuilder.CreateCylinder('neck', { height: 0.14, diameter: 0.18, tessellation: 8 }, scene);
+    neck.material = skinMat;
+    neck.position.y = 1.42;
+    neck.parent = root;
+
+    // Head
+    const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.40, segments: 12 }, scene);
+    head.material = skinMat;
+    head.position.y = 1.65;
     head.parent = root;
 
-    const hairMat = new BABYLON.StandardMaterial('hairMat', scene);
-    hairMat.diffuseColor = new BABYLON.Color3(0.16, 0.1, 0.06);
-    const hair = BABYLON.MeshBuilder.CreateSphere('hair', { diameter: 0.45, segments: 10 }, scene);
-    hair.material = hairMat;
-    hair.position.y = 1.62;
-    hair.scaling.y = 0.55;
-    hair.parent = root;
+    // Hood — dark cone sitting over the head
+    const hood = BABYLON.MeshBuilder.CreateCylinder('hood', { height: 0.44, diameterTop: 0.08, diameterBottom: 0.52, tessellation: 12 }, scene);
+    hood.material = robeMat;
+    hood.position.y = 1.78;
+    hood.parent = root;
 
+    // Hood brim ring
+    const hoodBrim = BABYLON.MeshBuilder.CreateTorus('hoodBrim', { diameter: 0.50, thickness: 0.04, tessellation: 20 }, scene);
+    hoodBrim.material = trimMat;
+    hoodBrim.position.y = 1.57;
+    hoodBrim.parent = root;
+
+    // Staff — held in right hand
+    const staff = BABYLON.MeshBuilder.CreateCylinder('staff', { height: 2.1, diameter: 0.07, tessellation: 8 }, scene);
+    staff.material = staffMat;
+    staff.position.set(0.72, 1.05, 0.1);
+    staff.parent = root;
+
+    // Staff orb top
     const glowMat = new BABYLON.StandardMaterial('glowMat', scene);
     glowMat.emissiveColor = accentColor;
     glowMat.diffuseColor = accentColor;
-    const glow = BABYLON.MeshBuilder.CreateSphere('glow', { diameter: 0.18 }, scene);
-    glow.material = glowMat;
-    glow.position = new BABYLON.Vector3(-0.32, 0.7, 0.1);
-    glow.parent = root;
+    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 10 }, scene);
+    orb.material = glowMat;
+    orb.position.set(0.72, 2.12, 0.1);
+    orb.parent = root;
 
-    const glowLight = new BABYLON.PointLight('glL', glow.position.clone(), scene);
+    // Staff orb glow light
+    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.72, 2.12, 0.1), scene);
     glowLight.diffuse = accentColor;
-    glowLight.intensity = 0.4;
-    glowLight.range = 4;
+    glowLight.intensity = 0.5;
+    glowLight.range = 5;
     glowLight.parent = root;
 
     state.playerMesh = root;
