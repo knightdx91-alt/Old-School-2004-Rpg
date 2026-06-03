@@ -252,13 +252,13 @@ const world = {
     const RS_TEX = 'assets/rs225/textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobTex = new BABYLON.Texture(RS_TEX + 'tex_02.png', scene);
+    const cobTex = new BABYLON.Texture(RS_TEX + 'tex_32.png', scene);
     cobTex.uScale = 10; cobTex.vScale = 10;
     cobbleMat.diffuseTexture = cobTex;
 
     const cobbleAltMat = new BABYLON.StandardMaterial('cobbleAltMat', scene);
     cobbleAltMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobAltTex = new BABYLON.Texture(RS_TEX + 'tex_04.png', scene);
+    const cobAltTex = new BABYLON.Texture(RS_TEX + 'tex_31.png', scene);
     cobAltTex.uScale = 10; cobAltTex.vScale = 10;
     cobbleAltMat.diffuseTexture = cobAltTex;
 
@@ -1710,14 +1710,8 @@ const world = {
     const head = BABYLON.MeshBuilder.CreateSphere('plrHead', { diameter: 0.44, segments: 8 }, scene);
     head.material = headMat; head.position.y = 1.52; head.parent = root;
 
-    // Sygl orb (floating beside head)
-    const glowMat = new BABYLON.StandardMaterial('plrGlowMat', scene);
-    glowMat.emissiveColor = accentColor;
-    glowMat.diffuseColor = accentColor;
-    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.18, segments: 8 }, scene);
-    orb.material = glowMat; orb.position = new BABYLON.Vector3(0.36, 1.30, 0); orb.parent = root;
-
-    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.36, 1.30, 0), scene);
+    // Subtle ambient sygl glow (no visible orb, just coloured light)
+    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0, 1.0, 0), scene);
     glowLight.diffuse = accentColor;
     glowLight.intensity = 0.5;
     glowLight.range = 5;
