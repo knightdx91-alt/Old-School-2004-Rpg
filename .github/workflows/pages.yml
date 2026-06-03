@@ -1,0 +1,71 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Allow this workflow to publish to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deploy at a time; let an in-progress run finish
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Babylon.js engine + loaders (bundle locally, no CDN needed)
+        run: |
+          curl -L -o js/babylon.js "https://cdn.jsdelivr.net/npm/babylonjs@6.49.0/babylon.min.js"
+          curl -L -o js/babylonjs.loaders.min.js "https://cdn.jsdelivr.net/npm/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js"
+
+      - name: Assemble static site into ./build
+        run: |
+          mkdir -p build
+          cp index.html styles.css build/
+          cp -r js build/
+          # Copy assets but skip source formats the game never loads at runtime.
+          # The game only requests .glb (3D) and .png (textures); .zip/.fbx/.obj/
+          # .mtl/.stl/.dae are duplicate source files that just bloat the deploy.
+          rsync -a \
+            --exclude='*.zip' \
+            --exclude='*.fbx' \
+            --exclude='*.obj' \
+            --exclude='*.mtl' \
+            --exclude='*.stl' \
+            --exclude='*.dae' \
+            --exclude='*.unitypackage' \
+            --exclude='*.url' \
+            --exclude='*.txt' \
+            --exclude='*.py' \
+            assets build/
+          echo "Build size:"; du -sh build
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
