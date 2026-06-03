@@ -438,12 +438,13 @@ const world = {
       for (let gz = GNZS + 1; gz <= SWZ; gz++) state.obstacles.add(`${EWX},${gz}`);
     }
 
-    // Corner towers
-    [[WWX, NWZ], [EWX, NWZ], [WWX, SWZ], [EWX, SWZ]].forEach(([gx, gz], ci) => {
-      const wp = world.gridToWorld(gx, gz);
-      const t = BABYLON.MeshBuilder.CreateBox(`cTwr_${ci}`, { width: 2.0, height: WALL_H + 1.0, depth: 2.0 }, scene);
-      t.material = wallStoneMat; t.position = new BABYLON.Vector3(wp.x, (WALL_H + 1.0) / 2, wp.z);
+    // Corner towers — castle-kit tower GLBs
+    [[WWX, NWZ], [EWX, NWZ], [WWX, SWZ], [EWX, SWZ]].forEach(([gx, gz]) => {
       state.obstacles.add(`${gx},${gz}`);
+      world._loadProp(scene, 'tower-square.glb', gx, gz, {
+        scale: 3.5,
+        basePath: 'assets/kenney/castle-kit/Models/GLB format/'
+      });
     });
 
     // Gate arches (pillars + lintel)
@@ -550,8 +551,25 @@ const world = {
     state.brazierLight = brazierLight;
 
     // ── BUILDINGS ──────────────────────────────────────────────
+    const BPATH_MOD = 'assets/kenney/modular-buildings/Models/GLB format/';
+    // Helper: load a GLB building centred on the grid footprint, keep obstacle/roof logic
+    const placeBuilding = (name, gx, gz, w, d, floors, glbFile, glbScale, doorSide, doorWidth) => {
+      // Keep obstacle marking via _buildBuilding (pass invisible colours)
+      world._buildBuilding(scene, name, gx, gz, w, d, floors, amberC, amberR, doorSide, doorWidth, { glbReplaced: true });
+      const cx = gx + w / 2, cz = gz + d / 2;
+      const wp = world.gridToWorld(cx, cz);
+      BABYLON.SceneLoader.ImportMeshAsync('', BPATH_MOD, glbFile, scene).then(r => {
+        const root = r.meshes[0];
+        root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
+        root.scaling = new BABYLON.Vector3(glbScale, glbScale, glbScale);
+        // Store for roof transparency
+        const b = world.buildings.find(b => b.name === name);
+        if (b) b.glbRoot = root;
+      }).catch(e => console.warn('Building load failed', glbFile, e));
+    };
+
     // Dawn Hall — NW, 3 floors (gx=28-40, gz=29-40, door south)
-    world._buildBuilding(scene, 'dawnHall', 28, 29, 13, 12, 3, amberC, amberR, 'south', 2);
+    placeBuilding('dawnHall', 28, 29, 13, 12, 3, 'building-sample-tower-a.glb', 5.5, 'south', 2);
     const porchMat = new BABYLON.StandardMaterial('porchMat', scene);
     porchMat.diffuseColor = new BABYLON.Color3(0.45, 0.38, 0.22);
     [[33, 41], [37, 41]].forEach(([gx, gz], i) => {
@@ -568,7 +586,7 @@ const world = {
     dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.014, 42*TILE_SIZE);
 
     // Inn & Tavern — NE, 2 floors (gx=60-72, gz=29-40, door south)
-    world._buildBuilding(scene, 'inn', 60, 29, 13, 12, 2, woodC, woodR, 'south', 2);
+    placeBuilding('inn', 60, 29, 13, 12, 2, 'building-sample-tower-b.glb', 5.0, 'south', 2);
     const innSignMat = new BABYLON.StandardMaterial('innSignMat', scene);
     innSignMat.emissiveColor = new BABYLON.Color3(0.55, 0.30, 0.10);
     const innSign = BABYLON.MeshBuilder.CreateBox('innSign', { width: 2.0, height: 0.4, depth: 0.1 }, scene);
@@ -578,22 +596,22 @@ const world = {
     innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.014, 42*TILE_SIZE);
 
     // Enchanted Weapons — W side (gx=24-33, gz=55-63, door east)
-    world._buildBuilding(scene, 'enchantedWeapons', 24, 55, 10, 9, 1, purpleC, purpleR, 'east', 1);
+    placeBuilding('enchantedWeapons', 24, 55, 10, 9, 1, 'building-sample-house-a.glb', 4.0, 'east', 1);
 
     // Jeweler — SW (gx=24-32, gz=65-71, door east)
-    world._buildBuilding(scene, 'jeweler', 24, 65, 9, 7, 1, redC, redR, 'east', 1);
+    placeBuilding('jeweler', 24, 65, 9, 7, 1, 'building-sample-house-b.glb', 3.5, 'east', 1);
 
     // Apothecary — SW (gx=34-42, gz=65-71, door east)
-    world._buildBuilding(scene, 'apothecary', 34, 65, 9, 7, 1, greenC, greenR, 'east', 1);
+    placeBuilding('apothecary', 34, 65, 9, 7, 1, 'building-sample-house-c.glb', 3.5, 'east', 1);
 
     // Familiar Supplies — E side (gx=66-75, gz=55-63, door west)
-    world._buildBuilding(scene, 'familiarSupplies', 66, 55, 10, 9, 1, blueC, blueR, 'west', 1);
+    placeBuilding('familiarSupplies', 66, 55, 10, 9, 1, 'building-sample-house-a.glb', 4.0, 'west', 1);
 
     // Restaurant — SE (gx=60-67, gz=65-71, door west)
-    world._buildBuilding(scene, 'restaurant', 60, 65, 8, 7, 1, shopC, shopR, 'west', 1);
+    placeBuilding('restaurant', 60, 65, 8, 7, 1, 'building-sample-house-b.glb', 3.5, 'west', 1);
 
     // Tea House — SE (gx=68-75, gz=65-71, door west)
-    world._buildBuilding(scene, 'teaHouse', 68, 65, 8, 7, 1, shopC, shopR, 'west', 1);
+    placeBuilding('teaHouse', 68, 65, 8, 7, 1, 'building-sample-house-c.glb', 3.5, 'west', 1);
 
     // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
@@ -636,8 +654,40 @@ const world = {
   },
 
   _buildBuilding(scene, name, gx, gz, w, d, floors, wallColor, roofColor, doorSide, doorWidth, options = {}) {
-    const wallT = 0.3; // wall thickness
-    const floorH = 3.0; // height per floor
+    const worldW = w * TILE_SIZE;
+    const worldD = d * TILE_SIZE;
+    const originX = gx * TILE_SIZE;
+    const originZ = gz * TILE_SIZE;
+    const centerX = originX + worldW / 2;
+    const centerZ = originZ + worldD / 2;
+
+    // Register building bounds for roof transparency
+    const buildingEntry = { name, gxMin: gx, gxMax: gx + w, gzMin: gz, gzMax: gz + d, roofMeshes: [], glbRoot: null };
+    world.buildings.push(buildingEntry);
+
+    // Mark perimeter as obstacles (door tiles left walkable)
+    const doorTiles = new Set();
+    const midGx = Math.round(gx + w / 2), midGz = Math.round(gz + d / 2);
+    if (doorSide === 'south') for (let dx = 0; dx < doorWidth; dx++) doorTiles.add(`${midGx - Math.floor(doorWidth/2) + dx},${gz + d}`);
+    if (doorSide === 'north') for (let dx = 0; dx < doorWidth; dx++) doorTiles.add(`${midGx - Math.floor(doorWidth/2) + dx},${gz}`);
+    if (doorSide === 'east')  for (let dz = 0; dz < doorWidth; dz++) doorTiles.add(`${gx + w},${midGz - Math.floor(doorWidth/2) + dz}`);
+    if (doorSide === 'west')  for (let dz = 0; dz < doorWidth; dz++) doorTiles.add(`${gx},${midGz - Math.floor(doorWidth/2) + dz}`);
+    for (let x = gx; x <= gx + w; x++) {
+      const kN = `${x},${gz}`, kS = `${x},${gz + d}`;
+      if (!doorTiles.has(kN)) state.obstacles.add(kN);
+      if (!doorTiles.has(kS)) state.obstacles.add(kS);
+    }
+    for (let z = gz; z <= gz + d; z++) {
+      const kW = `${gx},${z}`, kE = `${gx + w},${z}`;
+      if (!doorTiles.has(kW)) state.obstacles.add(kW);
+      if (!doorTiles.has(kE)) state.obstacles.add(kE);
+    }
+
+    // If replaced by a GLB, skip all visual mesh creation
+    if (options.glbReplaced) return;
+
+    const wallT = 0.3;
+    const floorH = 3.0;
     const totalH = floors * floorH;
     const doorH = 2.6;
     const doorWW = doorWidth * TILE_SIZE;
@@ -651,13 +701,6 @@ const world = {
 
     const floorMat = new BABYLON.StandardMaterial(`floorMat_${name}`, scene);
     floorMat.diffuseColor = new BABYLON.Color3(0.28, 0.20, 0.10);
-
-    const worldW = w * TILE_SIZE;
-    const worldD = d * TILE_SIZE;
-    const originX = gx * TILE_SIZE;
-    const originZ = gz * TILE_SIZE;
-    const centerX = originX + worldW / 2;
-    const centerZ = originZ + worldD / 2;
 
     // Floor
     const floor = BABYLON.MeshBuilder.CreateBox(`floor_${name}`, { width: worldW, height: 0.1, depth: worldD }, scene);
@@ -779,50 +822,11 @@ const world = {
     world._addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH);
     world._addWindows(scene, name, worldW, worldD, floors, floorH, wallT, originX, originZ, centerX, centerZ, doorSide, doorWidth);
 
-    // Mark wall perimeter as obstacles (except door tiles)
-    // Determine door tile positions to skip
-    const doorTiles = new Set();
-    if (doorSide === 'north') {
-      const doorGxCenter = Math.round(gx + w / 2 - doorWidth / 2);
-      for (let dx = 0; dx < doorWidth; dx++) doorTiles.add(`${doorGxCenter + dx},${gz}`);
-    } else if (doorSide === 'south') {
-      const doorGxCenter = Math.round(gx + w / 2 - doorWidth / 2);
-      for (let dx = 0; dx < doorWidth; dx++) doorTiles.add(`${doorGxCenter + dx},${gz + d - 1}`);
-    } else if (doorSide === 'west') {
-      const doorGzCenter = Math.round(gz + d / 2 - doorWidth / 2);
-      for (let dz = 0; dz < doorWidth; dz++) doorTiles.add(`${gx},${doorGzCenter + dz}`);
-    } else if (doorSide === 'east') {
-      const doorGzCenter = Math.round(gz + d / 2 - doorWidth / 2);
-      for (let dz = 0; dz < doorWidth; dz++) doorTiles.add(`${gx + w - 1},${doorGzCenter + dz}`);
-    }
+    // Obstacles and buildings.push now handled at top of _buildBuilding before glbReplaced check
+    // Store roofMeshes on the pre-registered building entry
+    const bEntry = world.buildings.find(b => b.name === name);
+    if (bEntry) bEntry.roofMeshes = roofMeshes;
 
-    // North wall tiles
-    for (let x = gx; x < gx + w; x++) {
-      const key = `${x},${gz}`;
-      if (!doorTiles.has(key)) state.obstacles.add(key);
-    }
-    // South wall tiles
-    for (let x = gx; x < gx + w; x++) {
-      const key = `${x},${gz + d - 1}`;
-      if (!doorTiles.has(key)) state.obstacles.add(key);
-    }
-    // West wall tiles (excluding corners already done)
-    for (let z = gz + 1; z < gz + d - 1; z++) {
-      const key = `${gx},${z}`;
-      if (!doorTiles.has(key)) state.obstacles.add(key);
-    }
-    // East wall tiles
-    for (let z = gz + 1; z < gz + d - 1; z++) {
-      const key = `${gx + w - 1},${z}`;
-      if (!doorTiles.has(key)) state.obstacles.add(key);
-    }
-
-    world.buildings.push({
-      name,
-      gxMin: gx, gxMax: gx + w - 1,
-      gzMin: gz, gzMax: gz + d - 1,
-      roofMeshes
-    });
   },
 
   _addPitchedRoof(scene, name, centerX, centerZ, worldW, worldD, totalH, roofMat, options = {}) {
@@ -1043,73 +1047,37 @@ const world = {
   },
 
   _spawnNPC(scene, { id, name, gx, gz, dialogue, robeColor, accentColor }) {
-    const skinColor = new BABYLON.Color3(0.78, 0.65, 0.50);
-    const darkBrown = new BABYLON.Color3(0.14, 0.09, 0.04);
+    const wp = world.gridToWorld(gx, gz);
+    state.obstacles.add(`${gx},${gz}`);
 
     const root = new BABYLON.TransformNode(`npc_${id}`, scene);
-    const tag = m => { m.metadata = { npcId: id }; m.parent = root; return m; };
-
-    const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
-    robeMat.diffuseColor = robeColor;
-    robeMat.specularColor = new BABYLON.Color3(0, 0, 0);
-
-    const accentMat = new BABYLON.StandardMaterial(`npcAccentMat_${id}`, scene);
-    accentMat.diffuseColor = accentColor || robeColor;
-    accentMat.emissiveColor = (accentColor || robeColor).scale(0.25);
-
-    const skinMat = new BABYLON.StandardMaterial(`npcSkinMat_${id}`, scene);
-    skinMat.diffuseColor = skinColor;
-
-    const darkMat = new BABYLON.StandardMaterial(`npcDarkMat_${id}`, scene);
-    darkMat.diffuseColor = darkBrown;
-
-    // Legs
-    const legL = BABYLON.MeshBuilder.CreateBox(`npcLL_${id}`, { width: 0.17, height: 0.52, depth: 0.17 }, scene);
-    legL.material = darkMat; legL.position.set(-0.11, 0.26, 0); tag(legL);
-    const legR = BABYLON.MeshBuilder.CreateBox(`npcLR_${id}`, { width: 0.17, height: 0.52, depth: 0.17 }, scene);
-    legR.material = darkMat; legR.position.set(0.11, 0.26, 0); tag(legR);
-
-    // Torso
-    const torso = BABYLON.MeshBuilder.CreateBox(`npcTorso_${id}`, { width: 0.40, height: 0.48, depth: 0.21 }, scene);
-    torso.material = robeMat; torso.position.set(0, 0.76, 0); tag(torso);
-
-    // Collar accent
-    const collar = BABYLON.MeshBuilder.CreateBox(`npcCollar_${id}`, { width: 0.42, height: 0.07, depth: 0.23 }, scene);
-    collar.material = accentMat; collar.position.set(0, 1.01, 0); tag(collar);
-
-    // Arms
-    const armL = BABYLON.MeshBuilder.CreateBox(`npcAL_${id}`, { width: 0.13, height: 0.40, depth: 0.13 }, scene);
-    armL.material = robeMat; armL.position.set(-0.27, 0.75, 0); tag(armL);
-    const armR = BABYLON.MeshBuilder.CreateBox(`npcAR_${id}`, { width: 0.13, height: 0.40, depth: 0.13 }, scene);
-    armR.material = robeMat; armR.position.set(0.27, 0.75, 0); tag(armR);
-
-    // Hands
-    const handL = BABYLON.MeshBuilder.CreateSphere(`npcHL_${id}`, { diameter: 0.13, segments: 6 }, scene);
-    handL.material = skinMat; handL.position.set(-0.27, 0.52, 0); tag(handL);
-    const handR = BABYLON.MeshBuilder.CreateSphere(`npcHR_${id}`, { diameter: 0.13, segments: 6 }, scene);
-    handR.material = skinMat; handR.position.set(0.27, 0.52, 0); tag(handR);
-
-    // Head
-    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.35, segments: 10 }, scene);
-    head.material = skinMat; head.position.set(0, 1.34, 0); tag(head);
-
-    // Hair
-    const hair = BABYLON.MeshBuilder.CreateSphere(`npcHair_${id}`, { diameter: 0.37, segments: 8 }, scene);
-    hair.material = darkMat; hair.position.set(0, 1.40, 0); hair.scaling.y = 0.52; tag(hair);
-
-    const wp = world.gridToWorld(gx, gz);
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
-    state.obstacles.add(`${gx},${gz}`);
     world.npcs.push({ id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0 });
+
+    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/kenney/graveyard-kit/Models/GLB format/', 'character-keeper.glb', scene).then(result => {
+      const mesh = result.meshes[0];
+      mesh.name = `npcMesh_${id}`;
+      mesh.parent = root;
+      mesh.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
+      // Tag all child meshes for click detection
+      result.meshes.forEach(m => { m.metadata = { npcId: id }; });
+    }).catch(() => {
+      // Fallback: simple box figure
+      const mat = new BABYLON.StandardMaterial(`npcFbMat_${id}`, scene);
+      mat.diffuseColor = robeColor;
+      const body = BABYLON.MeshBuilder.CreateBox(`npcFb_${id}`, { width: 0.5, height: 1.4, depth: 0.4 }, scene);
+      body.material = mat; body.position.y = 0.7; body.parent = root;
+      body.metadata = { npcId: id };
+    });
   },
 
   checkRoofTransparency() {
     const pgx = state.player.gx;
     const pgz = state.player.gz;
     for (const b of world.buildings) {
-      if (!b.roofMeshes) continue;
       const inside = pgx > b.gxMin && pgx < b.gxMax && pgz > b.gzMin && pgz < b.gzMax;
-      for (const m of b.roofMeshes) m.isVisible = !inside;
+      if (b.roofMeshes) for (const m of b.roofMeshes) m.isVisible = !inside;
+      if (b.glbRoot) b.glbRoot.isVisible = !inside;
     }
   },
 
@@ -1133,122 +1101,40 @@ const world = {
     const scene = state.scene;
     const accent = SYGLS[state.player.sygl].accentRGB;
     const accentColor = new BABYLON.Color3(accent[0]/255, accent[1]/255, accent[2]/255);
-
-    const root = new BABYLON.TransformNode('playerRoot', scene);
-
-    const robeMat = new BABYLON.StandardMaterial('robeMat', scene);
-    robeMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
-    robeMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
-
-    const trimMat = new BABYLON.StandardMaterial('trimMat', scene);
-    trimMat.diffuseColor = accentColor;
-    trimMat.emissiveColor = accentColor.scale(0.25);
-    trimMat.specularColor = new BABYLON.Color3(0, 0, 0);
-
-    const skinMat = new BABYLON.StandardMaterial('skinMat', scene);
-    skinMat.diffuseColor = new BABYLON.Color3(0.85, 0.7, 0.55);
-    skinMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
-
-    const staffMat = new BABYLON.StandardMaterial('staffMat', scene);
-    staffMat.diffuseColor = new BABYLON.Color3(0.35, 0.22, 0.1);
-    staffMat.specularColor = new BABYLON.Color3(0, 0, 0);
-
-    // Robe body — tapered cylinder
-    const robe = BABYLON.MeshBuilder.CreateCylinder('robe', { height: 1.4, diameterTop: 0.52, diameterBottom: 0.88, tessellation: 12 }, scene);
-    robe.material = robeMat;
-    robe.position.y = 0.7;
-    robe.parent = root;
-
-    // Accent hem band at bottom
-    const hem = BABYLON.MeshBuilder.CreateTorus('hem', { diameter: 0.87, thickness: 0.055, tessellation: 20 }, scene);
-    hem.material = trimMat;
-    hem.position.y = 0.06;
-    hem.parent = root;
-
-    // Accent trim at chest
-    const chest = BABYLON.MeshBuilder.CreateTorus('chest', { diameter: 0.57, thickness: 0.045, tessellation: 20 }, scene);
-    chest.material = trimMat;
-    chest.position.y = 1.22;
-    chest.parent = root;
-
-    // Shoulders (two flattened spheres)
-    for (const side of [-1, 1]) {
-      const sh = BABYLON.MeshBuilder.CreateSphere(`shoulder${side}`, { diameter: 0.28, segments: 8 }, scene);
-      sh.material = robeMat;
-      sh.scaling.y = 0.7;
-      sh.position.set(side * 0.31, 1.25, 0);
-      sh.parent = root;
-
-      // Upper arm
-      const ua = BABYLON.MeshBuilder.CreateCylinder(`uarm${side}`, { height: 0.38, diameterTop: 0.14, diameterBottom: 0.17, tessellation: 8 }, scene);
-      ua.material = robeMat;
-      ua.rotation.z = side * 0.45;
-      ua.position.set(side * 0.44, 1.04, 0);
-      ua.parent = root;
-
-      // Forearm / sleeve
-      const fa = BABYLON.MeshBuilder.CreateCylinder(`farm${side}`, { height: 0.34, diameterTop: 0.1, diameterBottom: 0.14, tessellation: 8 }, scene);
-      fa.material = robeMat;
-      fa.rotation.z = side * 0.7;
-      fa.position.set(side * 0.56, 0.82, 0.08);
-      fa.parent = root;
-
-      // Hand
-      const hand = BABYLON.MeshBuilder.CreateSphere(`hand${side}`, { diameter: 0.13, segments: 6 }, scene);
-      hand.material = skinMat;
-      hand.position.set(side * 0.64, 0.67, 0.12);
-      hand.parent = root;
-    }
-
-    // Neck
-    const neck = BABYLON.MeshBuilder.CreateCylinder('neck', { height: 0.14, diameter: 0.18, tessellation: 8 }, scene);
-    neck.material = skinMat;
-    neck.position.y = 1.42;
-    neck.parent = root;
-
-    // Head
-    const head = BABYLON.MeshBuilder.CreateSphere('head', { diameter: 0.40, segments: 12 }, scene);
-    head.material = skinMat;
-    head.position.y = 1.65;
-    head.parent = root;
-
-    // Hood — dark cone sitting over the head
-    const hood = BABYLON.MeshBuilder.CreateCylinder('hood', { height: 0.44, diameterTop: 0.08, diameterBottom: 0.52, tessellation: 12 }, scene);
-    hood.material = robeMat;
-    hood.position.y = 1.78;
-    hood.parent = root;
-
-    // Hood brim ring
-    const hoodBrim = BABYLON.MeshBuilder.CreateTorus('hoodBrim', { diameter: 0.50, thickness: 0.04, tessellation: 20 }, scene);
-    hoodBrim.material = trimMat;
-    hoodBrim.position.y = 1.57;
-    hoodBrim.parent = root;
-
-    // Staff — held in right hand
-    const staff = BABYLON.MeshBuilder.CreateCylinder('staff', { height: 2.1, diameter: 0.07, tessellation: 8 }, scene);
-    staff.material = staffMat;
-    staff.position.set(0.72, 1.05, 0.1);
-    staff.parent = root;
-
-    // Staff orb top
-    const glowMat = new BABYLON.StandardMaterial('glowMat', scene);
-    glowMat.emissiveColor = accentColor;
-    glowMat.diffuseColor = accentColor;
-    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 10 }, scene);
-    orb.material = glowMat;
-    orb.position.set(0.72, 2.12, 0.1);
-    orb.parent = root;
-
-    // Staff orb glow light
-    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.72, 2.12, 0.1), scene);
-    glowLight.diffuse = accentColor;
-    glowLight.intensity = 0.5;
-    glowLight.range = 5;
-    glowLight.parent = root;
-
-    state.playerMesh = root;
     const startWP = world.gridToWorld(state.player.gx, state.player.gz);
-    root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
+
+    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/kenney/graveyard-kit/Models/GLB format/', 'character-keeper.glb', scene).then(result => {
+      const root = result.meshes[0];
+      root.name = 'playerRoot';
+      root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
+      root.scaling = new BABYLON.Vector3(1.4, 1.4, 1.4);
+
+      // Accent glow orb on staff
+      const glowMat = new BABYLON.StandardMaterial('plrGlowMat', scene);
+      glowMat.emissiveColor = accentColor;
+      glowMat.diffuseColor = accentColor;
+      const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 8 }, scene);
+      orb.material = glowMat;
+      orb.position = new BABYLON.Vector3(startWP.x + 0.4, 2.1, startWP.z);
+
+      const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0, 2.1, 0.4), scene);
+      glowLight.diffuse = accentColor;
+      glowLight.intensity = 0.5;
+      glowLight.range = 5;
+      glowLight.parent = root;
+
+      state.playerMesh = root;
+      state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
+    }).catch(err => {
+      console.warn('character-keeper failed, using fallback capsule', err);
+      const root = new BABYLON.TransformNode('playerRoot', scene);
+      const capMat = new BABYLON.StandardMaterial('plrCapMat', scene);
+      capMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
+      const cap = BABYLON.MeshBuilder.CreateCylinder('plrCap', { height: 1.6, diameterTop: 0.4, diameterBottom: 0.6 }, scene);
+      cap.material = capMat; cap.position.y = 0.8; cap.parent = root;
+      state.playerMesh = root;
+      root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
+    });
   },
 
   spawnEnemy(e) {
