@@ -690,11 +690,46 @@ const world = {
     const doorWW = doorWidth * TILE_SIZE;
 
     const wallMat = new BABYLON.StandardMaterial(`wallMat_${name}`, scene);
-    wallMat.diffuseColor = wallColor;
     wallMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+    { const bTex = new BABYLON.DynamicTexture(`brickTex_${name}`, { width: 256, height: 256 }, scene);
+      const bc = bTex.getContext();
+      const r = Math.round(wallColor.r * 255), g = Math.round(wallColor.g * 255), b = Math.round(wallColor.b * 255);
+      const dark = `rgb(${Math.max(0,r-28)},${Math.max(0,g-22)},${Math.max(0,b-18)})`;
+      const mid  = `rgb(${r},${g},${b})`;
+      const lite = `rgb(${Math.min(255,r+22)},${Math.min(255,g+18)},${Math.min(255,b+14)})`;
+      bc.fillStyle = dark; bc.fillRect(0, 0, 256, 256);
+      const BW = 30, BH = 13, GAP = 3;
+      for (let row = 0; row * (BH + GAP) < 256; row++) {
+        const ox = (row % 2) * (BW / 2 + GAP / 2);
+        for (let col = -1; col * (BW + GAP) < 256; col++) {
+          const bx = col * (BW + GAP) + ox + GAP, by = row * (BH + GAP) + GAP;
+          const shade = ((row * 7 + col * 13) % 3 === 0) ? lite : mid;
+          bc.fillStyle = shade;
+          bc.fillRect(bx, by, BW, BH);
+        }
+      }
+      bTex.update();
+      bTex.uScale = Math.max(2, Math.round(worldW / 2));
+      bTex.vScale = Math.max(2, Math.round(totalH / 1.5));
+      wallMat.diffuseTexture = bTex;
+      wallMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
+    }
 
     const roofMat = new BABYLON.StandardMaterial(`roofMat_${name}`, scene);
-    roofMat.diffuseColor = roofColor;
+    { const rTex = new BABYLON.DynamicTexture(`roofTex_${name}`, { width: 128, height: 64 }, scene);
+      const rc = rTex.getContext();
+      const r = Math.round(roofColor.r * 255), g = Math.round(roofColor.g * 255), b = Math.round(roofColor.b * 255);
+      rc.fillStyle = `rgb(${r},${g},${b})`; rc.fillRect(0, 0, 128, 64);
+      rc.fillStyle = `rgb(${Math.max(0,r-20)},${Math.max(0,g-16)},${Math.max(0,b-12)})`;
+      for (let row = 0; row < 8; row++) {
+        const ox = (row % 2) * 8;
+        for (let col = 0; col < 10; col++) {
+          rc.fillRect(col * 16 + ox, row * 8 + 1, 14, 6);
+        }
+      }
+      rTex.update(); rTex.uScale = 4; rTex.vScale = 2;
+      roofMat.diffuseTexture = rTex;
+    }
 
     const floorMat = new BABYLON.StandardMaterial(`floorMat_${name}`, scene);
     floorMat.diffuseColor = new BABYLON.Color3(0.28, 0.20, 0.10);
