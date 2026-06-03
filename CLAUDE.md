@@ -28,6 +28,13 @@ js/
 ## Active branch
 `main` — this is the only working branch. Always commit and push to `main`. Never commit to any other branch. Run `git pull origin main` in Codespace to get changes.
 
+## Deploying to itch.io
+Butler is installed in the Codespace. To deploy, run from the repo root:
+```bash
+BUTLER_API_KEY=your_key_here ./deploy.sh
+```
+Replace `your_key_here` with your itch.io API key (generate one at itch.io → Account Settings → API keys). Do **not** run `butler login` — it hangs waiting for browser auth. The `BUTLER_API_KEY` env var bypasses that. The script builds the game into `build/` and pushes it to `Knightdx91/sygl:html5` automatically.
+
 ## World: New Spring (current zone)
 100×100 tile grid, TILE_SIZE=2 (each tile = 2 world units). gridToWorld(gx,gz) = {x: gx*2, z: gz*2}.
 
