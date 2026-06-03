@@ -299,11 +299,13 @@ const world = {
     };
 
     const placeTorch = (gx, gz) => {
-      world._loadProp(scene, 'lightpost-single.glb', gx, gz, {
-        scale: 2.5,
-        basePath: 'assets/kenney/graveyard-kit/Models/GLB format/'
-      });
       const wp = world.gridToWorld(gx, gz);
+      const pole = BABYLON.MeshBuilder.CreateCylinder(`torchPole_${gx}_${gz}`, { height: 3.0, diameter: 0.12 }, scene);
+      pole.material = torchMat;
+      pole.position = new BABYLON.Vector3(wp.x, 1.5, wp.z);
+      const flame = BABYLON.MeshBuilder.CreateCylinder(`torchFlame_${gx}_${gz}`, { height: 0.35, diameterTop: 0.0, diameterBottom: 0.22, tessellation: 6 }, scene);
+      flame.material = torchFlameMat;
+      flame.position = new BABYLON.Vector3(wp.x, 3.18, wp.z);
       const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 3.5, wp.z), scene);
       tl.diffuse = new BABYLON.Color3(1, 0.75, 0.4);
       tl.intensity = 0;
@@ -353,10 +355,10 @@ const world = {
     fieldMat.diffuseTexture = fieldTex;
     const farmNW = BABYLON.MeshBuilder.CreateGround('farmNW', { width: 18*TILE_SIZE, height: 22*TILE_SIZE }, scene);
     farmNW.material = fieldMat;
-    farmNW.position = new BABYLON.Vector3(11*TILE_SIZE, 0.01, 14*TILE_SIZE);
+    farmNW.position = new BABYLON.Vector3(11*TILE_SIZE, 0.02, 14*TILE_SIZE);
     const farmNE = BABYLON.MeshBuilder.CreateGround('farmNE', { width: 18*TILE_SIZE, height: 22*TILE_SIZE }, scene);
     farmNE.material = fieldMat;
-    farmNE.position = new BABYLON.Vector3(89*TILE_SIZE, 0.01, 14*TILE_SIZE);
+    farmNE.position = new BABYLON.Vector3(89*TILE_SIZE, 0.02, 14*TILE_SIZE);
 
     // ── ROADS ──────────────────────────────────────────────────
     // Dirt roads outside walls
@@ -368,13 +370,13 @@ const world = {
     ];
     dirtSegs.forEach(([cx, cz, w, h], i) => {
       const r = BABYLON.MeshBuilder.CreateGround(`dirtRd_${i}`, { width: w, height: h }, scene);
-      r.material = dirtMat; r.position = new BABYLON.Vector3(cx, 0.01, cz);
+      r.material = dirtMat; r.position = new BABYLON.Vector3(cx, 0.02, cz);
     });
     // Cobblestone inside: N-S road gz=27-73, E-W road gx=22-78
     const nsRd = BABYLON.MeshBuilder.CreateGround('nsRoad', { width: 7*TILE_SIZE, height: 46*TILE_SIZE }, scene);
-    nsRd.material = cobbleMat; nsRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.014, 50*TILE_SIZE);
+    nsRd.material = cobbleMat; nsRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.04, 50*TILE_SIZE);
     const ewRd = BABYLON.MeshBuilder.CreateGround('ewRoad', { width: 56*TILE_SIZE, height: 7*TILE_SIZE }, scene);
-    ewRd.material = cobbleMat; ewRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.014, 50*TILE_SIZE);
+    ewRd.material = cobbleMat; ewRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.04, 50*TILE_SIZE);
 
     // ── TOWN WALLS ─────────────────────────────────────────────
     const WALL_H = 2.8, WALL_T = 0.5;
@@ -438,13 +440,18 @@ const world = {
       for (let gz = GNZS + 1; gz <= SWZ; gz++) state.obstacles.add(`${EWX},${gz}`);
     }
 
-    // Corner towers — castle-kit tower GLBs
+    // Corner towers — procedural stacked cylinders
     [[WWX, NWZ], [EWX, NWZ], [WWX, SWZ], [EWX, SWZ]].forEach(([gx, gz]) => {
       state.obstacles.add(`${gx},${gz}`);
-      world._loadProp(scene, 'tower-square.glb', gx, gz, {
-        scale: 3.5,
-        basePath: 'assets/kenney/castle-kit/Models/GLB format/'
-      });
+      const wp = world.gridToWorld(gx, gz);
+      const base = BABYLON.MeshBuilder.CreateCylinder(`twr_base_${gx}_${gz}`, { height: WALL_H + 0.6, diameter: 3.2, tessellation: 8 }, scene);
+      base.material = wallStoneMat; base.position = new BABYLON.Vector3(wp.x, (WALL_H + 0.6) / 2, wp.z);
+      const top = BABYLON.MeshBuilder.CreateCylinder(`twr_top_${gx}_${gz}`, { height: 0.45, diameterTop: 3.6, diameterBottom: 3.2, tessellation: 8 }, scene);
+      top.material = wallStoneMat; top.position = new BABYLON.Vector3(wp.x, WALL_H + 0.6 + 0.22, wp.z);
+      const cap = BABYLON.MeshBuilder.CreateCylinder(`twr_cap_${gx}_${gz}`, { height: 1.1, diameterTop: 0.4, diameterBottom: 3.4, tessellation: 8 }, scene);
+      const capMat = new BABYLON.StandardMaterial(`twrCapMat_${gx}_${gz}`, scene);
+      capMat.diffuseColor = new BABYLON.Color3(0.25, 0.18, 0.10);
+      cap.material = capMat; cap.position = new BABYLON.Vector3(wp.x, WALL_H + 0.6 + 0.45 + 0.55, wp.z);
     });
 
     // Gate arches (pillars + lintel)
@@ -499,28 +506,28 @@ const world = {
       width: (SQ2X - SQ1X) * TILE_SIZE, height: (SQ2Z - SQ1Z) * TILE_SIZE
     }, scene);
     sq.material = cobbleMat;
-    sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.013, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
+    sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.04, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
 
-    // Fountain
+    // Fountain — procedural
     ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
-    world._loadProp(scene, 'fountain-round.glb', 50, 50, {
-      scale: 3.0,
-      basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/'
-    });
+    { const fwp = world.gridToWorld(50, 50);
+      const basinMat = new BABYLON.StandardMaterial('fountainBasinMat', scene);
+      basinMat.diffuseColor = new BABYLON.Color3(0.38, 0.33, 0.25);
+      const basin = BABYLON.MeshBuilder.CreateCylinder('fountainBasin', { height: 0.55, diameterTop: 3.8, diameterBottom: 3.4, tessellation: 16 }, scene);
+      basin.material = basinMat; basin.position = new BABYLON.Vector3(fwp.x, 0.28, fwp.z);
+      const water = BABYLON.MeshBuilder.CreateDisc('fountainWater', { radius: 1.7, tessellation: 16 }, scene);
+      water.material = waterMat; water.rotation.x = Math.PI / 2; water.position = new BABYLON.Vector3(fwp.x, 0.53, fwp.z);
+      const pillar = BABYLON.MeshBuilder.CreateCylinder('fountainPillar', { height: 1.4, diameter: 0.35, tessellation: 8 }, scene);
+      pillar.material = basinMat; pillar.position = new BABYLON.Vector3(fwp.x, 0.7, fwp.z);
+      const bowl = BABYLON.MeshBuilder.CreateCylinder('fountainBowl', { height: 0.3, diameterTop: 1.2, diameterBottom: 1.0, tessellation: 12 }, scene);
+      bowl.material = basinMat; bowl.position = new BABYLON.Vector3(fwp.x, 1.55, fwp.z);
+      const topWater = BABYLON.MeshBuilder.CreateDisc('fountainTopWater', { radius: 0.55, tessellation: 12 }, scene);
+      topWater.material = waterMat; topWater.rotation.x = Math.PI / 2; topWater.position = new BABYLON.Vector3(fwp.x, 1.68, fwp.z);
+    }
 
-    // ── MARKET STALLS (Kenney fantasy-town-kit) ────────────────
-    const stallConfigs = [
-      { gx: 44, gz: 43, model: 'stall-green.glb', ry: 0 },
-      { gx: 56, gz: 43, model: 'stall-red.glb',   ry: 0 },
-      { gx: 44, gz: 57, model: 'stall-red.glb',   ry: Math.PI },
-      { gx: 56, gz: 57, model: 'stall-green.glb', ry: Math.PI },
-    ];
-    stallConfigs.forEach(({ gx, gz, model, ry }) => {
-      world._loadProp(scene, model, gx, gz, {
-        scale: 2.0,
-        ry,
-        basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/'
-      });
+    // ── MARKET STALLS (procedural) ────────────────────────────
+    [[44, 43], [56, 43], [44, 57], [56, 57]].forEach(([gx, gz], idx) => {
+      world._buildStall(scene, gx, gz, idx);
       state.obstacles.add(`${gx},${gz}`);
       state.obstacles.add(`${gx},${gz - 1}`);
       state.obstacles.add(`${gx},${gz + 1}`);
@@ -528,48 +535,41 @@ const world = {
       state.obstacles.add(`${gx + 1},${gz}`);
     });
 
-    // ── MARKET PROPS (barrels, carts, lanterns) ────────────────
-    // Barrels near tavern and apothecary
-    [[62,42],[64,42],[27,58],[27,60]].forEach(([gx,gz],i) =>
-      world._loadProp(scene, 'detail-barrel.glb', gx, gz, { scale: 2.0, ry: i * 0.9, basePath: 'assets/kenney/retro-fantasy-kit/Models/GLB format/' }));
-    // Carts near market stalls
-    [[47,44],[53,44]].forEach(([gx,gz],i) =>
-      world._loadProp(scene, 'cart.glb', gx, gz, { scale: 2.0, ry: i * Math.PI, basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/' }));
-    // Lantern near Dawn Hall entrance
-    world._loadProp(scene, 'lantern.glb', 35, 42, { scale: 2.0, ry: 0.3, basePath: 'assets/kenney/fantasy-town-kit/Models/GLB format/' });
+    // ── MARKET PROPS (procedural) ──────────────────────────────
+    const barrelMat = new BABYLON.StandardMaterial('barrelMat', scene);
+    barrelMat.diffuseColor = new BABYLON.Color3(0.32, 0.20, 0.08);
+    [[62,42],[64,42],[27,58],[27,60]].forEach(([gx,gz]) => {
+      const wp = world.gridToWorld(gx, gz);
+      const b = BABYLON.MeshBuilder.CreateCylinder(`barrel_${gx}_${gz}`, { height: 0.7, diameter: 0.5, tessellation: 10 }, scene);
+      b.material = barrelMat; b.position = new BABYLON.Vector3(wp.x, 0.35, wp.z);
+    });
 
-    // ── BRAZIER (south of fountain) ────────────────────────────
+    // ── BRAZIER (south of fountain) — procedural ───────────────
     state.obstacles.add('50,55');
     state.flame = null;
-    world._loadProp(scene, 'fire-basket.glb', 50, 55, {
-      scale: 2.0,
-      basePath: 'assets/kenney/graveyard-kit/Models/GLB format/'
-    });
-    const brazWP = world.gridToWorld(50, 55);
-    const brazierLight = new BABYLON.PointLight('brzL', new BABYLON.Vector3(brazWP.x, 1.5, brazWP.z), scene);
-    brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2); brazierLight.intensity = 0; brazierLight.range = 12;
-    state.brazierLight = brazierLight;
+    { const brazWP = world.gridToWorld(50, 55);
+      const brazMat = new BABYLON.StandardMaterial('brazMat', scene);
+      brazMat.diffuseColor = new BABYLON.Color3(0.22, 0.16, 0.10);
+      const bowl = BABYLON.MeshBuilder.CreateCylinder('brazBowl', { height: 0.45, diameterTop: 0.7, diameterBottom: 0.4, tessellation: 8 }, scene);
+      bowl.material = brazMat; bowl.position = new BABYLON.Vector3(brazWP.x, 0.92, brazWP.z);
+      [[0.3,0],[-0.3,0],[0,0.3],[0,-0.3]].forEach(([ox,oz],li) => {
+        const leg = BABYLON.MeshBuilder.CreateCylinder(`brazLeg_${li}`, { height: 0.9, diameter: 0.07, tessellation: 6 }, scene);
+        leg.material = brazMat; leg.position = new BABYLON.Vector3(brazWP.x + ox, 0.45, brazWP.z + oz);
+      });
+      const flameMat = new BABYLON.StandardMaterial('brazFlameMat', scene);
+      flameMat.emissiveColor = new BABYLON.Color3(1, 0.55, 0.1);
+      flameMat.diffuseColor = new BABYLON.Color3(1, 0.4, 0.0);
+      const flame = BABYLON.MeshBuilder.CreateCylinder('brazFlame', { height: 0.5, diameterTop: 0.0, diameterBottom: 0.38, tessellation: 8 }, scene);
+      flame.material = flameMat; flame.position = new BABYLON.Vector3(brazWP.x, 1.4, brazWP.z);
+      state.flame = flame;
+      const brazierLight = new BABYLON.PointLight('brzL', new BABYLON.Vector3(brazWP.x, 1.5, brazWP.z), scene);
+      brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2); brazierLight.intensity = 0; brazierLight.range = 12;
+      state.brazierLight = brazierLight;
+    }
 
-    // ── BUILDINGS ──────────────────────────────────────────────
-    const BPATH_MOD = 'assets/kenney/modular-buildings/Models/GLB format/';
-    // Helper: load a GLB building centred on the grid footprint, keep obstacle/roof logic
-    const placeBuilding = (name, gx, gz, w, d, floors, glbFile, glbScale, doorSide, doorWidth) => {
-      // Keep obstacle marking via _buildBuilding (pass invisible colours)
-      world._buildBuilding(scene, name, gx, gz, w, d, floors, amberC, amberR, doorSide, doorWidth, { glbReplaced: true });
-      const cx = gx + w / 2, cz = gz + d / 2;
-      const wp = world.gridToWorld(cx, cz);
-      BABYLON.SceneLoader.ImportMeshAsync('', BPATH_MOD, glbFile, scene).then(r => {
-        const root = r.meshes[0];
-        root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
-        root.scaling = new BABYLON.Vector3(glbScale, glbScale, glbScale);
-        // Store for roof transparency
-        const b = world.buildings.find(b => b.name === name);
-        if (b) b.glbRoot = root;
-      }).catch(e => console.warn('Building load failed', glbFile, e));
-    };
-
+    // ── BUILDINGS (all procedural) ─────────────────────────────
     // Dawn Hall — NW, 3 floors (gx=28-40, gz=29-40, door south)
-    placeBuilding('dawnHall', 28, 29, 13, 12, 3, 'building-sample-tower-a.glb', 5.5, 'south', 2);
+    world._buildBuilding(scene, 'dawnHall', 28, 29, 13, 12, 3, amberC, amberR, 'south', 2);
     const porchMat = new BABYLON.StandardMaterial('porchMat', scene);
     porchMat.diffuseColor = new BABYLON.Color3(0.45, 0.38, 0.22);
     [[33, 41], [37, 41]].forEach(([gx, gz], i) => {
@@ -583,35 +583,35 @@ const world = {
     dawnSign.material = dawnSignMat;
     dawnSign.position = new BABYLON.Vector3(35 * TILE_SIZE, 4.3, 40 * TILE_SIZE + 0.3);
     const dawnPath = BABYLON.MeshBuilder.CreateGround('dawnPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
-    dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.014, 42*TILE_SIZE);
+    dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.02, 42*TILE_SIZE);
 
     // Inn & Tavern — NE, 2 floors (gx=60-72, gz=29-40, door south)
-    placeBuilding('inn', 60, 29, 13, 12, 2, 'building-sample-tower-b.glb', 5.0, 'south', 2);
+    world._buildBuilding(scene, 'inn', 60, 29, 13, 12, 2, woodC, woodR, 'south', 2);
     const innSignMat = new BABYLON.StandardMaterial('innSignMat', scene);
     innSignMat.emissiveColor = new BABYLON.Color3(0.55, 0.30, 0.10);
     const innSign = BABYLON.MeshBuilder.CreateBox('innSign', { width: 2.0, height: 0.4, depth: 0.1 }, scene);
     innSign.material = innSignMat;
     innSign.position = new BABYLON.Vector3(66 * TILE_SIZE, 4.3, 41 * TILE_SIZE + 0.3);
     const innPath = BABYLON.MeshBuilder.CreateGround('innPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
-    innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.014, 42*TILE_SIZE);
+    innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.02, 42*TILE_SIZE);
 
     // Enchanted Weapons — W side (gx=24-33, gz=55-63, door east)
-    placeBuilding('enchantedWeapons', 24, 55, 10, 9, 1, 'building-sample-house-a.glb', 4.0, 'east', 1);
+    world._buildBuilding(scene, 'enchantedWeapons', 24, 55, 10, 9, 1, purpleC, purpleR, 'east', 1);
 
     // Jeweler — SW (gx=24-32, gz=65-71, door east)
-    placeBuilding('jeweler', 24, 65, 9, 7, 1, 'building-sample-house-b.glb', 3.5, 'east', 1);
+    world._buildBuilding(scene, 'jeweler', 24, 65, 9, 7, 1, redC, redR, 'east', 1);
 
     // Apothecary — SW (gx=34-42, gz=65-71, door east)
-    placeBuilding('apothecary', 34, 65, 9, 7, 1, 'building-sample-house-c.glb', 3.5, 'east', 1);
+    world._buildBuilding(scene, 'apothecary', 34, 65, 9, 7, 1, greenC, greenR, 'east', 1);
 
     // Familiar Supplies — E side (gx=66-75, gz=55-63, door west)
-    placeBuilding('familiarSupplies', 66, 55, 10, 9, 1, 'building-sample-house-a.glb', 4.0, 'west', 1);
+    world._buildBuilding(scene, 'familiarSupplies', 66, 55, 10, 9, 1, blueC, blueR, 'west', 1);
 
     // Restaurant — SE (gx=60-67, gz=65-71, door west)
-    placeBuilding('restaurant', 60, 65, 8, 7, 1, 'building-sample-house-b.glb', 3.5, 'west', 1);
+    world._buildBuilding(scene, 'restaurant', 60, 65, 8, 7, 1, shopC, shopR, 'west', 1);
 
     // Tea House — SE (gx=68-75, gz=65-71, door west)
-    placeBuilding('teaHouse', 68, 65, 8, 7, 1, 'building-sample-house-c.glb', 3.5, 'west', 1);
+    world._buildBuilding(scene, 'teaHouse', 68, 65, 8, 7, 1, amberC, amberR, 'west', 1);
 
     // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
@@ -662,7 +662,7 @@ const world = {
     const centerZ = originZ + worldD / 2;
 
     // Register building bounds for roof transparency
-    const buildingEntry = { name, gxMin: gx, gxMax: gx + w, gzMin: gz, gzMax: gz + d, roofMeshes: [], glbRoot: null };
+    const buildingEntry = { name, gxMin: gx, gxMax: gx + w, gzMin: gz, gzMax: gz + d, roofMeshes: [] };
     world.buildings.push(buildingEntry);
 
     // Mark perimeter as obstacles (door tiles left walkable)
@@ -682,9 +682,6 @@ const world = {
       if (!doorTiles.has(kW)) state.obstacles.add(kW);
       if (!doorTiles.has(kE)) state.obstacles.add(kE);
     }
-
-    // If replaced by a GLB, skip all visual mesh creation
-    if (options.glbReplaced) return;
 
     const wallT = 0.3;
     const floorH = 3.0;
@@ -822,7 +819,6 @@ const world = {
     world._addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH);
     world._addWindows(scene, name, worldW, worldD, floors, floorH, wallT, originX, originZ, centerX, centerZ, doorSide, doorWidth);
 
-    // Obstacles and buildings.push now handled at top of _buildBuilding before glbReplaced check
     // Store roofMeshes on the pre-registered building entry
     const bEntry = world.buildings.find(b => b.name === name);
     if (bEntry) bEntry.roofMeshes = roofMeshes;
@@ -1054,21 +1050,29 @@ const world = {
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
     world.npcs.push({ id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0 });
 
-    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/kenney/graveyard-kit/Models/GLB format/', 'character-keeper.glb', scene).then(result => {
-      const mesh = result.meshes[0];
-      mesh.name = `npcMesh_${id}`;
-      mesh.parent = root;
-      mesh.scaling = new BABYLON.Vector3(1.2, 1.2, 1.2);
-      // Tag all child meshes for click detection
-      result.meshes.forEach(m => { m.metadata = { npcId: id }; });
-    }).catch(() => {
-      // Fallback: simple box figure
-      const mat = new BABYLON.StandardMaterial(`npcFbMat_${id}`, scene);
-      mat.diffuseColor = robeColor;
-      const body = BABYLON.MeshBuilder.CreateBox(`npcFb_${id}`, { width: 0.5, height: 1.4, depth: 0.4 }, scene);
-      body.material = mat; body.position.y = 0.7; body.parent = root;
-      body.metadata = { npcId: id };
-    });
+    const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
+    robeMat.diffuseColor = robeColor;
+    const headMat = new BABYLON.StandardMaterial(`npcHeadMat_${id}`, scene);
+    headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    const accentMat = new BABYLON.StandardMaterial(`npcAccentMat_${id}`, scene);
+    accentMat.diffuseColor = accentColor;
+    accentMat.emissiveColor = accentColor.scale(0.3);
+
+    const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.52, height: 1.1, depth: 0.36 }, scene);
+    body.material = robeMat; body.position.y = 0.75; body.parent = root;
+    body.metadata = { npcId: id };
+
+    const skirt = BABYLON.MeshBuilder.CreateCylinder(`npcSkirt_${id}`, { height: 0.5, diameterTop: 0.52, diameterBottom: 0.72, tessellation: 8 }, scene);
+    skirt.material = robeMat; skirt.position.y = 0.25; skirt.parent = root;
+    skirt.metadata = { npcId: id };
+
+    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.42, segments: 8 }, scene);
+    head.material = headMat; head.position.y = 1.52; head.parent = root;
+    head.metadata = { npcId: id };
+
+    const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.14, segments: 6 }, scene);
+    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.32, 1.15, 0); orb.parent = root;
+    orb.metadata = { npcId: id };
   },
 
   checkRoofTransparency() {
@@ -1077,7 +1081,6 @@ const world = {
     for (const b of world.buildings) {
       const inside = pgx > b.gxMin && pgx < b.gxMax && pgz > b.gzMin && pgz < b.gzMax;
       if (b.roofMeshes) for (const m of b.roofMeshes) m.isVisible = !inside;
-      if (b.glbRoot) b.glbRoot.isVisible = !inside;
     }
   },
 
@@ -1103,38 +1106,33 @@ const world = {
     const accentColor = new BABYLON.Color3(accent[0]/255, accent[1]/255, accent[2]/255);
     const startWP = world.gridToWorld(state.player.gx, state.player.gz);
 
-    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/kenney/graveyard-kit/Models/GLB format/', 'character-keeper.glb', scene).then(result => {
-      const root = result.meshes[0];
-      root.name = 'playerRoot';
-      root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
-      root.scaling = new BABYLON.Vector3(1.4, 1.4, 1.4);
+    const root = new BABYLON.TransformNode('playerRoot', scene);
+    root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
 
-      // Accent glow orb on staff
-      const glowMat = new BABYLON.StandardMaterial('plrGlowMat', scene);
-      glowMat.emissiveColor = accentColor;
-      glowMat.diffuseColor = accentColor;
-      const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 8 }, scene);
-      orb.material = glowMat;
-      orb.position = new BABYLON.Vector3(startWP.x + 0.4, 2.1, startWP.z);
+    const capMat = new BABYLON.StandardMaterial('plrCapMat', scene);
+    capMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
+    const body = BABYLON.MeshBuilder.CreateCylinder('plrBody', { height: 1.1, diameterTop: 0.42, diameterBottom: 0.58, tessellation: 10 }, scene);
+    body.material = capMat; body.position.y = 0.75; body.parent = root;
 
-      const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0, 2.1, 0.4), scene);
-      glowLight.diffuse = accentColor;
-      glowLight.intensity = 0.5;
-      glowLight.range = 5;
-      glowLight.parent = root;
+    const headMat = new BABYLON.StandardMaterial('plrHeadMat', scene);
+    headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    const head = BABYLON.MeshBuilder.CreateSphere('plrHead', { diameter: 0.44, segments: 8 }, scene);
+    head.material = headMat; head.position.y = 1.52; head.parent = root;
 
-      state.playerMesh = root;
-      state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
-    }).catch(err => {
-      console.warn('character-keeper failed, using fallback capsule', err);
-      const root = new BABYLON.TransformNode('playerRoot', scene);
-      const capMat = new BABYLON.StandardMaterial('plrCapMat', scene);
-      capMat.diffuseColor = new BABYLON.Color3(0.12, 0.09, 0.07);
-      const cap = BABYLON.MeshBuilder.CreateCylinder('plrCap', { height: 1.6, diameterTop: 0.4, diameterBottom: 0.6 }, scene);
-      cap.material = capMat; cap.position.y = 0.8; cap.parent = root;
-      state.playerMesh = root;
-      root.position = new BABYLON.Vector3(startWP.x, 0, startWP.z);
-    });
+    const glowMat = new BABYLON.StandardMaterial('plrGlowMat', scene);
+    glowMat.emissiveColor = accentColor;
+    glowMat.diffuseColor = accentColor;
+    const orb = BABYLON.MeshBuilder.CreateSphere('staffOrb', { diameter: 0.22, segments: 8 }, scene);
+    orb.material = glowMat; orb.position = new BABYLON.Vector3(0.38, 1.2, 0); orb.parent = root;
+
+    const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0.38, 1.2, 0), scene);
+    glowLight.diffuse = accentColor;
+    glowLight.intensity = 0.5;
+    glowLight.range = 5;
+    glowLight.parent = root;
+
+    state.playerMesh = root;
+    state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
   },
 
   spawnEnemy(e) {
