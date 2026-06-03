@@ -1393,28 +1393,37 @@ const world = {
 
     root.scaling = new BABYLON.Vector3(scale, scale, scale);
 
-    const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.50, height: 0.70, depth: 0.32 }, scene);
-    body.material = robeMat; body.position.y = 0.95; body.parent = root;
+    // Torso — octagonal cylinder
+    const body = BABYLON.MeshBuilder.CreateCylinder(`npcBody_${id}`, { height: 0.65, diameterTop: 0.40, diameterBottom: 0.34, tessellation: 8 }, scene);
+    body.material = robeMat; body.position.y = 1.00; body.parent = root;
     body.metadata = { npcId: id };
 
-    // Legs
+    // Legs — slim tapered, pivot at hip
     const legMat = new BABYLON.StandardMaterial(`npcLegMat_${id}`, scene);
     legMat.diffuseColor = robeColor.scale(0.75);
-    const legL = BABYLON.MeshBuilder.CreateBox(`npcLegL_${id}`, { width: 0.18, height: 0.52, depth: 0.20 }, scene);
-    legL.material = legMat; legL.position = new BABYLON.Vector3(-0.14, 0.40, 0); legL.parent = root;
+    const legL = BABYLON.MeshBuilder.CreateCylinder(`npcLegL_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
+    legL.material = legMat;
+    legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = root;
     legL.metadata = { npcId: id };
-    const legR = BABYLON.MeshBuilder.CreateBox(`npcLegR_${id}`, { width: 0.18, height: 0.52, depth: 0.20 }, scene);
-    legR.material = legMat; legR.position = new BABYLON.Vector3(0.14, 0.40, 0); legR.parent = root;
+    const legR = BABYLON.MeshBuilder.CreateCylinder(`npcLegR_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
+    legR.material = legMat;
+    legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = root;
     legR.metadata = { npcId: id };
 
-    // Arms
+    // Arms — slim cylinders, pivot at shoulder
     const armMat = new BABYLON.StandardMaterial(`npcArmMat_${id}`, scene);
     armMat.diffuseColor = robeColor.scale(0.85);
-    const armL = BABYLON.MeshBuilder.CreateBox(`npcArmL_${id}`, { width: 0.14, height: 0.52, depth: 0.18 }, scene);
-    armL.material = armMat; armL.position = new BABYLON.Vector3(-0.32, 0.92, 0); armL.parent = root;
+    const armL = BABYLON.MeshBuilder.CreateCylinder(`npcArmL_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
+    armL.material = armMat;
+    armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armL.position = new BABYLON.Vector3(-0.27, 1.25, 0); armL.parent = root;
     armL.metadata = { npcId: id };
-    const armR = BABYLON.MeshBuilder.CreateBox(`npcArmR_${id}`, { width: 0.14, height: 0.52, depth: 0.18 }, scene);
-    armR.material = armMat; armR.position = new BABYLON.Vector3(0.32, 0.92, 0); armR.parent = root;
+    const armR = BABYLON.MeshBuilder.CreateCylinder(`npcArmR_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
+    armR.material = armMat;
+    armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armR.position = new BABYLON.Vector3(0.27, 1.25, 0); armR.parent = root;
     armR.metadata = { npcId: id };
 
     const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.40, segments: 8 }, scene);
@@ -1695,21 +1704,29 @@ const world = {
     headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
     headMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
-    // Torso
-    const body = BABYLON.MeshBuilder.CreateBox('plrBody', { width: 0.50, height: 0.70, depth: 0.32 }, scene);
-    body.material = bodyMat; body.position.y = 0.95; body.parent = root;
+    // Torso — octagonal cylinder, broader at shoulders
+    const body = BABYLON.MeshBuilder.CreateCylinder('plrBody', { height: 0.65, diameterTop: 0.42, diameterBottom: 0.36, tessellation: 8 }, scene);
+    body.material = bodyMat; body.position.y = 1.00; body.parent = root;
 
-    // Legs
-    const legL = BABYLON.MeshBuilder.CreateBox('plrLegL', { width: 0.18, height: 0.52, depth: 0.20 }, scene);
-    legL.material = legMat; legL.position = new BABYLON.Vector3(-0.14, 0.40, 0); legL.parent = root;
-    const legR = BABYLON.MeshBuilder.CreateBox('plrLegR', { width: 0.18, height: 0.52, depth: 0.20 }, scene);
-    legR.material = legMat; legR.position = new BABYLON.Vector3(0.14, 0.40, 0); legR.parent = root;
+    // Legs — slim tapered cylinders, pivot at hip (top of cylinder)
+    const legL = BABYLON.MeshBuilder.CreateCylinder('plrLegL', { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
+    legL.material = legMat;
+    legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = root;
+    const legR = BABYLON.MeshBuilder.CreateCylinder('plrLegR', { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
+    legR.material = legMat;
+    legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
+    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = root;
 
-    // Arms
-    const armL = BABYLON.MeshBuilder.CreateBox('plrArmL', { width: 0.14, height: 0.52, depth: 0.18 }, scene);
-    armL.material = armMat; armL.position = new BABYLON.Vector3(-0.32, 0.92, 0); armL.parent = root;
-    const armR = BABYLON.MeshBuilder.CreateBox('plrArmR', { width: 0.14, height: 0.52, depth: 0.18 }, scene);
-    armR.material = armMat; armR.position = new BABYLON.Vector3(0.32, 0.92, 0); armR.parent = root;
+    // Arms — slim cylinders, pivot at shoulder (top)
+    const armL = BABYLON.MeshBuilder.CreateCylinder('plrArmL', { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
+    armL.material = armMat;
+    armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armL.position = new BABYLON.Vector3(-0.28, 1.25, 0); armL.parent = root;
+    const armR = BABYLON.MeshBuilder.CreateCylinder('plrArmR', { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
+    armR.material = armMat;
+    armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
+    armR.position = new BABYLON.Vector3(0.28, 1.25, 0); armR.parent = root;
 
     // Head
     const head = BABYLON.MeshBuilder.CreateSphere('plrHead', { diameter: 0.44, segments: 8 }, scene);

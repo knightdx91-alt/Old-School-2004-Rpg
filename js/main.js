@@ -168,9 +168,9 @@ function loop(now) {
       const { armL, armR, legL, legR, body } = state.playerLimbs;
       if (armL) armL.rotation.x = swing;
       if (armR) armR.rotation.x = -swing;
-      if (legL) { legL.rotation.x = -swing; legL.position.y = 0.40 - Math.abs(Math.sin(p)) * 0.04; }
-      if (legR) { legR.rotation.x = swing;  legR.position.y = 0.40 - Math.abs(Math.sin(p + Math.PI)) * 0.04; }
-      if (body) body.position.y = 0.95 + Math.abs(Math.sin(p * 2)) * 0.025;
+      if (legL) legL.rotation.x = -swing * 0.9;
+      if (legR) legR.rotation.x =  swing * 0.9;
+      if (body) body.position.y = 1.00 + Math.abs(Math.sin(p * 2)) * 0.025;
     }
   }
 
@@ -189,9 +189,9 @@ function loop(now) {
       const { armL, armR, legL, legR, body } = npc.limbs;
       if (armL) armL.rotation.x = swing;
       if (armR) armR.rotation.x = -swing;
-      if (legL) { legL.rotation.x = -swing; legL.position.y = 0.40 - Math.abs(Math.sin(p)) * 0.04; }
-      if (legR) { legR.rotation.x = swing;  legR.position.y = 0.40 - Math.abs(Math.sin(p + Math.PI)) * 0.04; }
-      if (body) body.position.y = 0.95 + Math.abs(Math.sin(p * 2)) * 0.02;
+      if (legL) legL.rotation.x = -swing * 0.9;
+      if (legR) legR.rotation.x =  swing * 0.9;
+      if (body) body.position.y = 1.00 + Math.abs(Math.sin(p * 2)) * 0.02;
     }
   }
 
