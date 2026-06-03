@@ -3,98 +3,37 @@
    ================================================================ */
 const hud = {
   switchTab(tab) {
+    // Force-open this tab (called from code, e.g. combat.start)
     state.currentTab = tab;
-    document.querySelectorAll('.hud-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-    if (tab === 'inventory') {
-      this._ensureWindows();
-      this.showWindows();
-      document.getElementById('hud-panel').innerHTML = '';
-    } else {
-      this.hideWindows();
-      this.render();
-    }
+    const panel = document.getElementById('rs-panel');
+    if (!panel) return;
+    panel.classList.add('open');
+    panel.innerHTML = hud._panelContent(tab);
+    document.querySelectorAll('.rs-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   },
   render() {
-    const panel = document.getElementById('hud-panel');
-    const tab = state.currentTab;
-    if (tab === 'stats') panel.innerHTML = this.renderStats();
-    else if (tab === 'combat') panel.innerHTML = this.renderCombat();
-    else if (tab === 'options') panel.innerHTML = this.renderOptions();
-    else if (tab === 'inventory') { panel.innerHTML = ''; this._ensureWindows(); this.showWindows(); }
-    else if (tab === 'spellbook') panel.innerHTML = this.renderSpellbook();
-    else if (tab === 'quests') panel.innerHTML = this.renderPlaceholder('Quests', 'No quests yet. Speak with the academy faculty in a coming update to take on your first task.');
+    const panel = document.getElementById('rs-panel');
+    if (!panel || !panel.classList.contains('open')) return;
+    panel.innerHTML = hud._panelContent(state.currentTab);
   },
 
-  _ensureWindows() {
-    if (document.getElementById('equip-window')) return;
-
-    const eqWin = document.createElement('div');
-    eqWin.id = 'equip-window';
-    eqWin.className = 'game-window';
-    eqWin.innerHTML = `
-      <div class="window-titlebar" id="equip-win-bar">
-        <span>Equipment</span>
-        <button class="window-close" onclick="hud.hideWindows();hud.switchTab('stats')">✕</button>
-      </div>
-      <div class="window-body" id="equip-win-body"></div>`;
-    document.body.appendChild(eqWin);
-    this._makeDraggable(eqWin, document.getElementById('equip-win-bar'));
-
-    const invWin = document.createElement('div');
-    invWin.id = 'inv-window';
-    invWin.className = 'game-window';
-    invWin.innerHTML = `
-      <div class="window-titlebar" id="inv-win-bar">
-        <span>Inventory</span>
-        <button class="window-close" onclick="hud.hideWindows();hud.switchTab('stats')">✕</button>
-      </div>
-      <div class="window-body" id="inv-win-body"></div>`;
-    document.body.appendChild(invWin);
-    this._makeDraggable(invWin, document.getElementById('inv-win-bar'));
+  _panelContent(tab) {
+    if (!state.player) return '';
+    if (tab === 'stats')     return this.renderStats();
+    if (tab === 'combat')    return this.renderCombat();
+    if (tab === 'inventory') return this.renderInvContent();
+    if (tab === 'equipment') return this.renderEquipContent();
+    if (tab === 'spellbook') return this.renderSpellbook();
+    if (tab === 'options')   return this.renderOptions();
+    if (tab === 'quests')    return this.renderPlaceholder('Quests', 'No quests yet. Speak with the academy faculty in a coming update to take on your first task.');
+    return '';
   },
 
-  _makeDraggable(winEl, barEl) {
-    let dragging = false, ox = 0, oy = 0;
-    barEl.addEventListener('pointerdown', e => {
-      if (e.target.classList.contains('window-close')) return;
-      dragging = true;
-      const rect = winEl.getBoundingClientRect();
-      ox = e.clientX - rect.left;
-      oy = e.clientY - rect.top;
-      winEl.style.right = 'auto'; winEl.style.bottom = 'auto';
-      barEl.setPointerCapture(e.pointerId);
-      e.preventDefault();
-    });
-    barEl.addEventListener('pointermove', e => {
-      if (!dragging) return;
-      winEl.style.left = Math.max(0, e.clientX - ox) + 'px';
-      winEl.style.top = Math.max(0, e.clientY - oy) + 'px';
-    });
-    barEl.addEventListener('pointerup', () => { dragging = false; });
-  },
-
-  showWindows() {
-    const eq = document.getElementById('equip-window');
-    const inv = document.getElementById('inv-window');
-    if (eq) eq.classList.add('visible');
-    if (inv) inv.classList.add('visible');
-    this.renderWindows();
-  },
-
-  hideWindows() {
-    const eq = document.getElementById('equip-window');
-    const inv = document.getElementById('inv-window');
-    if (eq) eq.classList.remove('visible');
-    if (inv) inv.classList.remove('visible');
-  },
-
-  renderWindows() {
-    if (!state.player) return;
-    const eq = document.getElementById('equip-win-body');
-    const inv = document.getElementById('inv-win-body');
-    if (eq) eq.innerHTML = this.renderEquipContent();
-    if (inv) inv.innerHTML = this.renderInvContent();
-  },
+  _ensureWindows() {},
+  showWindows() {},
+  hideWindows() {},
+  renderWindows() { this.render(); },
+  _makeDraggable() {},
 
   renderEquipContent() {
     const p = state.player;
@@ -107,7 +46,7 @@ const hud = {
       let name = item ? item.name : label;
       if (itemId === 'quiver_arrows') name = `${p.ammoCount||0}/25`;
       const cls = item ? 'pd-slot filled' : 'pd-slot empty';
-      const click = item ? `onclick="unequipSlot('${id}');hud.renderWindows()" title="Unequip ${item.name}"` : `title="${label}"`;
+      const click = item ? `onclick="unequipSlot('${id}');hud.render()" title="Unequip ${item.name}"` : `title="${label}"`;
       return `<div class="${cls}" ${click}><span class="pd-icon">${icon}</span><span class="pd-label">${name}</span></div>`;
     };
     const bonuses = getEquipBonuses();
@@ -190,51 +129,6 @@ const hud = {
         <div style="font-size:0.85rem; font-style:italic; margin-top:6px; color:rgba(217,201,168,0.75)">${sp.desc}</div>
       </div>
       <div style="font-style:italic; font-size:0.8rem; color:rgba(217,201,168,0.5); margin-top:12px;">More spells will reveal themselves as you grow in power...</div>`;
-  },
-  renderInventory() {
-    const p = state.player;
-    const eq = p.equipped || {};
-    const inv = p.inventory || [];
-    const bonuses = typeof getEquipBonuses === 'function' ? getEquipBonuses() : { atk: 0, def: 0 };
-    const slot = (id, label) => {
-      const itemId = eq[id];
-      const item = itemId ? ITEMS[itemId] : null;
-      const icon = item ? (item.icon || '⬜') : '';
-      let name = item ? item.name : label;
-      // Show arrow count on quiver
-      if (itemId === 'quiver_arrows') name = `${p.ammoCount || 0}/25`;
-      const cls = item ? 'pd-slot filled' : 'pd-slot empty';
-      const click = item
-        ? `onclick="unequipSlot('${id}')" title="Unequip ${item.name}"`
-        : `title="${label} slot"`;
-      return `<div class="${cls}" data-slot="${id}" ${click}>${icon}<span>${name}</span></div>`;
-    };
-    const bonusStr = `+${bonuses.atk} ATK  +${bonuses.def} DEF`;
-    // Pack items
-    const packRows = inv.length === 0
-      ? '<div style="color:rgba(217,201,168,0.45);font-style:italic;font-size:0.8rem;padding:4px 0;">Empty pack</div>'
-      : inv.map(id => {
-          const item = ITEMS[id];
-          if (!item) return '';
-          const action = item.type === 'consumable'
-            ? `<button class="btn small" onclick="useItem('${id}')">Use</button>`
-            : `<button class="btn small" onclick="equipItem('${id}')">Equip</button>`;
-          return `<div class="pack-row">${item.icon||'📦'} <span class="pack-name">${item.name}</span><span class="pack-desc">${item.desc}</span>${action}</div>`;
-        }).join('');
-    return `
-      <div class="inv-root">
-        <div class="pd-bonuses">${bonusStr}</div>
-        <div class="paperdoll">
-          <div class="pd-row pd-r1">${slot('head','Head')}</div>
-          <div class="pd-row pd-r2">${slot('cape','Cape')}${slot('amulet','Amulet')}<div class="pd-spacer"></div></div>
-          <div class="pd-row pd-r3">${slot('weapon','Weapon')}<div class="pd-figure">⚗</div>${slot('shield','Shield')}</div>
-          <div class="pd-row pd-r4"><div class="pd-spacer"></div>${slot('body','Body')}<div class="pd-spacer"></div></div>
-          <div class="pd-row pd-r5">${slot('legs','Legs')}<div class="pd-spacer"></div>${slot('ring','Ring')}</div>
-          <div class="pd-row pd-r6">${slot('gloves','Gloves')}${slot('boots','Boots')}<div class="pd-spacer"></div></div>
-        </div>
-        <div class="pack-label">Pack</div>
-        <div class="pack-grid">${packRows}</div>
-      </div>`;
   },
   renderPlaceholder(title, text) {
     return `<div class="placeholder-tab"><div class="pt-title">${title}</div>${text}</div>`;
@@ -335,14 +229,13 @@ hud.ui = { chatOpen: false, menuOpen: false, chatMode: 'log', fullscreenAttempte
 
 hud.initLayout = function() {
   const hudEl = document.querySelector('.hud');
-  const log = document.querySelector('.hud-log');
-  const tabs = document.querySelector('.hud-tabs');
-  const panel = document.getElementById('hud-panel');
-  if (!hudEl || !log || !tabs || !panel) {
-    console.warn('[hud] initLayout: missing .hud / .hud-log / .hud-tabs / #hud-panel — aborting');
+  const logEl = document.querySelector('.hud-log');
+  if (!hudEl || !logEl) {
+    console.warn('[hud] initLayout: missing .hud / .hud-log — aborting');
     return;
   }
 
+  // ── Chat dock (left side — unchanged) ─────────────────────
   const chatDock = document.createElement('div');
   chatDock.id = 'chat-dock';
   chatDock.className = 'dock';
@@ -364,32 +257,53 @@ hud.initLayout = function() {
       '</div>' +
     '</div>';
 
-  const menuDock = document.createElement('div');
-  menuDock.id = 'menu-dock';
-  menuDock.className = 'dock';
-  menuDock.innerHTML =
-    '<div class="dock-header">' +
-      '<div class="dock-title">Menu</div>' +
-      '<button class="dock-close" data-dock="menu" aria-label="Close menu">×</button>' +
-    '</div>' +
-    '<div class="dock-body"></div>';
-
-  // Reparent existing elements (preserves them — combat.js etc. keep working)
   const chatBody = chatDock.querySelector('.dock-body');
-  chatBody.insertBefore(log, chatBody.firstChild);
-  const menuBody = menuDock.querySelector('.dock-body');
-  menuBody.appendChild(tabs);
-  menuBody.appendChild(panel);
+  chatBody.insertBefore(logEl, chatBody.firstChild);
 
   hudEl.innerHTML = '';
   hudEl.appendChild(chatDock);
-  hudEl.appendChild(menuDock);
 
-  // Floating overlays — sit on game-screen, outside .hud
+  // ── RS sidebar (right side) ────────────────────────────────
   const host = document.getElementById('game-screen') || document.body;
+
+  const sidebar = document.createElement('div');
+  sidebar.id = 'rs-sidebar';
+
+  const rsPanel = document.createElement('div');
+  rsPanel.id = 'rs-panel';
+
+  const btnCol = document.createElement('div');
+  btnCol.id = 'rs-btn-col';
+
+  const TABS = [
+    { id: 'stats',     icon: '❤',  label: 'Character' },
+    { id: 'inventory', icon: '🎒', label: 'Inventory' },
+    { id: 'equipment', icon: '⚔',  label: 'Equipment' },
+    { id: 'spellbook', icon: '✨',  label: 'Spellbook' },
+    { id: 'quests',    icon: '📜',  label: 'Quests'    },
+    { id: 'options',   icon: '⚙',  label: 'Options'   },
+    { id: 'combat',    icon: '🗡', label: 'Combat', hidden: true },
+  ];
+
+  TABS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'rs-btn';
+    btn.dataset.tab = t.id;
+    btn.id = `rs-btn-${t.id}`;
+    btn.title = t.label;
+    btn.textContent = t.icon;
+    if (t.hidden) btn.style.display = 'none';
+    btn.addEventListener('click', () => hud.rsTab(t.id));
+    btnCol.appendChild(btn);
+  });
+
+  sidebar.appendChild(rsPanel);
+  sidebar.appendChild(btnCol);
+  host.appendChild(sidebar);
+
+  // ── Shared overlays ────────────────────────────────────────
   host.insertAdjacentHTML('beforeend',
     '<button id="chat-toggle" class="dock-toggle" aria-label="Open chat">💬</button>' +
-    '<button id="menu-toggle" class="dock-toggle" aria-label="Open menu">☰</button>' +
     '<button id="fullscreen-btn" aria-label="Fullscreen">⛶</button>' +
     '<div id="minimap-zone">' +
       '<canvas id="minimap-canvas" width="120" height="120" aria-label="Minimap"></canvas>' +
@@ -397,48 +311,51 @@ hud.initLayout = function() {
     '</div>'
   );
 
-  // Wire events
   document.getElementById('chat-toggle').addEventListener('click', hud.toggleChat);
-  document.getElementById('menu-toggle').addEventListener('click', hud.toggleMenu);
   document.getElementById('fullscreen-btn').addEventListener('click', hud.enterFullscreen);
   document.getElementById('run-toggle').addEventListener('click', () => {
     if (!state.ready) return;
     if (state.runEnergy <= 0 && !state.running) { log('No run energy.', 'system'); return; }
     state.running = !state.running;
     hud.updateRunBtn();
-    if (typeof log === 'function') log(state.running ? 'Running.' : 'Walking.', 'system');
+    log(state.running ? 'Running.' : 'Walking.', 'system');
   });
   chatDock.querySelectorAll('.chat-mode-tab').forEach(t => {
     t.addEventListener('click', () => hud.switchChatMode(t.dataset.mode));
   });
-  hudEl.querySelectorAll('.dock-close').forEach(b => {
-    b.addEventListener('click', () => b.dataset.dock === 'chat' ? hud.toggleChat() : hud.toggleMenu());
-  });
+  chatDock.querySelector('.dock-close').addEventListener('click', hud.toggleChat);
   document.getElementById('player-chat-form').addEventListener('submit', hud.sendChat);
 
   window.addEventListener('resize', hud.applyDockState);
   window.addEventListener('orientationchange', hud.applyDockState);
 
   hud.applyDockState();
-  // Canvas container changed shape — tell Babylon
   setTimeout(() => state.engine && state.engine.resize(), 50);
   setTimeout(() => state.engine && state.engine.resize(), 400);
 };
 
-hud.applyDockState = function() {
-  const hudEl = document.querySelector('.hud');
-  if (!hudEl) return;
-  const { chatOpen, menuOpen } = hud.ui;
-  document.getElementById('chat-dock').classList.toggle('open', chatOpen);
-  document.getElementById('menu-dock').classList.toggle('open', menuOpen);
-  const portrait = window.innerHeight > window.innerWidth;
-  document.getElementById('chat-toggle').classList.toggle('hidden', chatOpen || (portrait && menuOpen));
-  document.getElementById('menu-toggle').classList.toggle('hidden', menuOpen || (portrait && chatOpen));
-  hudEl.classList.toggle('both-open',  chatOpen && menuOpen);
-  hudEl.classList.toggle('only-chat',  chatOpen && !menuOpen);
-  hudEl.classList.toggle('only-menu', !chatOpen &&  menuOpen);
-  hudEl.classList.toggle('all-closed',!chatOpen && !menuOpen);
+hud.rsTab = function(tab) {
+  const panel = document.getElementById('rs-panel');
+  if (!panel) return;
+  // Toggle: clicking the active tab closes the panel
+  if (state.currentTab === tab && panel.classList.contains('open')) {
+    panel.classList.remove('open');
+    state.currentTab = null;
+    document.querySelectorAll('.rs-btn').forEach(b => b.classList.remove('active'));
+    return;
+  }
+  hud.switchTab(tab);
 };
+
+hud.applyDockState = function() {
+  const chatDock = document.getElementById('chat-dock');
+  const chatToggle = document.getElementById('chat-toggle');
+  if (!chatDock) return;
+  chatDock.classList.toggle('open', hud.ui.chatOpen);
+  if (chatToggle) chatToggle.classList.toggle('hidden', hud.ui.chatOpen);
+};
+
+hud.toggleMenu = function() {};
 
 hud.toggleChat = function() {
   hud.ui.chatOpen = !hud.ui.chatOpen;

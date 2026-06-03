@@ -184,13 +184,13 @@ const combat = {
     };
     state.path = null;
     state.targetMarker.isVisible = false;
-    document.getElementById('combat-tab').style.display = 'block';
+    const cb = document.getElementById('rs-btn-combat'); if(cb) cb.style.display = 'flex';
     hud.switchTab('combat');
     log(`You engage the ${enemy.type}!`, 'combat');
   },
   end() {
     state.combat = null;
-    document.getElementById('combat-tab').style.display = 'none';
+    const cb = document.getElementById('rs-btn-combat'); if(cb) cb.style.display = 'none';
     if (state.currentTab === 'combat') hud.switchTab('stats');
   },
   tick() {

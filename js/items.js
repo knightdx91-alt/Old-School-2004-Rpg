@@ -107,6 +107,8 @@ const loot = {
     }
     this._render();
     document.getElementById('loot-overlay').classList.add('active');
+    const ol = document.getElementById('loot-overlay');
+    ol.onclick = (e) => { if (e.target === ol) loot.close(); };
   },
 
   _render() {
@@ -163,7 +165,7 @@ const loot = {
       log(`Took: ${item.name}.`, 'system');
     }
     this._render();
-    hud.renderWindows && hud.renderWindows();
+    hud.render();
     return true;
   },
 
@@ -229,7 +231,7 @@ function equipItem(itemId) {
   if (idx !== -1) p.inventory.splice(idx, 1);
   if (item.slot === 'weapon') world.updatePlayerWeapon && world.updatePlayerWeapon(itemId);
   log(`Equipped: ${item.name}.`, 'system');
-  hud.renderWindows ? hud.renderWindows() : hud.render();
+  hud.render();
 }
 
 function unequipSlot(slot) {
@@ -240,7 +242,7 @@ function unequipSlot(slot) {
   if (!p.inventory.includes(id)) p.inventory.push(id);
   if (slot === 'weapon') world.updatePlayerWeapon && world.updatePlayerWeapon(null);
   log(`Unequipped: ${ITEMS[id].name}.`, 'system');
-  hud.renderWindows ? hud.renderWindows() : hud.render();
+  hud.render();
 }
 
 function useItem(itemId) {
@@ -255,5 +257,5 @@ function useItem(itemId) {
     log(`You drink the ${item.name}. Restored ${healed} HP.`, 'system');
   }
   p.inventory.splice(idx, 1);
-  hud.renderWindows ? hud.renderWindows() : hud.render();
+  hud.render();
 }
