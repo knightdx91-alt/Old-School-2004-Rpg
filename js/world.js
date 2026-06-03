@@ -249,7 +249,7 @@ const world = {
     state.torchLights = [];
 
     // ── MATERIALS ──────────────────────────────────────────────
-    const TEX = 'assets/kenney/retro-fantasy-kit/Models/GLB format/Textures/';
+    const TEX = 'assets/kenney/retro-fantasy-kit/Textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
     const cobTex = new BABYLON.Texture(TEX + 'cobblestone.png', scene);
@@ -839,7 +839,7 @@ const world = {
     const doorH = 2.6;
     const doorWW = doorWidth * TILE_SIZE;
 
-    const TEX_BASE = 'assets/kenney/retro-fantasy-kit/Models/GLB format/Textures/';
+    const TEX_BASE = 'assets/kenney/retro-fantasy-kit/Textures/';
     const wallMat = new BABYLON.StandardMaterial(`wallMat_${name}`, scene);
     wallMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
     const wallTex = new BABYLON.Texture(TEX_BASE + 'details.png', scene);
@@ -1048,7 +1048,7 @@ const world = {
 
   _addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH) {
     const timberMat = new BABYLON.StandardMaterial(`timberMat_${name}`, scene);
-    const plankTex = new BABYLON.Texture('assets/kenney/retro-fantasy-kit/Models/GLB format/Textures/planks.png', scene);
+    const plankTex = new BABYLON.Texture('assets/kenney/retro-fantasy-kit/Textures/planks.png', scene);
     plankTex.uScale = 1; plankTex.vScale = 4;
     timberMat.diffuseTexture = plankTex;
     timberMat.diffuseColor = new BABYLON.Color3(0.65, 0.45, 0.25);
