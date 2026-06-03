@@ -251,16 +251,12 @@ const world = {
     // ── MATERIALS ──────────────────────────────────────────────
     const RS_TEX = 'assets/rs225/textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
+    cobbleMat.diffuseColor = new BABYLON.Color3(0.55, 0.52, 0.46);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobTex = new BABYLON.Texture(RS_TEX + 'tex_32.png', scene);
-    cobTex.uScale = 10; cobTex.vScale = 10;
-    cobbleMat.diffuseTexture = cobTex;
 
     const cobbleAltMat = new BABYLON.StandardMaterial('cobbleAltMat', scene);
+    cobbleAltMat.diffuseColor = new BABYLON.Color3(0.48, 0.45, 0.40);
     cobbleAltMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
-    const cobAltTex = new BABYLON.Texture(RS_TEX + 'tex_31.png', scene);
-    cobAltTex.uScale = 10; cobAltTex.vScale = 10;
-    cobbleAltMat.diffuseTexture = cobAltTex;
 
     const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
     dirtMat.diffuseColor = new BABYLON.Color3(0.50, 0.36, 0.18);
@@ -1434,10 +1430,12 @@ const world = {
     orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = root;
     orb.metadata = { npcId: id };
 
-    // Store limb refs for walk animation
+    // Store limb refs for walk animation and seed target position
     const npcEntry = world.npcs[world.npcs.length - 1];
     npcEntry.limbs = { armL, armR, legL, legR, body };
     npcEntry.walkPhase = 0;
+    npcEntry.targetPos = { x: wp.x, z: wp.z };
+    npcEntry.isMoving = false;
   },
 
   _generateNPCs(scene) {

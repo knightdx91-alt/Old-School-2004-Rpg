@@ -11,21 +11,19 @@ function tickNPCs() {
     // Wait at destination before picking next target
     if (npc.waitTimer > 0) { npc.waitTimer--; continue; }
 
-    // Step along current path
+    // Step along current path — one step per tick, smooth lerp handles visual movement
     if (npc.path.length > 0 && npc.pathIdx < npc.path.length) {
-      npc.moveTimer--;
-      if (npc.moveTimer <= 0) {
-        const [nx, nz] = npc.path[npc.pathIdx++];
-        const dx = nx - npc.gx, dz = nz - npc.gz;
-        if (npc.mesh && (dx || dz)) npc.mesh.rotation.y = Math.atan2(dx, dz);
-        state.obstacles.delete(`${npc.gx},${npc.gz}`);
-        npc.gx = nx; npc.gz = nz;
-        state.obstacles.add(`${npc.gx},${npc.gz}`);
-        const wp = world.gridToWorld(npc.gx, npc.gz);
-        if (npc.mesh) { npc.mesh.position.x = wp.x; npc.mesh.position.z = wp.z; }
-        npc.moveTimer = 14;
-      }
+      const [nx, nz] = npc.path[npc.pathIdx++];
+      const dx = nx - npc.gx, dz = nz - npc.gz;
+      if (npc.mesh && (dx || dz)) npc.mesh.rotation.y = Math.atan2(dx, dz);
+      state.obstacles.delete(`${npc.gx},${npc.gz}`);
+      npc.gx = nx; npc.gz = nz;
+      state.obstacles.add(`${npc.gx},${npc.gz}`);
+      const wp = world.gridToWorld(npc.gx, npc.gz);
+      npc.targetPos = { x: wp.x, z: wp.z };
+      npc.isMoving = true;
     } else {
+      npc.isMoving = false;
       // Path done — wait, then pick a new nearby destination
       npc.path = []; npc.pathIdx = 0;
       npc.waitTimer = 50 + Math.floor(Math.random() * 80);
@@ -174,11 +172,21 @@ function loop(now) {
     }
   }
 
-  // NPC walk animations
+  // NPC smooth movement + walk animations
   if (world.npcs) {
     for (const npc of world.npcs) {
-      if (!npc.limbs || !npc.mesh) continue;
-      const npcMoving = npc.path && npc.path.length > 0 && npc.pathIdx < npc.path.length;
+      if (!npc.mesh) continue;
+      // Smooth lerp toward target position
+      if (npc.targetPos) {
+        const cur = npc.mesh.position;
+        cur.x += (npc.targetPos.x - cur.x) * 0.2;
+        cur.z += (npc.targetPos.z - cur.z) * 0.2;
+      }
+      if (!npc.limbs) continue;
+      const distToTarget = npc.targetPos
+        ? Math.abs(npc.mesh.position.x - npc.targetPos.x) + Math.abs(npc.mesh.position.z - npc.targetPos.z)
+        : 0;
+      const npcMoving = npc.isMoving || distToTarget > 0.05;
       if (npcMoving) {
         npc.walkPhase = (npc.walkPhase || 0) + 0.13;
       } else {
