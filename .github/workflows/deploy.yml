@@ -38,9 +38,16 @@ jobs:
 
       - name: Install butler
         run: |
-          # itch.io's official CDN (the GitHub-releases asset URL is dead)
-          curl -L -o butler.zip "https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default"
-          unzip butler.zip
+          # itch.io's official CDN (the GitHub-releases asset URL is dead).
+          # Retry on transient DNS/connection failures from the runner.
+          for i in 1 2 3 4 5; do
+            curl -fsSL --retry 5 --retry-all-errors --connect-timeout 20 \
+              -o butler.zip "https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default" \
+              && unzip -tq butler.zip && break
+            echo "butler download attempt $i failed; retrying..."
+            sleep $((i * 4))
+          done
+          unzip -o butler.zip
           chmod +x butler
           ./butler -V
 
