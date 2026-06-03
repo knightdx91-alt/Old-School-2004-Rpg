@@ -187,26 +187,38 @@ const world = {
   },
 
   _buildNewSpring(scene) {
-    // Materials reused
+    state.torchLights = [];
+
+    // ── MATERIALS ──────────────────────────────────────────────
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
     const cobTex = new BABYLON.DynamicTexture('cobTex', { width: 256, height: 256 }, scene);
     const cc = cobTex.getContext();
     cc.fillStyle = '#3a3228'; cc.fillRect(0, 0, 256, 256);
     const sh = (r, c) => (Math.sin(r * 127.3 + c * 311.7) * 0.5 + 0.5);
-    const rows = 8, cols = 8, sw2 = 256 / cols, rh = 256 / rows;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const ofs = (r % 2) * (sw2 / 2);
-        const sx = (c * sw2 + ofs) % 256, sy = r * rh;
-        const lum = 30 + Math.floor(sh(r, c) * 12);
-        cc.fillStyle = `hsl(26,16%,${lum}%)`;
-        cc.fillRect(sx + 2, sy + 2, sw2 - 4, rh - 4);
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const ofs = (r % 2) * 16;
+        const sx = (c * 32 + ofs) % 256, sy = r * 32;
+        cc.fillStyle = `hsl(26,16%,${30 + Math.floor(sh(r, c) * 12)}%)`;
+        cc.fillRect(sx + 2, sy + 2, 28, 28);
       }
     }
-    cobTex.update();
-    cobTex.uScale = 8; cobTex.vScale = 8;
+    cobTex.update(); cobTex.uScale = 8; cobTex.vScale = 8;
     cobbleMat.diffuseTexture = cobTex;
+
+    const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
+    dirtMat.diffuseColor = new BABYLON.Color3(0.50, 0.36, 0.18);
+    dirtMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    const waterMat = new BABYLON.StandardMaterial('waterMat', scene);
+    waterMat.diffuseColor = new BABYLON.Color3(0.22, 0.48, 0.72);
+    waterMat.emissiveColor = new BABYLON.Color3(0.04, 0.12, 0.26);
+    waterMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+
+    const wallStoneMat = new BABYLON.StandardMaterial('wallStoneMat', scene);
+    wallStoneMat.diffuseColor = new BABYLON.Color3(0.38, 0.33, 0.25);
+    wallStoneMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
 
     const treeMat = new BABYLON.StandardMaterial('treeMat', scene);
     treeMat.diffuseColor = new BABYLON.Color3(0.08, 0.18, 0.06);
@@ -214,9 +226,10 @@ const world = {
     const trunkMat = new BABYLON.StandardMaterial('trunkMat', scene);
     trunkMat.diffuseColor = new BABYLON.Color3(0.18, 0.11, 0.05);
     trunkMat.specularColor = new BABYLON.Color3(0, 0, 0);
-
-    const stoneMat = new BABYLON.StandardMaterial('stoneMat', scene);
-    stoneMat.diffuseColor = new BABYLON.Color3(0.45, 0.4, 0.32);
+    const orchLeafMat = new BABYLON.StandardMaterial('orchLeafMat', scene);
+    orchLeafMat.diffuseColor = new BABYLON.Color3(0.14, 0.32, 0.10);
+    const orchTrunkMat = new BABYLON.StandardMaterial('orchTrunkMat', scene);
+    orchTrunkMat.diffuseColor = new BABYLON.Color3(0.22, 0.14, 0.06);
 
     const torchMat = new BABYLON.StandardMaterial('torchMat', scene);
     torchMat.diffuseColor = new BABYLON.Color3(0.25, 0.15, 0.08);
@@ -224,22 +237,53 @@ const world = {
     torchFlameMat.emissiveColor = new BABYLON.Color3(1, 0.6, 0.2);
     torchFlameMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.1);
 
-    const placeTree = (gx, gz, suffix) => {
+    // Building palette (from map)
+    const amberC  = new BABYLON.Color3(0.82, 0.64, 0.28), amberR  = new BABYLON.Color3(0.38, 0.22, 0.08);
+    const woodC   = new BABYLON.Color3(0.55, 0.32, 0.14), woodR   = new BABYLON.Color3(0.30, 0.16, 0.07);
+    const purpleC = new BABYLON.Color3(0.42, 0.24, 0.52), purpleR = new BABYLON.Color3(0.22, 0.10, 0.30);
+    const blueC   = new BABYLON.Color3(0.28, 0.44, 0.72), blueR   = new BABYLON.Color3(0.14, 0.22, 0.42);
+    const redC    = new BABYLON.Color3(0.72, 0.20, 0.20), redR    = new BABYLON.Color3(0.40, 0.08, 0.08);
+    const greenC  = new BABYLON.Color3(0.22, 0.50, 0.34), greenR  = new BABYLON.Color3(0.10, 0.26, 0.16);
+    const shopC   = new BABYLON.Color3(0.72, 0.50, 0.18), shopR   = new BABYLON.Color3(0.34, 0.20, 0.07);
+
+    // ── HELPERS ────────────────────────────────────────────────
+    const placeTree = (gx, gz, sfx) => {
       const key = `${gx},${gz}`;
       if (state.obstacles.has(key)) return;
       state.obstacles.add(key);
       const wp = world.gridToWorld(gx, gz);
-      const id = suffix || `${gx}_${gz}`;
+      const id = sfx || `${gx}_${gz}`;
       const trunk = BABYLON.MeshBuilder.CreateCylinder(`tr_${id}`, { height: 1.4, diameterTop: 0.35, diameterBottom: 0.5 }, scene);
-      trunk.material = trunkMat;
-      trunk.position = new BABYLON.Vector3(wp.x, 0.7, wp.z);
+      trunk.material = trunkMat; trunk.position = new BABYLON.Vector3(wp.x, 0.7, wp.z);
       const canopy = BABYLON.MeshBuilder.CreateSphere(`tc_${id}`, { diameter: 2.6, segments: 6 }, scene);
-      canopy.material = treeMat;
-      canopy.position = new BABYLON.Vector3(wp.x, 2.0, wp.z);
-      canopy.scaling.y = 1.3;
+      canopy.material = treeMat; canopy.position = new BABYLON.Vector3(wp.x, 2.0, wp.z); canopy.scaling.y = 1.3;
     };
 
-    // Border trees (outer 2 tiles)
+    const placeOrchard = (gx, gz) => {
+      const key = `${gx},${gz}`;
+      if (state.obstacles.has(key)) return;
+      state.obstacles.add(key);
+      const wp = world.gridToWorld(gx, gz);
+      const t = BABYLON.MeshBuilder.CreateCylinder(`otr_${gx}_${gz}`, { height: 1.0, diameterTop: 0.2, diameterBottom: 0.3 }, scene);
+      t.material = orchTrunkMat; t.position = new BABYLON.Vector3(wp.x, 0.5, wp.z);
+      const c = BABYLON.MeshBuilder.CreateSphere(`otc_${gx}_${gz}`, { diameter: 1.8, segments: 5 }, scene);
+      c.material = orchLeafMat; c.position = new BABYLON.Vector3(wp.x, 1.6, wp.z);
+    };
+
+    const placeTorch = (gx, gz) => {
+      const wp = world.gridToWorld(gx, gz);
+      const post = BABYLON.MeshBuilder.CreateCylinder(`tpost_${gx}_${gz}`, { height: 2.0, diameter: 0.1 }, scene);
+      post.material = torchMat; post.position = new BABYLON.Vector3(wp.x, 1.0, wp.z);
+      const bkt = BABYLON.MeshBuilder.CreateBox(`tbkt_${gx}_${gz}`, { width: 0.18, height: 0.08, depth: 0.18 }, scene);
+      bkt.material = torchMat; bkt.position = new BABYLON.Vector3(wp.x, 2.05, wp.z);
+      const fl = BABYLON.MeshBuilder.CreateSphere(`tflame_${gx}_${gz}`, { diameter: 0.22 }, scene);
+      fl.material = torchFlameMat; fl.position = new BABYLON.Vector3(wp.x, 2.25, wp.z);
+      const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 2.3, wp.z), scene);
+      tl.diffuse = new BABYLON.Color3(1, 0.55, 0.2); tl.intensity = 0; tl.range = 9;
+      state.torchLights.push(tl);
+    };
+
+    // ── BORDER TREES ───────────────────────────────────────────
     for (let i = 0; i < GRID_SIZE; i++) {
       placeTree(0, i); placeTree(1, i);
       placeTree(GRID_SIZE - 1, i); placeTree(GRID_SIZE - 2, i);
@@ -247,194 +291,303 @@ const world = {
       placeTree(i, GRID_SIZE - 1); placeTree(i, GRID_SIZE - 2);
     }
 
-    // Road-side trees gx=47,48 and gx=52,53 every 3 tiles from gz=6 to gz=46
-    for (let gz = 6; gz <= 46; gz += 3) {
-      [47, 48, 52, 53].forEach(gx => placeTree(gx, gz));
+    // ── ORCHARDS (SW and SE outside walls) ─────────────────────
+    for (let gx = 3; gx <= 19; gx += 3)
+      for (let gz = 76; gz <= 96; gz += 3) placeOrchard(gx, gz);
+    for (let gx = 81; gx <= 97; gx += 3)
+      for (let gz = 76; gz <= 96; gz += 3) placeOrchard(gx, gz);
+
+    // ── WEST WOOD ──────────────────────────────────────────────
+    [[3,42],[4,44],[5,41],[6,46],[3,49],[5,51],[4,54],
+     [6,56],[3,58],[5,60],[4,63],[6,65],[3,67],[8,43],[9,47],
+     [8,52],[7,57],[9,61],[8,65]].forEach(([gx, gz]) => placeTree(gx, gz));
+
+    // ── SOUTH PINE WOOD ────────────────────────────────────────
+    [[5,79],[7,81],[10,80],[13,79],[16,81],[19,80],
+     [22,79],[25,81],[28,80],[31,79]].forEach(([gx, gz]) => placeTree(gx, gz));
+
+    // ── HOLLOW WOOD (east) ─────────────────────────────────────
+    [[82,67],[84,68],[87,66],[90,68],[83,71],[87,73],[91,70]].forEach(([gx, gz]) => placeTree(gx, gz));
+
+    // ── SCATTERED WILDERNESS ───────────────────────────────────
+    [[12,12],[13,12],[88,12],[89,12],[12,88],[88,88],
+     [35,10],[65,10],[10,35],[90,35],[10,65],[90,65]].forEach(([gx, gz]) => placeTree(gx, gz));
+
+    // ── FARMLAND PATCHES (NW and NE outside walls) ─────────────
+    const fieldMat = new BABYLON.StandardMaterial('fieldMat', scene);
+    const fieldTex = new BABYLON.DynamicTexture('fieldTex', { width: 128, height: 128 }, scene);
+    const fc = fieldTex.getContext();
+    for (let row = 0; row < 8; row++) {
+      fc.fillStyle = row % 2 === 0 ? '#3a5215' : '#507028';
+      fc.fillRect(0, row * 16, 128, 16);
+    }
+    fieldTex.update(); fieldTex.uScale = 3; fieldTex.vScale = 5;
+    fieldMat.diffuseTexture = fieldTex;
+    const farmNW = BABYLON.MeshBuilder.CreateGround('farmNW', { width: 18*TILE_SIZE, height: 22*TILE_SIZE }, scene);
+    farmNW.material = fieldMat;
+    farmNW.position = new BABYLON.Vector3(11*TILE_SIZE, 0.01, 14*TILE_SIZE);
+    const farmNE = BABYLON.MeshBuilder.CreateGround('farmNE', { width: 18*TILE_SIZE, height: 22*TILE_SIZE }, scene);
+    farmNE.material = fieldMat;
+    farmNE.position = new BABYLON.Vector3(89*TILE_SIZE, 0.01, 14*TILE_SIZE);
+
+    // ── ROADS ──────────────────────────────────────────────────
+    // Dirt roads outside walls
+    const dirtSegs = [
+      [50*TILE_SIZE, 13*TILE_SIZE, 7*TILE_SIZE, 24*TILE_SIZE], // N
+      [50*TILE_SIZE, 87*TILE_SIZE, 7*TILE_SIZE, 24*TILE_SIZE], // S
+      [11*TILE_SIZE, 50*TILE_SIZE, 20*TILE_SIZE, 7*TILE_SIZE], // W
+      [89*TILE_SIZE, 50*TILE_SIZE, 20*TILE_SIZE, 7*TILE_SIZE], // E
+    ];
+    dirtSegs.forEach(([cx, cz, w, h], i) => {
+      const r = BABYLON.MeshBuilder.CreateGround(`dirtRd_${i}`, { width: w, height: h }, scene);
+      r.material = dirtMat; r.position = new BABYLON.Vector3(cx, 0.01, cz);
+    });
+    // Cobblestone inside: N-S road gz=27-73, E-W road gx=22-78
+    const nsRd = BABYLON.MeshBuilder.CreateGround('nsRoad', { width: 7*TILE_SIZE, height: 46*TILE_SIZE }, scene);
+    nsRd.material = cobbleMat; nsRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.014, 50*TILE_SIZE);
+    const ewRd = BABYLON.MeshBuilder.CreateGround('ewRoad', { width: 56*TILE_SIZE, height: 7*TILE_SIZE }, scene);
+    ewRd.material = cobbleMat; ewRd.position = new BABYLON.Vector3(50*TILE_SIZE, 0.014, 50*TILE_SIZE);
+
+    // ── TOWN WALLS ─────────────────────────────────────────────
+    const WALL_H = 2.8, WALL_T = 0.5;
+    const NWZ = 27, SWZ = 73, WWX = 22, EWX = 78;
+    const GNXL = 47, GNXR = 53, GNZN = 47, GNZS = 53; // gate openings
+
+    const mkWallBox = (name, cx, cz, w, d) => {
+      const m = BABYLON.MeshBuilder.CreateBox(name, { width: w, height: WALL_H, depth: d }, scene);
+      m.material = wallStoneMat; m.position = new BABYLON.Vector3(cx, WALL_H / 2, cz);
+    };
+    const mkMerlons = (name, ax, az, len, horiz) => {
+      const step = 1.6, n = Math.max(1, Math.floor(len / step));
+      for (let i = 0; i < n; i++) {
+        const t = (i + 0.5) / n;
+        const m = BABYLON.MeshBuilder.CreateBox(`${name}m${i}`, {
+          width: horiz ? 0.55 : WALL_T + 0.1, height: 0.42, depth: horiz ? WALL_T + 0.1 : 0.55
+        }, scene);
+        m.material = wallStoneMat;
+        m.position = new BABYLON.Vector3(horiz ? ax + len * t : ax, WALL_H + 0.21, horiz ? az : az + len * t);
+      }
+    };
+
+    // N wall segments
+    { const wz = NWZ * TILE_SIZE;
+      const s1w = (GNXL - WWX) * TILE_SIZE, s2w = (EWX - GNXR) * TILE_SIZE;
+      mkWallBox('nWL', (WWX + GNXL) / 2 * TILE_SIZE, wz, s1w, WALL_T);
+      mkMerlons('nWL', WWX * TILE_SIZE, wz, s1w, true);
+      mkWallBox('nWR', (GNXR + EWX) / 2 * TILE_SIZE, wz, s2w, WALL_T);
+      mkMerlons('nWR', GNXR * TILE_SIZE, wz, s2w, true);
+      for (let gx = WWX; gx < GNXL; gx++) state.obstacles.add(`${gx},${NWZ}`);
+      for (let gx = GNXR + 1; gx <= EWX; gx++) state.obstacles.add(`${gx},${NWZ}`);
+    }
+    // S wall
+    { const wz = SWZ * TILE_SIZE;
+      const s1w = (GNXL - WWX) * TILE_SIZE, s2w = (EWX - GNXR) * TILE_SIZE;
+      mkWallBox('sWL', (WWX + GNXL) / 2 * TILE_SIZE, wz, s1w, WALL_T);
+      mkMerlons('sWL', WWX * TILE_SIZE, wz, s1w, true);
+      mkWallBox('sWR', (GNXR + EWX) / 2 * TILE_SIZE, wz, s2w, WALL_T);
+      mkMerlons('sWR', GNXR * TILE_SIZE, wz, s2w, true);
+      for (let gx = WWX; gx < GNXL; gx++) state.obstacles.add(`${gx},${SWZ}`);
+      for (let gx = GNXR + 1; gx <= EWX; gx++) state.obstacles.add(`${gx},${SWZ}`);
+    }
+    // W wall
+    { const wx = WWX * TILE_SIZE;
+      const s1d = (GNZN - NWZ) * TILE_SIZE, s2d = (SWZ - GNZS) * TILE_SIZE;
+      mkWallBox('wWN', wx, (NWZ + GNZN) / 2 * TILE_SIZE, WALL_T, s1d);
+      mkMerlons('wWN', wx, NWZ * TILE_SIZE, s1d, false);
+      mkWallBox('wWS', wx, (GNZS + SWZ) / 2 * TILE_SIZE, WALL_T, s2d);
+      mkMerlons('wWS', wx, GNZS * TILE_SIZE, s2d, false);
+      for (let gz = NWZ; gz < GNZN; gz++) state.obstacles.add(`${WWX},${gz}`);
+      for (let gz = GNZS + 1; gz <= SWZ; gz++) state.obstacles.add(`${WWX},${gz}`);
+    }
+    // E wall
+    { const wx = EWX * TILE_SIZE;
+      const s1d = (GNZN - NWZ) * TILE_SIZE, s2d = (SWZ - GNZS) * TILE_SIZE;
+      mkWallBox('eWN', wx, (NWZ + GNZN) / 2 * TILE_SIZE, WALL_T, s1d);
+      mkMerlons('eWN', wx, NWZ * TILE_SIZE, s1d, false);
+      mkWallBox('eWS', wx, (GNZS + SWZ) / 2 * TILE_SIZE, WALL_T, s2d);
+      mkMerlons('eWS', wx, GNZS * TILE_SIZE, s2d, false);
+      for (let gz = NWZ; gz < GNZN; gz++) state.obstacles.add(`${EWX},${gz}`);
+      for (let gz = GNZS + 1; gz <= SWZ; gz++) state.obstacles.add(`${EWX},${gz}`);
     }
 
-    // Scattered clusters in wilderness (avoid building zones and road)
-    const scatterTrees = [
-      [10,10],[11,10],[10,11],[20,15],[21,15],[20,16],
-      [70,20],[71,20],[70,21],[80,30],[81,30],
-      [15,70],[16,70],[15,71],[85,70],[85,71],[86,70],
-      [25,85],[26,85],[25,86],[75,85],[76,85],
-      [10,50],[11,50],[10,51],[90,50],[91,50]
-    ];
-    scatterTrees.forEach(([gx,gz]) => placeTree(gx, gz));
-
-    // North Road cobblestone: gx=49..51, gz=6..48
-    const roadW = 3 * TILE_SIZE;
-    const roadH = 43 * TILE_SIZE;
-    const roadPatch = BABYLON.MeshBuilder.CreateGround('northRoad', { width: roadW, height: roadH }, scene);
-    roadPatch.material = cobbleMat;
-    const roadCenterGx = 50; // center of 49-51
-    const roadCenterGz = (6 + 48) / 2;
-    const roadWP = world.gridToWorld(roadCenterGx, Math.round(roadCenterGz));
-    roadPatch.position = new BABYLON.Vector3(roadWP.x, 0.01, roadCenterGz * TILE_SIZE);
-
-    // Zone arch at gz=5
-    const archPillarMat = new BABYLON.StandardMaterial('archPillarMat', scene);
-    archPillarMat.diffuseColor = new BABYLON.Color3(0.45, 0.4, 0.32);
-    [[46, 5], [54, 5]].forEach(([gx, gz], i) => {
+    // Corner towers
+    [[WWX, NWZ], [EWX, NWZ], [WWX, SWZ], [EWX, SWZ]].forEach(([gx, gz], ci) => {
       const wp = world.gridToWorld(gx, gz);
-      const p = BABYLON.MeshBuilder.CreateCylinder(`archPillar_${i}`, { height: 5, diameter: 0.6 }, scene);
-      p.material = archPillarMat;
-      p.position = new BABYLON.Vector3(wp.x, 2.5, wp.z);
+      const t = BABYLON.MeshBuilder.CreateBox(`cTwr_${ci}`, { width: 2.0, height: WALL_H + 1.0, depth: 2.0 }, scene);
+      t.material = wallStoneMat; t.position = new BABYLON.Vector3(wp.x, (WALL_H + 1.0) / 2, wp.z);
       state.obstacles.add(`${gx},${gz}`);
     });
-    // Lintel
-    const lintelMat = new BABYLON.StandardMaterial('lintelMat', scene);
-    lintelMat.diffuseColor = new BABYLON.Color3(0.45, 0.4, 0.32);
-    const lintel = BABYLON.MeshBuilder.CreateBox('archLintel', { width: (54 - 46) * TILE_SIZE + 0.6, height: 0.4, depth: 0.5 }, scene);
-    lintel.material = lintelMat;
-    const lintelWP = world.gridToWorld(50, 5);
-    lintel.position = new BABYLON.Vector3(lintelWP.x, 5.2, lintelWP.z);
 
-    // Road torches at gx=48 and gx=52, every 6 tiles gz=8..44
-    for (let gz = 8; gz <= 44; gz += 6) {
-      [48, 52].forEach((gx) => {
+    // Gate arches (pillars + lintel)
+    const gateArchMat = new BABYLON.StandardMaterial('gateArchMat', scene);
+    gateArchMat.diffuseColor = new BABYLON.Color3(0.30, 0.26, 0.18);
+    const mkGateH = (name, gx1, gx2, gz) => { // horizontal gate (N or S wall)
+      const wz = gz * TILE_SIZE, ARCH_H = 4.0;
+      [[gx1, gz], [gx2, gz]].forEach(([gx, gz], i) => {
         const wp = world.gridToWorld(gx, gz);
-        const post = BABYLON.MeshBuilder.CreateCylinder(`tpost_${gx}_${gz}`, { height: 2.0, diameter: 0.1 }, scene);
-        post.material = torchMat;
-        post.position = new BABYLON.Vector3(wp.x, 1.0, wp.z);
-        // Torch bracket
-        const bracket = BABYLON.MeshBuilder.CreateBox(`tbkt_${gx}_${gz}`, { width: 0.18, height: 0.08, depth: 0.18 }, scene);
-        bracket.material = torchMat;
-        bracket.position = new BABYLON.Vector3(wp.x, 2.05, wp.z);
-        const tflame = BABYLON.MeshBuilder.CreateSphere(`tflame_${gx}_${gz}`, { diameter: 0.22 }, scene);
-        tflame.material = torchFlameMat;
-        tflame.position = new BABYLON.Vector3(wp.x, 2.25, wp.z);
-        // Point light per torch
-        const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 2.3, wp.z), scene);
-        tl.diffuse = new BABYLON.Color3(1, 0.55, 0.2);
-        tl.intensity = 0;
-        tl.range = 8;
-        state.torchLights = state.torchLights || [];
-        state.torchLights.push(tl);
+        const p = BABYLON.MeshBuilder.CreateBox(`${name}p${i}`, { width: 0.8, height: ARCH_H, depth: 0.8 }, scene);
+        p.material = gateArchMat; p.position = new BABYLON.Vector3(wp.x, ARCH_H / 2, wz);
       });
+      const lw = (gx2 - gx1) * TILE_SIZE + 0.8;
+      const l = BABYLON.MeshBuilder.CreateBox(`${name}l`, { width: lw, height: 0.5, depth: 0.9 }, scene);
+      l.material = gateArchMat; l.position = new BABYLON.Vector3((gx1 + gx2) / 2 * TILE_SIZE, ARCH_H + 0.25, wz);
+    };
+    const mkGateV = (name, gx, gz1, gz2) => { // vertical gate (W or E wall)
+      const wx = gx * TILE_SIZE, ARCH_H = 4.0;
+      [[gx, gz1], [gx, gz2]].forEach(([gx, gz], i) => {
+        const wp = world.gridToWorld(gx, gz);
+        const p = BABYLON.MeshBuilder.CreateBox(`${name}p${i}`, { width: 0.8, height: ARCH_H, depth: 0.8 }, scene);
+        p.material = gateArchMat; p.position = new BABYLON.Vector3(wx, ARCH_H / 2, wp.z);
+      });
+      const ld = (gz2 - gz1) * TILE_SIZE + 0.8;
+      const l = BABYLON.MeshBuilder.CreateBox(`${name}l`, { width: 0.9, height: 0.5, depth: ld }, scene);
+      l.material = gateArchMat; l.position = new BABYLON.Vector3(wx, ARCH_H + 0.25, (gz1 + gz2) / 2 * TILE_SIZE);
+    };
+    mkGateH('gN', GNXL, GNXR, NWZ);
+    mkGateH('gS', GNXL, GNXR, SWZ);
+    mkGateV('gW', WWX, GNZN, GNZS);
+    mkGateV('gE', EWX, GNZN, GNZS);
+
+    // Gate sign labels (emissive)
+    const gateSignMat = new BABYLON.StandardMaterial('gateSignMat', scene);
+    gateSignMat.emissiveColor = new BABYLON.Color3(0.72, 0.50, 0.12);
+    ['gNSign','gSSign'].forEach((name, i) => {
+      const s = BABYLON.MeshBuilder.CreateBox(name, { width: 2.0, height: 0.38, depth: 0.1 }, scene);
+      s.material = gateSignMat;
+      s.position = new BABYLON.Vector3(50 * TILE_SIZE, 4.6, (i === 0 ? NWZ : SWZ) * TILE_SIZE);
+    });
+
+    // Torches at each gate + along main roads
+    [[GNXL, NWZ],[GNXR, NWZ],[GNXL, SWZ],[GNXR, SWZ],
+     [WWX, GNZN],[WWX, GNZS],[EWX, GNZN],[EWX, GNZS]].forEach(([gx, gz]) => placeTorch(gx, gz));
+    for (let gz = 32; gz <= 68; gz += 7) {
+      [46, 54].forEach(gx => placeTorch(gx, gz));
     }
 
-    // Market Square cobblestone: gx=42, gz=49, w=21, d=17
-    const mktPatch = BABYLON.MeshBuilder.CreateGround('marketSquare', { width: 21 * TILE_SIZE, height: 17 * TILE_SIZE }, scene);
-    mktPatch.material = cobbleMat;
-    const mktCenterWP = world.gridToWorld(42 + 10, 49 + 8);
-    mktPatch.position = new BABYLON.Vector3(mktCenterWP.x, 0.01, mktCenterWP.z);
+    // ── TOWN SQUARE (cobblestone + fountain) ───────────────────
+    const SQ1X = 43, SQ2X = 57, SQ1Z = 43, SQ2Z = 57;
+    const sq = BABYLON.MeshBuilder.CreateGround('townSquare', {
+      width: (SQ2X - SQ1X) * TILE_SIZE, height: (SQ2Z - SQ1Z) * TILE_SIZE
+    }, scene);
+    sq.material = cobbleMat;
+    sq.position = new BABYLON.Vector3((SQ1X + SQ2X) / 2 * TILE_SIZE, 0.013, (SQ1Z + SQ2Z) / 2 * TILE_SIZE);
 
-    // Buildings
-    const amberColor = new BABYLON.Color3(0.72, 0.48, 0.18);
-    const amberRoof = new BABYLON.Color3(0.38, 0.22, 0.08);
-    const warmWood = new BABYLON.Color3(0.55, 0.32, 0.14);
-    const warmWoodRoof = new BABYLON.Color3(0.30, 0.16, 0.07);
-    const stoneColor = new BABYLON.Color3(0.50, 0.46, 0.38);
-    const stoneRoof = new BABYLON.Color3(0.35, 0.30, 0.24);
-    const woodColor = new BABYLON.Color3(0.52, 0.36, 0.16);
-    const woodRoof = new BABYLON.Color3(0.28, 0.18, 0.08);
+    // Fountain basin
+    const basinMat = new BABYLON.StandardMaterial('basinMat', scene);
+    basinMat.diffuseColor = new BABYLON.Color3(0.38, 0.33, 0.24);
+    const basin = BABYLON.MeshBuilder.CreateCylinder('fountainBasin', {
+      height: 0.32, diameterTop: 3.2, diameterBottom: 3.5, tessellation: 20
+    }, scene);
+    basin.material = basinMat; basin.position = new BABYLON.Vector3(50*TILE_SIZE, 0.16, 50*TILE_SIZE);
+    const fWater = BABYLON.MeshBuilder.CreateDisc('fountainWater', { radius: 1.45, tessellation: 20 }, scene);
+    fWater.material = waterMat; fWater.rotation.x = Math.PI / 2;
+    fWater.position = new BABYLON.Vector3(50*TILE_SIZE, 0.3, 50*TILE_SIZE);
+    const pillar = BABYLON.MeshBuilder.CreateCylinder('fPillar', { height: 1.3, diameterTop: 0.18, diameterBottom: 0.38, tessellation: 10 }, scene);
+    pillar.material = basinMat; pillar.position = new BABYLON.Vector3(50*TILE_SIZE, 0.65, 50*TILE_SIZE);
+    const fTop = BABYLON.MeshBuilder.CreateCylinder('fTop', { height: 0.1, diameterTop: 0.7, diameterBottom: 0.7, tessellation: 10 }, scene);
+    fTop.material = waterMat; fTop.position = new BABYLON.Vector3(50*TILE_SIZE, 1.35, 50*TILE_SIZE);
+    ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
 
-    // Dawn Hall
-    world._buildBuilding(scene, 'dawnHall', 53, 25, 13, 14, 3, amberColor, amberRoof, 'west', 2);
+    // ── MARKET STALLS ──────────────────────────────────────────
+    [[44,43],[56,43],[44,57],[56,57]].forEach(([gx, gz], i) => world._buildStall(scene, gx, gz, i));
 
-    // Connecting path to dawn hall: gx=51..52, gz=30..32
-    const connW = 2 * TILE_SIZE;
-    const connH = 3 * TILE_SIZE;
-    const connPatch = BABYLON.MeshBuilder.CreateGround('dawnHallPath', { width: connW, height: connH }, scene);
-    connPatch.material = cobbleMat;
-    const connWP = world.gridToWorld(51, 31);
-    connPatch.position = new BABYLON.Vector3(connWP.x + TILE_SIZE / 2, 0.01, connWP.z);
-
-    // Dawn Hall porch columns
-    const porchMat = new BABYLON.StandardMaterial('porchMat', scene);
-    porchMat.diffuseColor = new BABYLON.Color3(0.45, 0.38, 0.22);
-    [[53, 31], [53, 33]].forEach(([gx, gz], i) => {
-      const wp = world.gridToWorld(gx, gz);
-      const col = BABYLON.MeshBuilder.CreateCylinder(`porchCol_${i}`, { height: 3.5, diameter: 0.35 }, scene);
-      col.material = porchMat;
-      col.position = new BABYLON.Vector3(wp.x, 1.75, wp.z);
-    });
-
-    // Dawn Hall sign (amber emissive box above door)
-    const signMat = new BABYLON.StandardMaterial('dawnSignMat', scene);
-    signMat.emissiveColor = new BABYLON.Color3(0.80, 0.55, 0.15);
-    signMat.diffuseColor = new BABYLON.Color3(0.80, 0.55, 0.15);
-    const sign = BABYLON.MeshBuilder.CreateBox('dawnSign', { width: 1.5, height: 0.4, depth: 0.1 }, scene);
-    sign.material = signMat;
-    const doorWP = world.gridToWorld(53, 31);
-    sign.position = new BABYLON.Vector3(doorWP.x, 4.2, doorWP.z);
-
-    // Inn
-    world._buildBuilding(scene, 'inn', 63, 49, 8, 12, 2, warmWood, warmWoodRoof, 'west', 1);
-
-    // Blacksmith
-    world._buildBuilding(scene, 'blacksmith', 34, 49, 8, 12, 1, stoneColor, stoneRoof, 'east', 1);
-
-    // General Store
-    world._buildBuilding(scene, 'generalStore', 43, 66, 19, 8, 2, woodColor, woodRoof, 'north', 1);
-
-    // Houses
-    world._buildBuilding(scene, 'house1', 34, 35, 5, 6, 1, woodColor, woodRoof, 'south', 1);
-    world._buildBuilding(scene, 'house2', 34, 62, 5, 6, 1, woodColor, woodRoof, 'north', 1);
-    world._buildBuilding(scene, 'house3', 63, 35, 5, 6, 1, woodColor, woodRoof, 'south', 1);
-    world._buildBuilding(scene, 'house4', 63, 62, 5, 6, 1, woodColor, woodRoof, 'north', 1);
-
-    // Market Stalls
-    const stallPositions = [[46,53],[50,53],[54,53],[46,58],[50,58],[54,58]];
-    stallPositions.forEach(([gx, gz], idx) => {
-      world._buildStall(scene, gx, gz, idx);
-    });
-
-    // Brazier at market square center gx=52, gz=57
+    // ── BRAZIER (south of fountain) ────────────────────────────
     const brazierMat = new BABYLON.StandardMaterial('brazMat', scene);
     brazierMat.diffuseColor = new BABYLON.Color3(0.25, 0.15, 0.08);
     const brazier = BABYLON.MeshBuilder.CreateCylinder('brazier', { height: 1.0, diameterTop: 0.7, diameterBottom: 0.4 }, scene);
     brazier.material = brazierMat;
-    const brazWP = world.gridToWorld(52, 57);
+    const brazWP = world.gridToWorld(50, 55);
     brazier.position = new BABYLON.Vector3(brazWP.x, 0.5, brazWP.z);
     const flameMat = new BABYLON.StandardMaterial('flameMat', scene);
     flameMat.emissiveColor = new BABYLON.Color3(1, 0.6, 0.2);
     flameMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.1);
     const flame = BABYLON.MeshBuilder.CreateSphere('flame', { diameter: 0.5 }, scene);
-    flame.material = flameMat;
-    flame.position = new BABYLON.Vector3(brazWP.x, 1.1, brazWP.z);
+    flame.material = flameMat; flame.position = new BABYLON.Vector3(brazWP.x, 1.1, brazWP.z);
     state.flame = flame;
     const brazierLight = new BABYLON.PointLight('brzL', flame.position.clone(), scene);
-    brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2);
-    brazierLight.intensity = 0;
-    brazierLight.range = 10;
+    brazierLight.diffuse = new BABYLON.Color3(1, 0.55, 0.2); brazierLight.intensity = 0; brazierLight.range = 12;
     state.brazierLight = brazierLight;
 
-    // NPCs
+    // ── BUILDINGS ──────────────────────────────────────────────
+    // Dawn Hall — NW, 3 floors (gx=28-40, gz=29-40, door south)
+    world._buildBuilding(scene, 'dawnHall', 28, 29, 13, 12, 3, amberC, amberR, 'south', 2);
+    const porchMat = new BABYLON.StandardMaterial('porchMat', scene);
+    porchMat.diffuseColor = new BABYLON.Color3(0.45, 0.38, 0.22);
+    [[33, 41], [37, 41]].forEach(([gx, gz], i) => {
+      const wp = world.gridToWorld(gx, gz);
+      const col = BABYLON.MeshBuilder.CreateCylinder(`porchCol_${i}`, { height: 3.5, diameter: 0.35 }, scene);
+      col.material = porchMat; col.position = new BABYLON.Vector3(wp.x, 1.75, wp.z);
+    });
+    const dawnSignMat = new BABYLON.StandardMaterial('dawnSignMat', scene);
+    dawnSignMat.emissiveColor = new BABYLON.Color3(0.80, 0.55, 0.15);
+    const dawnSign = BABYLON.MeshBuilder.CreateBox('dawnSign', { width: 2.0, height: 0.4, depth: 0.1 }, scene);
+    dawnSign.material = dawnSignMat;
+    dawnSign.position = new BABYLON.Vector3(35 * TILE_SIZE, 4.3, 40 * TILE_SIZE + 0.3);
+    const dawnPath = BABYLON.MeshBuilder.CreateGround('dawnPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
+    dawnPath.material = cobbleMat; dawnPath.position = new BABYLON.Vector3(35*TILE_SIZE, 0.014, 42*TILE_SIZE);
+
+    // Inn & Tavern — NE, 2 floors (gx=60-72, gz=29-40, door south)
+    world._buildBuilding(scene, 'inn', 60, 29, 13, 12, 2, woodC, woodR, 'south', 2);
+    const innSignMat = new BABYLON.StandardMaterial('innSignMat', scene);
+    innSignMat.emissiveColor = new BABYLON.Color3(0.55, 0.30, 0.10);
+    const innSign = BABYLON.MeshBuilder.CreateBox('innSign', { width: 2.0, height: 0.4, depth: 0.1 }, scene);
+    innSign.material = innSignMat;
+    innSign.position = new BABYLON.Vector3(66 * TILE_SIZE, 4.3, 41 * TILE_SIZE + 0.3);
+    const innPath = BABYLON.MeshBuilder.CreateGround('innPath', { width: 4*TILE_SIZE, height: 3*TILE_SIZE }, scene);
+    innPath.material = cobbleMat; innPath.position = new BABYLON.Vector3(66*TILE_SIZE, 0.014, 42*TILE_SIZE);
+
+    // Enchanted Weapons — W side (gx=24-33, gz=55-63, door east)
+    world._buildBuilding(scene, 'enchantedWeapons', 24, 55, 10, 9, 1, purpleC, purpleR, 'east', 1);
+
+    // Jeweler — SW (gx=24-32, gz=65-71, door east)
+    world._buildBuilding(scene, 'jeweler', 24, 65, 9, 7, 1, redC, redR, 'east', 1);
+
+    // Apothecary — SW (gx=34-42, gz=65-71, door east)
+    world._buildBuilding(scene, 'apothecary', 34, 65, 9, 7, 1, greenC, greenR, 'east', 1);
+
+    // Familiar Supplies — E side (gx=66-75, gz=55-63, door west)
+    world._buildBuilding(scene, 'familiarSupplies', 66, 55, 10, 9, 1, blueC, blueR, 'west', 1);
+
+    // Restaurant — SE (gx=60-67, gz=65-71, door west)
+    world._buildBuilding(scene, 'restaurant', 60, 65, 8, 7, 1, shopC, shopR, 'west', 1);
+
+    // Tea House — SE (gx=68-75, gz=65-71, door west)
+    world._buildBuilding(scene, 'teaHouse', 68, 65, 8, 7, 1, shopC, shopR, 'west', 1);
+
+    // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
-      id: 'soren', name: 'Soren', gx: 58, gz: 31,
+      id: 'soren', name: 'Soren', gx: 33, gz: 36,
       dialogue: [
-        'Welcome to the Dawn Hall. We are the premier adventuring guild in New Spring.',
-        'Post quests, take contracts, and rise through the ranks.',
+        'Welcome to the Dawn Hall. Premier guild of New Spring.',
+        'We post quests, take contracts, and train adventurers.',
         'Speak to Kim at the counter for available work.'
       ],
       robeColor: new BABYLON.Color3(0.12, 0.12, 0.30),
       accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
     });
     world._spawnNPC(scene, {
-      id: 'kim', name: 'Kim', gx: 60, gz: 32,
+      id: 'kim', name: 'Kim', gx: 36, gz: 37,
       dialogue: [
-        'No quests available just yet — check back soon.',
-        'Guild membership is open to all willing adventurers.'
+        'No quests posted yet — check back soon.',
+        'Guild membership is open to any willing adventurer.'
       ],
       robeColor: new BABYLON.Color3(0.12, 0.12, 0.30),
       accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
     });
     world._spawnNPC(scene, {
-      id: 'vendor1', name: 'Market Vendor', gx: 46, gz: 52,
+      id: 'vendor1', name: 'Market Vendor', gx: 44, gz: 44,
       dialogue: ['Fresh goods! Wares coming soon.'],
       robeColor: new BABYLON.Color3(0.40, 0.26, 0.14),
       accentColor: new BABYLON.Color3(0.60, 0.42, 0.20)
     });
     world._spawnNPC(scene, {
-      id: 'vendor2', name: 'Reagent Seller', gx: 50, gz: 52,
+      id: 'vendor2', name: 'Reagent Seller', gx: 50, gz: 44,
       dialogue: ['Finest magyk reagents in the region. Stock coming soon.'],
       robeColor: new BABYLON.Color3(0.18, 0.10, 0.28),
       accentColor: new BABYLON.Color3(0.55, 0.30, 0.70)
     });
     world._spawnNPC(scene, {
-      id: 'vendor3', name: 'Food Merchant', gx: 54, gz: 52,
+      id: 'vendor3', name: 'Food Merchant', gx: 56, gz: 44,
       dialogue: ['Fresh bread and provisions. Come back when stock arrives.'],
       robeColor: new BABYLON.Color3(0.55, 0.46, 0.30),
       accentColor: new BABYLON.Color3(0.70, 0.60, 0.35)
@@ -910,10 +1063,16 @@ const world = {
 
   onPlayerStep() {
     world.checkRoofTransparency();
-    // Zone transition north
-    if (state.player.gz <= 5 && state.player.gx >= 49 && state.player.gx <= 51 && !world._transitioning) {
+    if (world._transitioning) return;
+    const { gx, gz } = state.player;
+    let msg = null;
+    if (gz <= 5  && gx >= 47 && gx <= 53) msg = 'You follow the road north toward Sygldry Academy...';
+    else if (gz >= 95 && gx >= 47 && gx <= 53) msg = 'The south road winds toward The Heir\'s School...';
+    else if (gx <= 5  && gz >= 47 && gz <= 53) msg = 'The west road winds into the open countryside...';
+    else if (gx >= 95 && gz >= 47 && gz <= 53) msg = 'The east road leads toward Whitehaven...';
+    if (msg) {
       world._transitioning = true;
-      log('You follow the road north toward Sygldry Academy...', 'system');
+      log(msg, 'system');
       setTimeout(() => { world._transitioning = false; }, 3000);
     }
   },

@@ -33,28 +33,42 @@ js/
 
 **Coordinate system:** lower gz = north (toward zone exit), higher gz = south (toward market). Camera faces +Z so higher gz appears at top of screen.
 
-### Layout (grid coordinates)
-- **Zone arch / north boundary:** gz=5, gx=46 and gx=54
-- **North road:** gx=49..51, gz=6..48 (cobblestone, torch-lined)
-- **Dawn Hall** (adventurers guild, 3 stories): gx=53..65, gz=25..38, door='west'
-- **Market Square:** gx=42..62, gz=49..65 (cobblestone)
-- **Inn** (2 stories): gx=63..74, gz=49..60, door='west'
-- **Blacksmith** (1 story): gx=34..41, gz=49..60, door='east'
-- **General Store** (2 stories): gx=43..61, gz=66..73, door='north'
-- **house1** (player's house): gx=34..38, gz=35..40, door='south'
-- **house2:** gx=34..38, gz=62..67, door='north'
-- **house3:** gx=63..67, gz=35..40, door='south'
-- **house4:** gx=63..67, gz=62..67, door='north'
-- **Market stalls:** (46,53), (50,53), (54,53), (46,58), (50,58), (54,58)
-- **Brazier:** gx=52, gz=57 (market square center, sets state.flame + state.brazierLight)
+### Layout (grid coordinates) — based on assets/maps/Game Maps/01_new_spring_town.svg
+- **Town walls:** N wall gz=27, S wall gz=73, W wall gx=22, E wall gx=78 — crenellated stone
+- **Gates:** N gate gx=47-53/gz=27, S gate gx=47-53/gz=73, W gate gx=22/gz=47-53, E gate gx=78/gz=47-53
+- **Corner towers:** at (22,27), (78,27), (22,73), (78,73)
+- **N-S road:** gx=47-53, full height (dirt outside walls, cobblestone inside)
+- **E-W road:** gz=47-53, full width (same)
+- **Town Square:** gx=43-57, gz=43-57 (cobblestone) with fountain at gx=50, gz=50
+- **Dawn Hall** (guild/job board, 3 floors): gx=28-40, gz=29-40, door='south'
+- **Inn & Tavern** (2 floors): gx=60-72, gz=29-40, door='south'
+- **Enchanted Weapons** (1 floor, purple): gx=24-33, gz=55-63, door='east'
+- **Jeweler** (1 floor, red): gx=24-32, gz=65-71, door='east'
+- **Apothecary** (1 floor, green): gx=34-42, gz=65-71, door='east'
+- **Familiar Supplies** (1 floor, blue): gx=66-75, gz=55-63, door='west'
+- **Restaurant** (1 floor, amber): gx=60-67, gz=65-71, door='west'
+- **Tea House** (1 floor, amber): gx=68-75, gz=65-71, door='west'
+- **Market stalls:** (44,43), (56,43), (44,57), (56,57)
+- **Brazier:** gx=50, gz=55 (south of fountain, sets state.flame + state.brazierLight)
+- **Farmland:** NW (gx=2-20, gz=2-25) and NE (gx=80-98, gz=2-25) — striped field texture
+- **Orchards:** SW (gx=3-19, gz=76-96) and SE (gx=81-97, gz=76-96) — organized apple trees
+- **West Wood:** scattered trees gx=3-9, gz=41-68
+- **South Pine Wood:** trees gx=5-31, gz=79-81
+- **Hollow Wood:** trees gx=82-91, gz=66-73
+
+### Zone exits (from onPlayerStep)
+- gz≤5 + gx=47-53 → Sygldry Academy (north)
+- gz≥95 + gx=47-53 → The Heir's School (south)
+- gx≤5 + gz=47-53 → Open countryside (west)
+- gx≥95 + gz=47-53 → Whitehaven (east)
 
 ### Player start
-gx=36, gz=42 — just outside house1's south door, facing toward market square (rotation.y=0 = faces +z = faces market).
+gx=34, gz=43 — just south of Dawn Hall door, facing the town square.
 
 ### NPCs (world.npcs array)
-- **Soren** (gx=58, gz=31) — Dawn Hall staff, placeholder dialogue
-- **Kim** (gx=60, gz=32) — Dawn Hall counter staff, placeholder dialogue
-- **vendor1/2/3** — market square vendors, placeholder dialogue
+- **Soren** (gx=33, gz=36) — Dawn Hall staff, placeholder dialogue
+- **Kim** (gx=36, gz=37) — Dawn Hall counter staff, placeholder dialogue
+- **vendor1** (gx=44, gz=44), **vendor2** (gx=50, gz=44), **vendor3** (gx=56, gz=44) — market square vendors
 
 Click NPC → dialogue printed to log. Dialogue cycles through lines array.
 
@@ -63,13 +77,13 @@ Click NPC → dialogue printed to log. Dialogue cycles through lines array.
 ### Building system (world._buildBuilding)
 Parameters: scene, name, gx, gz, w, d, floors, wallColor, roofColor, doorSide, doorWidth
 
-- Creates floor, 4 walls (with door gap on specified side), flat roof
+- Creates floor, 4 walls (with door gap on specified side), pitched gabled roof, timber framing, windows
 - Marks perimeter tiles as obstacles in state.obstacles (Set of "gx,gz" strings)
 - Door tiles left walkable
-- Stores in world.buildings: { name, gxMin, gxMax, gzMin, gzMax, roofMesh }
+- Stores in world.buildings: { name, gxMin, gxMax, gzMin, gzMax, roofMeshes[] }
 
 ### Roof transparency
-`world.checkRoofTransparency()` called via `world.onPlayerStep()` each tick. If player is strictly inside a building's grid bounds, its roofMesh.isVisible = false.
+`world.checkRoofTransparency()` called via `world.onPlayerStep()` each tick. If player is strictly inside a building's grid bounds, all meshes in `roofMeshes[]` are hidden (includes pitched roof, ridge, chimney).
 
 ### Zone transition
 At gz ≤ 5 on the north road → logs message, placeholder for Academy zone. Academy is a SEPARATE zone (not yet built).

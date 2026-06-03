@@ -103,7 +103,7 @@ const game = {
     const s = SYGLS[state.selectedSygl];
     state.player = {
       sygl: state.selectedSygl,
-      gx: 36, gz: 42,
+      gx: 34, gz: 43,
       hp: s.stats.hp, hpMax: s.stats.hp,
       mp: s.stats.mp, mpMax: s.stats.mp,
       atk: s.stats.atk, def: s.stats.def,
