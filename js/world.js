@@ -1368,47 +1368,89 @@ const world = {
   _buildNPCMeshes(scene, id, parent, robeColor, accentColor) {
     const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
     robeMat.diffuseColor = robeColor;
+    robeMat.specularColor = new BABYLON.Color3(0, 0, 0);
     const headMat = new BABYLON.StandardMaterial(`npcHeadMat_${id}`, scene);
     headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
-    const accentMat = new BABYLON.StandardMaterial(`npcAccentMat_${id}`, scene);
-    accentMat.diffuseColor = accentColor;
-    accentMat.emissiveColor = accentColor.scale(0.3);
-
-    const body = BABYLON.MeshBuilder.CreateCylinder(`npcBody_${id}`, { height: 0.65, diameterTop: 0.40, diameterBottom: 0.34, tessellation: 8 }, scene);
-    body.material = robeMat; body.position.y = 1.00; body.parent = parent;
-    body.metadata = { npcId: id };
-
+    headMat.specularColor = new BABYLON.Color3(0, 0, 0);
     const legMat = new BABYLON.StandardMaterial(`npcLegMat_${id}`, scene);
-    legMat.diffuseColor = robeColor.scale(0.75);
-    const legL = BABYLON.MeshBuilder.CreateCylinder(`npcLegL_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legL.material = legMat; legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = parent;
-    legL.metadata = { npcId: id };
-    const legR = BABYLON.MeshBuilder.CreateCylinder(`npcLegR_${id}`, { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legR.material = legMat; legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = parent;
-    legR.metadata = { npcId: id };
-
+    legMat.diffuseColor = robeColor.scale(0.72);
+    legMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    const bootMat = new BABYLON.StandardMaterial(`npcBootMat_${id}`, scene);
+    bootMat.diffuseColor = new BABYLON.Color3(0.18, 0.13, 0.09);
+    bootMat.specularColor = new BABYLON.Color3(0, 0, 0);
     const armMat = new BABYLON.StandardMaterial(`npcArmMat_${id}`, scene);
     armMat.diffuseColor = robeColor.scale(0.85);
-    const armL = BABYLON.MeshBuilder.CreateCylinder(`npcArmL_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armL.material = armMat; armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armL.position = new BABYLON.Vector3(-0.27, 1.25, 0); armL.parent = parent;
-    armL.metadata = { npcId: id };
-    const armR = BABYLON.MeshBuilder.CreateCylinder(`npcArmR_${id}`, { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armR.material = armMat; armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armR.position = new BABYLON.Vector3(0.27, 1.25, 0); armR.parent = parent;
-    armR.metadata = { npcId: id };
+    armMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    const handMat = new BABYLON.StandardMaterial(`npcHandMat_${id}`, scene);
+    handMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    handMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    const shoulderMat = robeMat;
 
-    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.40, segments: 8 }, scene);
-    head.material = headMat; head.position.y = 1.52; head.parent = parent;
+    // Torso — wide box, OSRS stocky look
+    const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.46, height: 0.55, depth: 0.28 }, scene);
+    body.material = robeMat; body.position.y = 1.02; body.parent = parent;
+    body.metadata = { npcId: id };
+
+    // Shoulder nubs
+    const shL = BABYLON.MeshBuilder.CreateBox(`npcShL_${id}`, { width: 0.14, height: 0.14, depth: 0.20 }, scene);
+    shL.material = shoulderMat; shL.position = new BABYLON.Vector3(-0.30, 1.27, 0); shL.parent = parent;
+    shL.metadata = { npcId: id };
+    const shR = BABYLON.MeshBuilder.CreateBox(`npcShR_${id}`, { width: 0.14, height: 0.14, depth: 0.20 }, scene);
+    shR.material = shoulderMat; shR.position = new BABYLON.Vector3(0.30, 1.27, 0); shR.parent = parent;
+    shR.metadata = { npcId: id };
+
+    // Arms — pivot TransformNode at shoulder, box arm hangs down
+    const armLPivot = new BABYLON.TransformNode(`npcArmLPiv_${id}`, scene);
+    armLPivot.position = new BABYLON.Vector3(-0.30, 1.22, 0); armLPivot.parent = parent;
+    const armLMesh = BABYLON.MeshBuilder.CreateBox(`npcArmL_${id}`, { width: 0.16, height: 0.44, depth: 0.16 }, scene);
+    armLMesh.material = armMat; armLMesh.position.y = -0.22; armLMesh.parent = armLPivot;
+    armLMesh.metadata = { npcId: id };
+    const handL = BABYLON.MeshBuilder.CreateBox(`npcHandL_${id}`, { width: 0.14, height: 0.12, depth: 0.12 }, scene);
+    handL.material = handMat; handL.position.y = -0.28; handL.parent = armLMesh;
+    handL.metadata = { npcId: id };
+
+    const armRPivot = new BABYLON.TransformNode(`npcArmRPiv_${id}`, scene);
+    armRPivot.position = new BABYLON.Vector3(0.30, 1.22, 0); armRPivot.parent = parent;
+    const armRMesh = BABYLON.MeshBuilder.CreateBox(`npcArmR_${id}`, { width: 0.16, height: 0.44, depth: 0.16 }, scene);
+    armRMesh.material = armMat; armRMesh.position.y = -0.22; armRMesh.parent = armRPivot;
+    armRMesh.metadata = { npcId: id };
+    const handR = BABYLON.MeshBuilder.CreateBox(`npcHandR_${id}`, { width: 0.14, height: 0.12, depth: 0.12 }, scene);
+    handR.material = handMat; handR.position.y = -0.28; handR.parent = armRMesh;
+    handR.metadata = { npcId: id };
+
+    // Legs — pivot TransformNode at hip, box leg + boot
+    const legLPivot = new BABYLON.TransformNode(`npcLegLPiv_${id}`, scene);
+    legLPivot.position = new BABYLON.Vector3(-0.13, 0.74, 0); legLPivot.parent = parent;
+    const legLMesh = BABYLON.MeshBuilder.CreateBox(`npcLegL_${id}`, { width: 0.20, height: 0.46, depth: 0.20 }, scene);
+    legLMesh.material = legMat; legLMesh.position.y = -0.23; legLMesh.parent = legLPivot;
+    legLMesh.metadata = { npcId: id };
+    const bootL = BABYLON.MeshBuilder.CreateBox(`npcBootL_${id}`, { width: 0.22, height: 0.14, depth: 0.26 }, scene);
+    bootL.material = bootMat; bootL.position = new BABYLON.Vector3(0, -0.30, 0.03); bootL.parent = legLMesh;
+    bootL.metadata = { npcId: id };
+
+    const legRPivot = new BABYLON.TransformNode(`npcLegRPiv_${id}`, scene);
+    legRPivot.position = new BABYLON.Vector3(0.13, 0.74, 0); legRPivot.parent = parent;
+    const legRMesh = BABYLON.MeshBuilder.CreateBox(`npcLegR_${id}`, { width: 0.20, height: 0.46, depth: 0.20 }, scene);
+    legRMesh.material = legMat; legRMesh.position.y = -0.23; legRMesh.parent = legRPivot;
+    legRMesh.metadata = { npcId: id };
+    const bootR = BABYLON.MeshBuilder.CreateBox(`npcBootR_${id}`, { width: 0.22, height: 0.14, depth: 0.26 }, scene);
+    bootR.material = bootMat; bootR.position = new BABYLON.Vector3(0, -0.30, 0.03); bootR.parent = legRMesh;
+    bootR.metadata = { npcId: id };
+
+    // Head — square box, OSRS style
+    const head = BABYLON.MeshBuilder.CreateBox(`npcHead_${id}`, { width: 0.38, height: 0.38, depth: 0.32 }, scene);
+    head.material = headMat; head.position.y = 1.60; head.parent = parent;
     head.metadata = { npcId: id };
 
-    const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.12, segments: 6 }, scene);
-    orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = parent;
-    orb.metadata = { npcId: id };
+    // Small accent pip on chest (sygl mark)
+    const pipMat = new BABYLON.StandardMaterial(`npcPipMat_${id}`, scene);
+    pipMat.diffuseColor = accentColor; pipMat.emissiveColor = accentColor.scale(0.4);
+    const pip = BABYLON.MeshBuilder.CreateBox(`npcPip_${id}`, { width: 0.08, height: 0.08, depth: 0.05 }, scene);
+    pip.material = pipMat; pip.position = new BABYLON.Vector3(0, 1.08, 0.15); pip.parent = parent;
+    pip.metadata = { npcId: id };
 
-    return { armL, armR, legL, legR, body };
+    // Return pivot nodes as armL/armR/legL/legR so animation code works unchanged
+    return { armL: armLPivot, armR: armRPivot, legL: legLPivot, legR: legRPivot, body };
   },
 
   // Portrait renderer for the originator intro screen
@@ -1722,6 +1764,9 @@ const world = {
       ? new BABYLON.Color3(0.18, 0.22, 0.32)
       : new BABYLON.Color3(0.42, 0.32, 0.18);   // plain trousers: brown
 
+    const skinColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    const bootColor = new BABYLON.Color3(0.18, 0.13, 0.09);
+
     const bodyMat = new BABYLON.StandardMaterial('plrBodyMat', scene);
     bodyMat.diffuseColor = bodyColor;
     bodyMat.specularColor = new BABYLON.Color3(0, 0, 0);
@@ -1730,41 +1775,68 @@ const world = {
     legMat.diffuseColor = legColor;
     legMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
+    const bootMat = new BABYLON.StandardMaterial('plrBootMat', scene);
+    bootMat.diffuseColor = bootColor;
+    bootMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
     const armMat = new BABYLON.StandardMaterial('plrArmMat', scene);
-    armMat.diffuseColor = hasArmor ? bodyColor : new BABYLON.Color3(0.80, 0.65, 0.50); // skin if no armor
+    armMat.diffuseColor = hasArmor ? bodyColor : skinColor;
     armMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
     const headMat = new BABYLON.StandardMaterial('plrHeadMat', scene);
-    headMat.diffuseColor = new BABYLON.Color3(0.80, 0.65, 0.50);
+    headMat.diffuseColor = skinColor;
     headMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
-    // Torso — octagonal cylinder, broader at shoulders
-    const body = BABYLON.MeshBuilder.CreateCylinder('plrBody', { height: 0.65, diameterTop: 0.42, diameterBottom: 0.36, tessellation: 8 }, scene);
-    body.material = bodyMat; body.position.y = 1.00; body.parent = root;
+    const handMat = new BABYLON.StandardMaterial('plrHandMat', scene);
+    handMat.diffuseColor = skinColor;
+    handMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
-    // Legs — slim tapered cylinders, pivot at hip (top of cylinder)
-    const legL = BABYLON.MeshBuilder.CreateCylinder('plrLegL', { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legL.material = legMat;
-    legL.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legL.position = new BABYLON.Vector3(-0.11, 0.68, 0); legL.parent = root;
-    const legR = BABYLON.MeshBuilder.CreateCylinder('plrLegR', { height: 0.60, diameterTop: 0.20, diameterBottom: 0.13, tessellation: 6 }, scene);
-    legR.material = legMat;
-    legR.setPivotPoint(new BABYLON.Vector3(0, 0.30, 0));
-    legR.position = new BABYLON.Vector3(0.11, 0.68, 0); legR.parent = root;
+    // Torso — wide box, OSRS stocky
+    const body = BABYLON.MeshBuilder.CreateBox('plrBody', { width: 0.48, height: 0.56, depth: 0.28 }, scene);
+    body.material = bodyMat; body.position.y = 1.02; body.parent = root;
 
-    // Arms — slim cylinders, pivot at shoulder (top)
-    const armL = BABYLON.MeshBuilder.CreateCylinder('plrArmL', { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armL.material = armMat;
-    armL.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armL.position = new BABYLON.Vector3(-0.28, 1.25, 0); armL.parent = root;
-    const armR = BABYLON.MeshBuilder.CreateCylinder('plrArmR', { height: 0.50, diameterTop: 0.13, diameterBottom: 0.09, tessellation: 6 }, scene);
-    armR.material = armMat;
-    armR.setPivotPoint(new BABYLON.Vector3(0, 0.25, 0));
-    armR.position = new BABYLON.Vector3(0.28, 1.25, 0); armR.parent = root;
+    // Shoulder nubs
+    const shLM = BABYLON.MeshBuilder.CreateBox('plrShL', { width: 0.14, height: 0.14, depth: 0.22 }, scene);
+    shLM.material = bodyMat; shLM.position = new BABYLON.Vector3(-0.31, 1.28, 0); shLM.parent = root;
+    const shRM = BABYLON.MeshBuilder.CreateBox('plrShR', { width: 0.14, height: 0.14, depth: 0.22 }, scene);
+    shRM.material = bodyMat; shRM.position = new BABYLON.Vector3(0.31, 1.28, 0); shRM.parent = root;
 
-    // Head
-    const head = BABYLON.MeshBuilder.CreateSphere('plrHead', { diameter: 0.44, segments: 8 }, scene);
-    head.material = headMat; head.position.y = 1.52; head.parent = root;
+    // Arms — pivot TransformNode at shoulder
+    const armLPivot = new BABYLON.TransformNode('plrArmLPiv', scene);
+    armLPivot.position = new BABYLON.Vector3(-0.31, 1.23, 0); armLPivot.parent = root;
+    const armLMesh = BABYLON.MeshBuilder.CreateBox('plrArmL', { width: 0.17, height: 0.46, depth: 0.17 }, scene);
+    armLMesh.material = armMat; armLMesh.position.y = -0.23; armLMesh.parent = armLPivot;
+    const handLM = BABYLON.MeshBuilder.CreateBox('plrHandL', { width: 0.15, height: 0.12, depth: 0.13 }, scene);
+    handLM.material = handMat; handLM.position.y = -0.29; handLM.parent = armLMesh;
+
+    const armRPivot = new BABYLON.TransformNode('plrArmRPiv', scene);
+    armRPivot.position = new BABYLON.Vector3(0.31, 1.23, 0); armRPivot.parent = root;
+    const armRMesh = BABYLON.MeshBuilder.CreateBox('plrArmR', { width: 0.17, height: 0.46, depth: 0.17 }, scene);
+    armRMesh.material = armMat; armRMesh.position.y = -0.23; armRMesh.parent = armRPivot;
+    const handRM = BABYLON.MeshBuilder.CreateBox('plrHandR', { width: 0.15, height: 0.12, depth: 0.13 }, scene);
+    handRM.material = handMat; handRM.position.y = -0.29; handRM.parent = armRMesh;
+
+    // Legs — pivot TransformNode at hip, box leg + boot
+    const legLPivot = new BABYLON.TransformNode('plrLegLPiv', scene);
+    legLPivot.position = new BABYLON.Vector3(-0.13, 0.74, 0); legLPivot.parent = root;
+    const legLMesh = BABYLON.MeshBuilder.CreateBox('plrLegL', { width: 0.21, height: 0.48, depth: 0.21 }, scene);
+    legLMesh.material = legMat; legLMesh.position.y = -0.24; legLMesh.parent = legLPivot;
+    const bootLM = BABYLON.MeshBuilder.CreateBox('plrBootL', { width: 0.23, height: 0.14, depth: 0.28 }, scene);
+    bootLM.material = bootMat; bootLM.position = new BABYLON.Vector3(0, -0.31, 0.03); bootLM.parent = legLMesh;
+
+    const legRPivot = new BABYLON.TransformNode('plrLegRPiv', scene);
+    legRPivot.position = new BABYLON.Vector3(0.13, 0.74, 0); legRPivot.parent = root;
+    const legRMesh = BABYLON.MeshBuilder.CreateBox('plrLegR', { width: 0.21, height: 0.48, depth: 0.21 }, scene);
+    legRMesh.material = legMat; legRMesh.position.y = -0.24; legRMesh.parent = legRPivot;
+    const bootRM = BABYLON.MeshBuilder.CreateBox('plrBootR', { width: 0.23, height: 0.14, depth: 0.28 }, scene);
+    bootRM.material = bootMat; bootRM.position = new BABYLON.Vector3(0, -0.31, 0.03); bootRM.parent = legRMesh;
+
+    // Use pivot nodes as the animatable limb references
+    const armL = armLPivot, armR = armRPivot, legL = legLPivot, legR = legRPivot;
+
+    // Head — square box, OSRS style
+    const head = BABYLON.MeshBuilder.CreateBox('plrHead', { width: 0.40, height: 0.40, depth: 0.34 }, scene);
+    head.material = headMat; head.position.y = 1.60; head.parent = root;
 
     // Subtle ambient sygl glow (no visible orb, just coloured light)
     const glowLight = new BABYLON.PointLight('plrGlL', new BABYLON.Vector3(0, 1.0, 0), scene);
