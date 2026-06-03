@@ -151,10 +151,50 @@ function loop(now) {
     cur.z += (tgt.z - cur.z) * 0.25;
     // Face direction of movement
     const dx = tgt.x - cur.x, dz = tgt.z - cur.z;
-    if (Math.abs(dx) + Math.abs(dz) > 0.05) {
+    const moving = Math.abs(dx) + Math.abs(dz) > 0.05;
+    if (moving) {
       state.playerMesh.rotation.y = Math.atan2(dx, dz);
     }
+    // Walk animation
+    if (state.playerLimbs) {
+      const speed = state.running ? 0.20 : 0.13;
+      if (moving) {
+        state.playerWalkPhase = (state.playerWalkPhase || 0) + speed;
+      } else {
+        state.playerWalkPhase = (state.playerWalkPhase || 0) * 0.75;
+      }
+      const p = state.playerWalkPhase;
+      const swing = Math.sin(p) * 0.55;
+      const { armL, armR, legL, legR, body } = state.playerLimbs;
+      if (armL) armL.rotation.x = swing;
+      if (armR) armR.rotation.x = -swing;
+      if (legL) { legL.rotation.x = -swing; legL.position.y = 0.40 - Math.abs(Math.sin(p)) * 0.04; }
+      if (legR) { legR.rotation.x = swing;  legR.position.y = 0.40 - Math.abs(Math.sin(p + Math.PI)) * 0.04; }
+      if (body) body.position.y = 0.95 + Math.abs(Math.sin(p * 2)) * 0.025;
+    }
   }
+
+  // NPC walk animations
+  if (world.npcs) {
+    for (const npc of world.npcs) {
+      if (!npc.limbs || !npc.mesh) continue;
+      const npcMoving = npc.path && npc.path.length > 0 && npc.pathIdx < npc.path.length;
+      if (npcMoving) {
+        npc.walkPhase = (npc.walkPhase || 0) + 0.13;
+      } else {
+        npc.walkPhase = (npc.walkPhase || 0) * 0.75;
+      }
+      const p = npc.walkPhase;
+      const swing = Math.sin(p) * 0.50;
+      const { armL, armR, legL, legR, body } = npc.limbs;
+      if (armL) armL.rotation.x = swing;
+      if (armR) armR.rotation.x = -swing;
+      if (legL) { legL.rotation.x = -swing; legL.position.y = 0.40 - Math.abs(Math.sin(p)) * 0.04; }
+      if (legR) { legR.rotation.x = swing;  legR.position.y = 0.40 - Math.abs(Math.sin(p + Math.PI)) * 0.04; }
+      if (body) body.position.y = 0.95 + Math.abs(Math.sin(p * 2)) * 0.02;
+    }
+  }
+
   hud.updateBubblePos && hud.updateBubblePos();
   requestAnimationFrame(loop);
 }

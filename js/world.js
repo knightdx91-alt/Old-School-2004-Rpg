@@ -1424,6 +1424,11 @@ const world = {
     const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.12, segments: 6 }, scene);
     orb.material = accentMat; orb.position = new BABYLON.Vector3(0.34, 1.10, 0); orb.parent = root;
     orb.metadata = { npcId: id };
+
+    // Store limb refs for walk animation
+    const npcEntry = world.npcs[world.npcs.length - 1];
+    npcEntry.limbs = { armL, armR, legL, legR, body };
+    npcEntry.walkPhase = 0;
   },
 
   _generateNPCs(scene) {
@@ -1719,6 +1724,8 @@ const world = {
 
     state.playerWeaponNode = null;
     state.playerMesh = root;
+    state.playerLimbs = { armL, armR, legL, legR, body };
+    state.playerWalkPhase = 0;
     state.playerTargetPos = new BABYLON.Vector3(startWP.x, 0, startWP.z);
     // Only show weapon if one is actually equipped
     if (eq.weapon) {
