@@ -4,6 +4,46 @@
 let tickAccum = 0;
 let lastTime = 0;
 
+function tickNPCs() {
+  for (const npc of world.npcs) {
+    if (!npc.wander) continue;
+
+    // Wait at destination before picking next target
+    if (npc.waitTimer > 0) { npc.waitTimer--; continue; }
+
+    // Step along current path
+    if (npc.path.length > 0 && npc.pathIdx < npc.path.length) {
+      npc.moveTimer--;
+      if (npc.moveTimer <= 0) {
+        const [nx, nz] = npc.path[npc.pathIdx++];
+        const dx = nx - npc.gx, dz = nz - npc.gz;
+        if (npc.mesh && (dx || dz)) npc.mesh.rotation.y = Math.atan2(dx, dz);
+        state.obstacles.delete(`${npc.gx},${npc.gz}`);
+        npc.gx = nx; npc.gz = nz;
+        state.obstacles.add(`${npc.gx},${npc.gz}`);
+        const wp = world.gridToWorld(npc.gx, npc.gz);
+        if (npc.mesh) { npc.mesh.position.x = wp.x; npc.mesh.position.z = wp.z; }
+        npc.moveTimer = 14;
+      }
+    } else {
+      // Path done — wait, then pick a new nearby destination
+      npc.path = []; npc.pathIdx = 0;
+      npc.waitTimer = 50 + Math.floor(Math.random() * 80);
+      const range = 12;
+      for (let i = 0; i < 20; i++) {
+        const tx = npc.homeGx + Math.round((Math.random() - 0.5) * range * 2);
+        const tz = npc.homeGz + Math.round((Math.random() - 0.5) * range * 2);
+        if (!world.walkable(tx, tz)) continue;
+        const p = world.findPath(npc.gx, npc.gz, tx, tz);
+        if (p && p.length > 0 && p.length <= 16) {
+          npc.path = p; npc.pathIdx = 0; npc.moveTimer = 14;
+          break;
+        }
+      }
+    }
+  }
+}
+
 function gameTick() {
   state.worldClock++;
   updateDayNight();
@@ -50,6 +90,8 @@ function gameTick() {
     }
   }
 
+  // NPC wander
+  tickNPCs();
   // onPlayerStep hook
   world.onPlayerStep && world.onPlayerStep();
   // Combat

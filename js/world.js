@@ -625,7 +625,7 @@ const world = {
 
     // ── NPCS ───────────────────────────────────────────────────
     world._spawnNPC(scene, {
-      id: 'soren', name: 'Soren', gx: 33, gz: 36,
+      id: 'soren', name: 'Soren', gx: 33, gz: 36, wander: false,
       dialogue: [
         'Welcome to the Dawn Hall. Premier guild of New Spring.',
         'We post quests, take contracts, and train adventurers.',
@@ -635,7 +635,7 @@ const world = {
       accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
     });
     world._spawnNPC(scene, {
-      id: 'kim', name: 'Kim', gx: 36, gz: 37,
+      id: 'kim', name: 'Kim', gx: 36, gz: 37, wander: false,
       dialogue: [
         'No quests posted yet — check back soon.',
         'Guild membership is open to any willing adventurer.'
@@ -644,23 +644,25 @@ const world = {
       accentColor: new BABYLON.Color3(0.80, 0.55, 0.15)
     });
     world._spawnNPC(scene, {
-      id: 'vendor1', name: 'Market Vendor', gx: 44, gz: 44,
+      id: 'vendor1', name: 'Market Vendor', gx: 44, gz: 44, wander: false,
       dialogue: ['Fresh goods! Wares coming soon.'],
       robeColor: new BABYLON.Color3(0.40, 0.26, 0.14),
       accentColor: new BABYLON.Color3(0.60, 0.42, 0.20)
     });
     world._spawnNPC(scene, {
-      id: 'vendor2', name: 'Reagent Seller', gx: 50, gz: 44,
+      id: 'vendor2', name: 'Reagent Seller', gx: 50, gz: 44, wander: false,
       dialogue: ['Finest magyk reagents in the region. Stock coming soon.'],
       robeColor: new BABYLON.Color3(0.18, 0.10, 0.28),
       accentColor: new BABYLON.Color3(0.55, 0.30, 0.70)
     });
     world._spawnNPC(scene, {
-      id: 'vendor3', name: 'Food Merchant', gx: 56, gz: 44,
+      id: 'vendor3', name: 'Food Merchant', gx: 56, gz: 44, wander: false,
       dialogue: ['Fresh bread and provisions. Come back when stock arrives.'],
       robeColor: new BABYLON.Color3(0.55, 0.46, 0.30),
       accentColor: new BABYLON.Color3(0.70, 0.60, 0.35)
     });
+
+    world._generateNPCs(scene);
   },
 
   _buildBuilding(scene, name, gx, gz, w, d, floors, wallColor, roofColor, doorSide, doorWidth, options = {}) {
@@ -1064,13 +1066,19 @@ const world = {
     });
   },
 
-  _spawnNPC(scene, { id, name, gx, gz, dialogue, robeColor, accentColor }) {
+  _spawnNPC(scene, { id, name, gx, gz, dialogue, robeColor, accentColor, wander = false, scale = 1 }) {
     const wp = world.gridToWorld(gx, gz);
     state.obstacles.add(`${gx},${gz}`);
 
     const root = new BABYLON.TransformNode(`npc_${id}`, scene);
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
-    world.npcs.push({ id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0 });
+    world.npcs.push({
+      id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0,
+      wander, homeGx: gx, homeGz: gz,
+      path: [], pathIdx: 0,
+      moveTimer: 20 + Math.floor(Math.random() * 40),
+      waitTimer: Math.floor(Math.random() * 60)
+    });
 
     const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
     robeMat.diffuseColor = robeColor;
@@ -1079,6 +1087,8 @@ const world = {
     const accentMat = new BABYLON.StandardMaterial(`npcAccentMat_${id}`, scene);
     accentMat.diffuseColor = accentColor;
     accentMat.emissiveColor = accentColor.scale(0.3);
+
+    root.scaling = new BABYLON.Vector3(scale, scale, scale);
 
     const body = BABYLON.MeshBuilder.CreateBox(`npcBody_${id}`, { width: 0.52, height: 1.1, depth: 0.36 }, scene);
     body.material = robeMat; body.position.y = 0.75; body.parent = root;
@@ -1095,6 +1105,124 @@ const world = {
     const orb = BABYLON.MeshBuilder.CreateSphere(`npcOrb_${id}`, { diameter: 0.14, segments: 6 }, scene);
     orb.material = accentMat; orb.position = new BABYLON.Vector3(0.32, 1.15, 0); orb.parent = root;
     orb.metadata = { npcId: id };
+  },
+
+  _generateNPCs(scene) {
+    const SYLLABLES = ['Ael','Bren','Cal','Dar','El','Fen','Gar','Hal','Ire','Kel','Lyr','Myr','Ner','Ora','Pell','Ren','Syl','Tel','Uri','Vel','Wyr','Yar','Zel','Ash','Bly','Cor','Dun','Eld','Fay','Gwyn'];
+    const ENDINGS   = ['a','an','en','is','on','ar','el','yn','eth','wyn','ia','us','ix','or','in'];
+    const rng = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const makeName = () => {
+      const s1 = rng(SYLLABLES), s2 = rng(ENDINGS);
+      return s1 + s2;
+    };
+
+    const ARCHETYPES = {
+      townsperson: {
+        robes:  [new BABYLON.Color3(0.45,0.32,0.18), new BABYLON.Color3(0.38,0.28,0.14), new BABYLON.Color3(0.52,0.40,0.22), new BABYLON.Color3(0.30,0.22,0.10)],
+        accent: [new BABYLON.Color3(0.70,0.55,0.30), new BABYLON.Color3(0.60,0.48,0.25)],
+        lines: [
+          "Good day to you.",
+          "New Spring is peaceful today.",
+          "Mind the cobblestones — they're slippery after rain.",
+          "The Dawn Hall is always looking for new recruits.",
+          "I've lived here since before the east gate was built.",
+          "Strange weather lately. The sygl-folk say it means something.",
+          "Have you seen the market? Best in the region.",
+          "My grandmother came to New Spring from the south road.",
+          "Keep your coin purse close in the market square.",
+          "The Academy folk came through town last week. Odd bunch.",
+        ]
+      },
+      merchant: {
+        robes:  [new BABYLON.Color3(0.55,0.38,0.18), new BABYLON.Color3(0.48,0.30,0.12), new BABYLON.Color3(0.62,0.44,0.20)],
+        accent: [new BABYLON.Color3(0.85,0.65,0.20), new BABYLON.Color3(0.75,0.55,0.15)],
+        lines: [
+          "Finest wares in all of New Spring, I assure you.",
+          "Business is slow today. Perhaps the weather.",
+          "I trade with travellers from as far as Whitehaven.",
+          "The new reagent shipment arrives tomorrow.",
+          "Buy something or move on — I haven't all day.",
+          "Quality goods, reasonable prices. What more could you want?",
+          "The market has been here longer than the walls.",
+          "Trade is the lifeblood of any town.",
+        ]
+      },
+      guard: {
+        robes:  [new BABYLON.Color3(0.25,0.28,0.38), new BABYLON.Color3(0.20,0.22,0.32)],
+        accent: [new BABYLON.Color3(0.55,0.65,0.80), new BABYLON.Color3(0.60,0.70,0.85)],
+        lines: [
+          "Move along. Nothing to see here.",
+          "Keep the peace and we'll have no trouble.",
+          "The east gate closes at sundown.",
+          "I've walked this patrol for six years. Every stone is familiar.",
+          "Report any trouble to the Dawn Hall.",
+          "Stay on the roads after dark.",
+          "New Spring has been quiet. Let's keep it that way.",
+          "The wall patrols started after the last bandit raid.",
+        ]
+      },
+      scholar: {
+        robes:  [new BABYLON.Color3(0.18,0.14,0.38), new BABYLON.Color3(0.22,0.16,0.44), new BABYLON.Color3(0.14,0.10,0.30)],
+        accent: [new BABYLON.Color3(0.60,0.40,0.80), new BABYLON.Color3(0.50,0.30,0.70)],
+        lines: [
+          "The five sygls each carry their own resonance. Fascinating.",
+          "I'm researching the old texts from the Academy archives.",
+          "Sygldry is more complex than most people realise.",
+          "Have you chosen your sygl? The choice shapes everything.",
+          "The Originators were said to walk these very roads.",
+          "Magic is not power — it is understanding.",
+          "I came from the Academy to study the town's ley lines.",
+          "Every sygl-bearer changes the world in some small way.",
+        ]
+      },
+      elder: {
+        robes:  [new BABYLON.Color3(0.35,0.28,0.20), new BABYLON.Color3(0.30,0.24,0.16)],
+        accent: [new BABYLON.Color3(0.65,0.55,0.40), new BABYLON.Color3(0.70,0.60,0.45)],
+        lines: [
+          "I remember when this town was half its size.",
+          "The young never slow down long enough to listen.",
+          "New Spring has seen harder times than these.",
+          "The north road used to be a dirt track. Look at it now.",
+          "Sit a while. There's no hurry in this life.",
+          "My bones say rain is coming. My bones are never wrong.",
+          "The Dawn Hall used to be a grain storehouse, you know.",
+          "Every stone in this town has a story.",
+        ]
+      },
+    };
+
+    const archetypeKeys = Object.keys(ARCHETYPES);
+
+    // Scatter 18 wandering NPCs on walkable tiles inside the walls
+    const WX1 = 23, WX2 = 77, WZ1 = 28, WZ2 = 72;
+    let placed = 0;
+    let attempts = 0;
+    while (placed < 18 && attempts < 500) {
+      attempts++;
+      const gx = WX1 + Math.floor(Math.random() * (WX2 - WX1));
+      const gz = WZ1 + Math.floor(Math.random() * (WZ2 - WZ1));
+      if (!world.walkable(gx, gz)) continue;
+
+      const archKey = rng(archetypeKeys);
+      const arch = ARCHETYPES[archKey];
+      const name = makeName();
+      const robeColor = rng(arch.robes);
+      const accentColor = rng(arch.accent);
+
+      // Pick 3 random unique dialogue lines from archetype
+      const shuffled = [...arch.lines].sort(() => Math.random() - 0.5);
+      const dialogue = shuffled.slice(0, 3);
+
+      // Slight body scale variation per NPC
+      const scale = 0.88 + Math.random() * 0.26;
+
+      world._spawnNPC(scene, {
+        id: `gen_${placed}`, name, gx, gz,
+        dialogue, robeColor, accentColor,
+        wander: true, scale
+      });
+      placed++;
+    }
   },
 
   checkRoofTransparency() {
