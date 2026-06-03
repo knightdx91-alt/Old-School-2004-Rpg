@@ -251,12 +251,16 @@ const world = {
     // ── MATERIALS ──────────────────────────────────────────────
     const RS_TEX = 'assets/rs225/textures/';
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
-    cobbleMat.diffuseColor = new BABYLON.Color3(0.55, 0.52, 0.46);
     cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
+    const cobTex = new BABYLON.Texture(RS_TEX + 'tex_46.png', scene);
+    cobTex.uScale = 10; cobTex.vScale = 10;
+    cobbleMat.diffuseTexture = cobTex;
 
     const cobbleAltMat = new BABYLON.StandardMaterial('cobbleAltMat', scene);
-    cobbleAltMat.diffuseColor = new BABYLON.Color3(0.48, 0.45, 0.40);
     cobbleAltMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
+    const cobAltTex = new BABYLON.Texture(RS_TEX + 'tex_46.png', scene);
+    cobAltTex.uScale = 10; cobAltTex.vScale = 10;
+    cobbleAltMat.diffuseTexture = cobAltTex;
 
     const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
     dirtMat.diffuseColor = new BABYLON.Color3(0.50, 0.36, 0.18);
