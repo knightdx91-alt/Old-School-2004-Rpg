@@ -198,39 +198,8 @@ const world = {
     const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
     groundMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
 
-    // Rich procedural grass: base colour + darker/lighter patches + blade strokes
-    const grassTex = new BABYLON.DynamicTexture('grassTex', { width: 512, height: 512 }, scene);
-    const gc = grassTex.getContext();
-
-    // Base dark green
-    gc.fillStyle = '#2e4412'; gc.fillRect(0, 0, 512, 512);
-
-    // Broad colour patches for variety
-    const patches = [
-      ['#3a5518', 80], ['#263a0e', 60], ['#425e1a', 70],
-      ['#304810', 50], ['#4a6820', 45], ['#1e300a', 55],
-    ];
-    for (const [col, count] of patches) {
-      gc.fillStyle = col;
-      for (let i = 0; i < count; i++) {
-        const px = (Math.sin(i * 73.1 + patches.indexOf([col, count]) * 200) * 0.5 + 0.5) * 512;
-        const pz = (Math.cos(i * 51.7 + patches.indexOf([col, count]) * 300) * 0.5 + 0.5) * 512;
-        const r = 12 + (i % 5) * 6;
-        gc.beginPath(); gc.arc(px, pz, r, 0, Math.PI * 2); gc.fill();
-      }
-    }
-
-    // Blade strokes
-    for (let i = 0; i < 600; i++) {
-      const lum = 18 + Math.floor((Math.sin(i * 37.3) * 0.5 + 0.5) * 16);
-      gc.fillStyle = `hsl(90,52%,${lum}%)`;
-      const tx = (Math.sin(i * 31.7) * 0.5 + 0.5) * 512;
-      const tz = (Math.cos(i * 17.3) * 0.5 + 0.5) * 512;
-      gc.fillRect(tx, tz, 1 + (i % 2), 5 + (i % 5));
-    }
-
-    grassTex.update();
-    grassTex.uScale = 30; grassTex.vScale = 30;
+    const grassTex = new BABYLON.Texture('assets/rs225/textures/tex_10.png', scene);
+    grassTex.uScale = 40; grassTex.vScale = 40;
     groundMat.diffuseTexture = grassTex;
 
     const ground = BABYLON.MeshBuilder.CreateGround('ground', {
@@ -263,8 +232,10 @@ const world = {
     cobbleAltMat.diffuseTexture = cobAltTex;
 
     const dirtMat = new BABYLON.StandardMaterial('dirtMat', scene);
-    dirtMat.diffuseColor = new BABYLON.Color3(0.50, 0.36, 0.18);
     dirtMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    const dirtTex = new BABYLON.Texture(RS_TEX + 'tex_32.png', scene);
+    dirtTex.uScale = 8; dirtTex.vScale = 8;
+    dirtMat.diffuseTexture = dirtTex;
 
     const waterMat = new BABYLON.StandardMaterial('waterMat', scene);
     waterMat.diffuseColor = new BABYLON.Color3(0.22, 0.48, 0.72);
@@ -273,10 +244,9 @@ const world = {
 
     const wallStoneMat = new BABYLON.StandardMaterial('wallStoneMat', scene);
     wallStoneMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
-    const wallStoneTex = new BABYLON.Texture(RS_TEX + 'tex_03.png', scene);
+    const wallStoneTex = new BABYLON.Texture(RS_TEX + 'tex_11.png', scene);
     wallStoneTex.uScale = 4; wallStoneTex.vScale = 4;
     wallStoneMat.diffuseTexture = wallStoneTex;
-    wallStoneMat.diffuseColor = new BABYLON.Color3(0.45, 0.40, 0.30);
 
     const treeMat = new BABYLON.StandardMaterial('treeMat', scene);
     treeMat.diffuseColor = new BABYLON.Color3(0.08, 0.18, 0.06);
@@ -855,7 +825,7 @@ const world = {
     wallMat.diffuseColor = wallColor;
 
     const roofMat = new BABYLON.StandardMaterial(`roofMat_${name}`, scene);
-    const roofTex = new BABYLON.Texture(RS_TEX_B + 'tex_23.png', scene);
+    const roofTex = new BABYLON.Texture(RS_TEX_B + 'tex_06.png', scene);
     roofTex.uScale = Math.max(2, Math.round(worldW / 2));
     roofTex.vScale = 2;
     roofMat.diffuseTexture = roofTex;
@@ -1054,7 +1024,7 @@ const world = {
 
   _addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH) {
     const timberMat = new BABYLON.StandardMaterial(`timberMat_${name}`, scene);
-    const plankTex = new BABYLON.Texture('assets/rs225/textures/tex_18.png', scene);
+    const plankTex = new BABYLON.Texture('assets/rs225/textures/tex_22.png', scene);
     plankTex.uScale = 1; plankTex.vScale = 4;
     timberMat.diffuseTexture = plankTex;
     timberMat.diffuseColor = new BABYLON.Color3(0.65, 0.45, 0.25);
