@@ -21,7 +21,7 @@
   function loadScriptsSequentially(scripts, done) {
     if (!scripts.length) { done && done(); return; }
     const s = document.createElement('script');
-    s.src = scripts[0] + '?v=4';
+    s.src = scripts[0] + '?v=5';
     s.onload = () => loadScriptsSequentially(scripts.slice(1), done);
     s.onerror = () => console.error('Failed to load ' + scripts[0]);
     document.head.appendChild(s);

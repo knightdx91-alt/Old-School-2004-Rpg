@@ -465,4 +465,6 @@ hud.updateBubblePos = function() {
   hud._bubble.style.top = projected.y + 'px';
 };
 
-document.addEventListener('DOMContentLoaded', () => setTimeout(() => hud.initLayout(), 0));
+// Scripts load dynamically after Babylon, so DOMContentLoaded has already fired.
+// Call initLayout directly — DOM elements are in the HTML from page load.
+setTimeout(() => hud.initLayout(), 0);
