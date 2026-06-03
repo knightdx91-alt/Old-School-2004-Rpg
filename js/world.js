@@ -587,19 +587,25 @@ const world = {
       world._buildBuilding(scene, def.name, def.gx, def.gz, def.w, def.d, def.floors, def.wC, def.rC, def.door, def.dw, { glbReplaced: true });
     });
 
-    // Load all buildings in parallel — each independently placed when ready
+    // Load each building via AssetContainer so the same GLB file can be instanced
+    // multiple times without mesh name conflicts
     buildingDefs.forEach(def => {
       const cx = (def.gx + def.w / 2) * TILE_SIZE;
       const cz = (def.gz + def.d / 2) * TILE_SIZE;
-      BABYLON.SceneLoader.ImportMeshAsync('', BMOD, def.file, scene).then(r => {
-        const root = r.meshes[0];
-        root.name = `bldg_${def.name}`;
-        root.position = new BABYLON.Vector3(cx, 0, cz);
-        root.scaling = new BABYLON.Vector3(def.scale, def.scale, def.scale);
-        root.rotation.y = def.ry;
-        const b = world.buildings.find(b => b.name === def.name);
-        if (b) b.glbRoot = root;
-      }).catch(e => console.warn('Building load failed:', def.file, e));
+      // Scale so the building fills its grid footprint (Kenney sample buildings are ~4 units wide at scale 1)
+      const targetW = def.w * TILE_SIZE;
+      const targetD = def.d * TILE_SIZE;
+      const sc = Math.min(targetW, targetD) / 4.0;
+      BABYLON.SceneLoader.LoadAssetContainerAsync(BMOD, def.file, scene)
+        .then(container => {
+          const inst = container.instantiateModelsToScene(n => `bldg_${def.name}_${n}`, false);
+          const root = inst.rootNodes[0];
+          root.position = new BABYLON.Vector3(cx, 0, cz);
+          root.scaling = new BABYLON.Vector3(sc, sc, sc);
+          root.rotation.y = def.ry;
+          const b = world.buildings.find(b => b.name === def.name);
+          if (b) b.glbRoot = root;
+        }).catch(e => console.warn('Building load failed:', def.file, e));
     });
 
     // Porch columns + signs for Dawn Hall and Inn
