@@ -103,7 +103,7 @@ const game = {
     const s = SYGLS[state.selectedSygl];
     state.player = {
       sygl: state.selectedSygl,
-      gx: 34, gz: 43,
+      gx: 48, gz: 52,
       hp: s.stats.hp, hpMax: s.stats.hp,
       mp: s.stats.mp, mpMax: s.stats.mp,
       atk: s.stats.atk, def: s.stats.def,
@@ -128,7 +128,7 @@ const game = {
     }
     hud.switchTab('stats');
     hud.render();
-    log('You step outside your door into the morning air of New Spring. The market square lies to the south.', 'system');
+    log('You stand beside the fountain in the town square of New Spring.', 'system');
     log('Tap ground to walk. Tap NPC or enemy to interact. Long-press for options.', 'system');
     requestAnimationFrame(loop);
     game.autoSave();

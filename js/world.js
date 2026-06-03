@@ -32,7 +32,7 @@ const world = {
     scene.fogDensity = 0.004;
     scene.fogColor = new BABYLON.Color3(0.08, 0.06, 0.05);
 
-    const startWP = world.gridToWorld(34, 43);
+    const startWP = world.gridToWorld(48, 52);
     const cam = new BABYLON.ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 2.6, 20, new BABYLON.Vector3(startWP.x, 0, startWP.z), scene);
     cam.lowerRadiusLimit = 8;
     cam.upperRadiusLimit = 45;
@@ -490,7 +490,15 @@ const world = {
     ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
 
     // ── MARKET STALLS ──────────────────────────────────────────
-    [[44,43],[56,43],[44,57],[56,57]].forEach(([gx, gz], i) => world._buildStall(scene, gx, gz, i));
+    [[44,43],[56,43],[44,57],[56,57]].forEach(([gx, gz], i) => {
+      world._buildStall(scene, gx, gz, i);
+      // Block the stall tile and the one behind it (stall faces inward)
+      state.obstacles.add(`${gx},${gz}`);
+      state.obstacles.add(`${gx},${gz - 1}`);
+      state.obstacles.add(`${gx},${gz + 1}`);
+      state.obstacles.add(`${gx - 1},${gz}`);
+      state.obstacles.add(`${gx + 1},${gz}`);
+    });
 
     // ── BRAZIER (south of fountain) ────────────────────────────
     const brazierMat = new BABYLON.StandardMaterial('brazMat', scene);
@@ -499,6 +507,7 @@ const world = {
     brazier.material = brazierMat;
     const brazWP = world.gridToWorld(50, 55);
     brazier.position = new BABYLON.Vector3(brazWP.x, 0.5, brazWP.z);
+    state.obstacles.add('50,55');
     const flameMat = new BABYLON.StandardMaterial('flameMat', scene);
     flameMat.emissiveColor = new BABYLON.Color3(1, 0.6, 0.2);
     flameMat.diffuseColor = new BABYLON.Color3(1, 0.5, 0.1);
