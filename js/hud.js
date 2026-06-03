@@ -140,6 +140,10 @@ function updateDayNight() {
   if (state.brazierLight) {
     state.brazierLight.intensity = (1 - dayFactor) * 1.0;
   }
+  if (state.torchLights) {
+    const tIntensity = (1 - dayFactor) * 0.6;
+    for (const tl of state.torchLights) tl.intensity = tIntensity;
+  }
   // Top-bar label
   let label;
   if (dayFactor > 0.7) label = 'Day';

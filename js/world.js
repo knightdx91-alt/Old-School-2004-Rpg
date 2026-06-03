@@ -159,8 +159,21 @@ const world = {
 
   _buildGround(scene) {
     const groundMat = new BABYLON.StandardMaterial('groundMat', scene);
-    groundMat.diffuseColor = new BABYLON.Color3(0.22, 0.28, 0.14);
-    groundMat.specularColor = new BABYLON.Color3(0.03, 0.03, 0.03);
+    groundMat.specularColor = new BABYLON.Color3(0.02, 0.02, 0.02);
+    const grassTex = new BABYLON.DynamicTexture('grassTex', { width: 256, height: 256 }, scene);
+    const gc = grassTex.getContext();
+    gc.fillStyle = '#3a4f18'; gc.fillRect(0, 0, 256, 256);
+    for (let i = 0; i < 120; i++) {
+      const hue = (Math.sin(i * 47.1) * 0.5 + 0.5);
+      const lum = 22 + Math.floor(hue * 10);
+      gc.fillStyle = `hsl(88,50%,${lum}%)`;
+      const tx = (Math.sin(i * 31.7) * 0.5 + 0.5) * 256;
+      const tz = (Math.cos(i * 17.3) * 0.5 + 0.5) * 256;
+      gc.fillRect(tx, tz, 2 + (i % 3), 7 + (i % 4));
+    }
+    grassTex.update();
+    grassTex.uScale = 25; grassTex.vScale = 25;
+    groundMat.diffuseTexture = grassTex;
     const ground = BABYLON.MeshBuilder.CreateGround('ground', {
       width: GRID_SIZE * TILE_SIZE,
       height: GRID_SIZE * TILE_SIZE,
@@ -176,8 +189,24 @@ const world = {
   _buildNewSpring(scene) {
     // Materials reused
     const cobbleMat = new BABYLON.StandardMaterial('cobbleMat', scene);
-    cobbleMat.diffuseColor = new BABYLON.Color3(0.36, 0.31, 0.24);
-    cobbleMat.specularColor = new BABYLON.Color3(0.05, 0.05, 0.05);
+    cobbleMat.specularColor = new BABYLON.Color3(0.04, 0.04, 0.04);
+    const cobTex = new BABYLON.DynamicTexture('cobTex', { width: 256, height: 256 }, scene);
+    const cc = cobTex.getContext();
+    cc.fillStyle = '#3a3228'; cc.fillRect(0, 0, 256, 256);
+    const sh = (r, c) => (Math.sin(r * 127.3 + c * 311.7) * 0.5 + 0.5);
+    const rows = 8, cols = 8, sw2 = 256 / cols, rh = 256 / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ofs = (r % 2) * (sw2 / 2);
+        const sx = (c * sw2 + ofs) % 256, sy = r * rh;
+        const lum = 30 + Math.floor(sh(r, c) * 12);
+        cc.fillStyle = `hsl(26,16%,${lum}%)`;
+        cc.fillRect(sx + 2, sy + 2, sw2 - 4, rh - 4);
+      }
+    }
+    cobTex.update();
+    cobTex.uScale = 8; cobTex.vScale = 8;
+    cobbleMat.diffuseTexture = cobTex;
 
     const treeMat = new BABYLON.StandardMaterial('treeMat', scene);
     treeMat.diffuseColor = new BABYLON.Color3(0.08, 0.18, 0.06);
@@ -263,14 +292,25 @@ const world = {
 
     // Road torches at gx=48 and gx=52, every 6 tiles gz=8..44
     for (let gz = 8; gz <= 44; gz += 6) {
-      [48, 52].forEach((gx, ti) => {
+      [48, 52].forEach((gx) => {
         const wp = world.gridToWorld(gx, gz);
         const post = BABYLON.MeshBuilder.CreateCylinder(`tpost_${gx}_${gz}`, { height: 2.0, diameter: 0.1 }, scene);
         post.material = torchMat;
         post.position = new BABYLON.Vector3(wp.x, 1.0, wp.z);
-        const tflame = BABYLON.MeshBuilder.CreateSphere(`tflame_${gx}_${gz}`, { diameter: 0.25 }, scene);
+        // Torch bracket
+        const bracket = BABYLON.MeshBuilder.CreateBox(`tbkt_${gx}_${gz}`, { width: 0.18, height: 0.08, depth: 0.18 }, scene);
+        bracket.material = torchMat;
+        bracket.position = new BABYLON.Vector3(wp.x, 2.05, wp.z);
+        const tflame = BABYLON.MeshBuilder.CreateSphere(`tflame_${gx}_${gz}`, { diameter: 0.22 }, scene);
         tflame.material = torchFlameMat;
-        tflame.position = new BABYLON.Vector3(wp.x, 2.2, wp.z);
+        tflame.position = new BABYLON.Vector3(wp.x, 2.25, wp.z);
+        // Point light per torch
+        const tl = new BABYLON.PointLight(`tl_${gx}_${gz}`, new BABYLON.Vector3(wp.x, 2.3, wp.z), scene);
+        tl.diffuse = new BABYLON.Color3(1, 0.55, 0.2);
+        tl.intensity = 0;
+        tl.range = 8;
+        state.torchLights = state.torchLights || [];
+        state.torchLights.push(tl);
       });
     }
 
@@ -401,7 +441,7 @@ const world = {
     });
   },
 
-  _buildBuilding(scene, name, gx, gz, w, d, floors, wallColor, roofColor, doorSide, doorWidth) {
+  _buildBuilding(scene, name, gx, gz, w, d, floors, wallColor, roofColor, doorSide, doorWidth, options = {}) {
     const wallT = 0.3; // wall thickness
     const floorH = 3.0; // height per floor
     const totalH = floors * floorH;
@@ -540,10 +580,10 @@ const world = {
       div.position = new BABYLON.Vector3(centerX, divY, centerZ);
     }
 
-    // Roof
-    const roofMesh = BABYLON.MeshBuilder.CreateBox(`roof_${name}`, { width: worldW + 0.4, height: 0.5, depth: worldD + 0.4 }, scene);
-    roofMesh.material = roofMat;
-    roofMesh.position = new BABYLON.Vector3(centerX, totalH + 0.25, centerZ);
+    // Pitched roof, timber framing, windows
+    const roofMeshes = world._addPitchedRoof(scene, name, centerX, centerZ, worldW, worldD, totalH, roofMat, options);
+    world._addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH);
+    world._addWindows(scene, name, worldW, worldD, floors, floorH, wallT, originX, originZ, centerX, centerZ, doorSide, doorWidth);
 
     // Mark wall perimeter as obstacles (except door tiles)
     // Determine door tile positions to skip
@@ -587,8 +627,167 @@ const world = {
       name,
       gxMin: gx, gxMax: gx + w - 1,
       gzMin: gz, gzMax: gz + d - 1,
-      roofMesh
+      roofMeshes
     });
+  },
+
+  _addPitchedRoof(scene, name, centerX, centerZ, worldW, worldD, totalH, roofMat, options = {}) {
+    const roofH = Math.max(1.4, worldW * 0.18);
+    const overhang = 0.5;
+    const meshes = [];
+
+    const profile = [
+      new BABYLON.Vector3(-(worldW / 2 + overhang), 0, 0),
+      new BABYLON.Vector3(0, roofH, 0),
+      new BABYLON.Vector3(worldW / 2 + overhang, 0, 0),
+    ];
+    const path = [
+      new BABYLON.Vector3(0, 0, 0),
+      new BABYLON.Vector3(0, 0, worldD + overhang * 2),
+    ];
+    const roofMesh = BABYLON.MeshBuilder.ExtrudeShape(`roof_${name}`, {
+      shape: profile, path, closeShape: true, cap: BABYLON.Mesh.CAP_ALL
+    }, scene);
+    roofMesh.material = roofMat;
+    roofMesh.position = new BABYLON.Vector3(centerX, totalH, centerZ - worldD / 2 - overhang);
+    meshes.push(roofMesh);
+
+    // Ridge cap
+    const ridgeMat = new BABYLON.StandardMaterial(`ridgeMat_${name}`, scene);
+    ridgeMat.diffuseColor = roofMat.diffuseColor.scale(0.65);
+    const ridge = BABYLON.MeshBuilder.CreateBox(`ridge_${name}`, {
+      width: 0.22, height: 0.2, depth: worldD + overhang * 2 + 0.3
+    }, scene);
+    ridge.material = ridgeMat;
+    ridge.position = new BABYLON.Vector3(centerX, totalH + roofH + 0.08, centerZ);
+    meshes.push(ridge);
+
+    // Chimney (skip on very large buildings unless forced)
+    if (options.chimney !== false) {
+      const chimMat = new BABYLON.StandardMaterial(`chimMat_${name}`, scene);
+      chimMat.diffuseColor = new BABYLON.Color3(0.30, 0.23, 0.16);
+      const chimH = roofH * 0.65 + 0.9;
+      const chim = BABYLON.MeshBuilder.CreateBox(`chimney_${name}`, {
+        width: 0.55, height: chimH, depth: 0.55
+      }, scene);
+      chim.material = chimMat;
+      chim.position = new BABYLON.Vector3(
+        centerX + worldW * 0.18,
+        totalH + roofH * 0.28 + chimH / 2 - 0.25,
+        centerZ - worldD * 0.12
+      );
+      meshes.push(chim);
+      const capMat = new BABYLON.StandardMaterial(`chimCapMat_${name}`, scene);
+      capMat.diffuseColor = new BABYLON.Color3(0.20, 0.15, 0.10);
+      const cap = BABYLON.MeshBuilder.CreateBox(`chimneyCap_${name}`, {
+        width: 0.72, height: 0.12, depth: 0.72
+      }, scene);
+      cap.material = capMat;
+      cap.position = new BABYLON.Vector3(
+        centerX + worldW * 0.18,
+        totalH + roofH * 0.28 + chimH - 0.19,
+        centerZ - worldD * 0.12
+      );
+      meshes.push(cap);
+    }
+    return meshes;
+  },
+
+  _addTimberFraming(scene, name, centerX, centerZ, originX, originZ, worldW, worldD, totalH, floors, floorH) {
+    const timberMat = new BABYLON.StandardMaterial(`timberMat_${name}`, scene);
+    timberMat.diffuseColor = new BABYLON.Color3(0.16, 0.10, 0.04);
+    timberMat.specularColor = new BABYLON.Color3(0, 0, 0);
+    const t = 0.11;
+
+    const beamYs = [0.08];
+    for (let f = 1; f <= floors; f++) beamYs.push(f * floorH);
+
+    beamYs.forEach((y, bi) => {
+      const bn = BABYLON.MeshBuilder.CreateBox(`tfrHN_${name}_${bi}`, { width: worldW + t, height: t, depth: t }, scene);
+      bn.material = timberMat; bn.position = new BABYLON.Vector3(centerX, y, originZ);
+      const bs = BABYLON.MeshBuilder.CreateBox(`tfrHS_${name}_${bi}`, { width: worldW + t, height: t, depth: t }, scene);
+      bs.material = timberMat; bs.position = new BABYLON.Vector3(centerX, y, originZ + worldD);
+      const bw = BABYLON.MeshBuilder.CreateBox(`tfrHW_${name}_${bi}`, { width: t, height: t, depth: worldD + t }, scene);
+      bw.material = timberMat; bw.position = new BABYLON.Vector3(originX, y, centerZ);
+      const be = BABYLON.MeshBuilder.CreateBox(`tfrHE_${name}_${bi}`, { width: t, height: t, depth: worldD + t }, scene);
+      be.material = timberMat; be.position = new BABYLON.Vector3(originX + worldW, y, centerZ);
+    });
+
+    [[originX, originZ], [originX + worldW, originZ],
+     [originX, originZ + worldD], [originX + worldW, originZ + worldD]].forEach(([x, z], ci) => {
+      const post = BABYLON.MeshBuilder.CreateBox(`tfrVC_${name}_${ci}`, { width: t, height: totalH, depth: t }, scene);
+      post.material = timberMat;
+      post.position = new BABYLON.Vector3(x, totalH / 2, z);
+    });
+
+    const sp = TILE_SIZE * 2;
+    const numNS = Math.floor(worldW / sp) - 1;
+    for (let pi = 0; pi < numNS; pi++) {
+      const px = originX + sp * (pi + 1);
+      const pN = BABYLON.MeshBuilder.CreateBox(`tfrVN_${name}_${pi}`, { width: t, height: totalH, depth: t }, scene);
+      pN.material = timberMat; pN.position = new BABYLON.Vector3(px, totalH / 2, originZ);
+      const pS = BABYLON.MeshBuilder.CreateBox(`tfrVS_${name}_${pi}`, { width: t, height: totalH, depth: t }, scene);
+      pS.material = timberMat; pS.position = new BABYLON.Vector3(px, totalH / 2, originZ + worldD);
+    }
+    const numEW = Math.floor(worldD / sp) - 1;
+    for (let pi = 0; pi < numEW; pi++) {
+      const pz = originZ + sp * (pi + 1);
+      const pW = BABYLON.MeshBuilder.CreateBox(`tfrVW_${name}_${pi}`, { width: t, height: totalH, depth: t }, scene);
+      pW.material = timberMat; pW.position = new BABYLON.Vector3(originX, totalH / 2, pz);
+      const pE = BABYLON.MeshBuilder.CreateBox(`tfrVE_${name}_${pi}`, { width: t, height: totalH, depth: t }, scene);
+      pE.material = timberMat; pE.position = new BABYLON.Vector3(originX + worldW, totalH / 2, pz);
+    }
+  },
+
+  _addWindows(scene, name, worldW, worldD, floors, floorH, wallT, originX, originZ, centerX, centerZ, doorSide, doorWidth) {
+    const winMat = new BABYLON.StandardMaterial(`winMat_${name}`, scene);
+    winMat.diffuseColor = new BABYLON.Color3(0.04, 0.06, 0.14);
+    winMat.emissiveColor = new BABYLON.Color3(0.02, 0.04, 0.10);
+    winMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    const frameMat = new BABYLON.StandardMaterial(`winFrMat_${name}`, scene);
+    frameMat.diffuseColor = new BABYLON.Color3(0.16, 0.10, 0.04);
+    frameMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    const wW = 0.55, wH = 0.72, fT = 0.09;
+    const doorWW = doorWidth * TILE_SIZE;
+
+    const addWin = (wname, x, y, z, isNS) => {
+      const pane = BABYLON.MeshBuilder.CreateBox(wname, {
+        width: isNS ? wW : (wallT * 0.8), height: wH, depth: isNS ? (wallT * 0.8) : wW
+      }, scene);
+      pane.material = winMat;
+      pane.position = new BABYLON.Vector3(x, y, z);
+      const frame = BABYLON.MeshBuilder.CreateBox(`${wname}Fr`, {
+        width: isNS ? (wW + fT * 2) : (wallT * 0.9), height: wH + fT * 2, depth: isNS ? (wallT * 0.9) : (wW + fT * 2)
+      }, scene);
+      frame.material = frameMat;
+      frame.position = new BABYLON.Vector3(x, y, z);
+    };
+
+    for (let f = 0; f < floors; f++) {
+      const winY = f * floorH + floorH * 0.55;
+      const isDoorFloor = (f === 0);
+      const numNS = Math.max(1, Math.floor(worldW / (TILE_SIZE * 2.5)));
+      const numEW = Math.max(1, Math.floor(worldD / (TILE_SIZE * 2.5)));
+
+      for (let wi = 0; wi < numNS; wi++) {
+        const tx = (wi + 1) / (numNS + 1);
+        const wx = originX + worldW * tx;
+        if (!(doorSide === 'north' && isDoorFloor && Math.abs(wx - centerX) < doorWW / 2 + 0.5))
+          addWin(`winN_${name}_${f}_${wi}`, wx, winY, originZ, true);
+        if (!(doorSide === 'south' && isDoorFloor && Math.abs(wx - centerX) < doorWW / 2 + 0.5))
+          addWin(`winS_${name}_${f}_${wi}`, wx, winY, originZ + worldD, true);
+      }
+      for (let wi = 0; wi < numEW; wi++) {
+        const tz = (wi + 1) / (numEW + 1);
+        const wz = originZ + worldD * tz;
+        if (!(doorSide === 'west' && isDoorFloor && Math.abs(wz - centerZ) < doorWW / 2 + 0.5))
+          addWin(`winW_${name}_${f}_${wi}`, originX, winY, wz, false);
+        if (!(doorSide === 'east' && isDoorFloor && Math.abs(wz - centerZ) < doorWW / 2 + 0.5))
+          addWin(`winE_${name}_${f}_${wi}`, originX + worldW, winY, wz, false);
+      }
+    }
   },
 
   _buildStall(scene, gx, gz, idx) {
@@ -639,49 +838,62 @@ const world = {
   },
 
   _spawnNPC(scene, { id, name, gx, gz, dialogue, robeColor, accentColor }) {
-    const darkColor = new BABYLON.Color3(0.08, 0.06, 0.04);
-    const skinColor = new BABYLON.Color3(0.75, 0.62, 0.48);
+    const skinColor = new BABYLON.Color3(0.78, 0.65, 0.50);
+    const darkBrown = new BABYLON.Color3(0.14, 0.09, 0.04);
 
     const root = new BABYLON.TransformNode(`npc_${id}`, scene);
+    const tag = m => { m.metadata = { npcId: id }; m.parent = root; return m; };
 
     const robeMat = new BABYLON.StandardMaterial(`npcRobeMat_${id}`, scene);
     robeMat.diffuseColor = robeColor;
     robeMat.specularColor = new BABYLON.Color3(0, 0, 0);
-    const robe = BABYLON.MeshBuilder.CreateCylinder(`npcRobe_${id}`, { height: 1.3, diameterTop: 0.5, diameterBottom: 0.78 }, scene);
-    robe.material = robeMat;
-    robe.position.y = 0.65;
-    robe.parent = root;
-    robe.metadata = { npcId: id };
 
-    const trimMat = new BABYLON.StandardMaterial(`npcTrimMat_${id}`, scene);
-    trimMat.diffuseColor = accentColor || robeColor;
-    trimMat.emissiveColor = (accentColor || robeColor).scale(0.3);
-    const trim = BABYLON.MeshBuilder.CreateTorus(`npcTrim_${id}`, { diameter: 0.78, thickness: 0.05 }, scene);
-    trim.material = trimMat;
-    trim.position.y = 0.05;
-    trim.parent = root;
-    trim.metadata = { npcId: id };
+    const accentMat = new BABYLON.StandardMaterial(`npcAccentMat_${id}`, scene);
+    accentMat.diffuseColor = accentColor || robeColor;
+    accentMat.emissiveColor = (accentColor || robeColor).scale(0.25);
 
-    const headMat = new BABYLON.StandardMaterial(`npcHeadMat_${id}`, scene);
-    headMat.diffuseColor = skinColor;
-    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.38, segments: 10 }, scene);
-    head.material = headMat;
-    head.position.y = 1.5;
-    head.parent = root;
-    head.metadata = { npcId: id };
+    const skinMat = new BABYLON.StandardMaterial(`npcSkinMat_${id}`, scene);
+    skinMat.diffuseColor = skinColor;
 
-    const hairMat = new BABYLON.StandardMaterial(`npcHairMat_${id}`, scene);
-    hairMat.diffuseColor = darkColor;
-    const hair = BABYLON.MeshBuilder.CreateSphere(`npcHair_${id}`, { diameter: 0.40, segments: 8 }, scene);
-    hair.material = hairMat;
-    hair.position.y = 1.55;
-    hair.scaling.y = 0.5;
-    hair.parent = root;
-    hair.metadata = { npcId: id };
+    const darkMat = new BABYLON.StandardMaterial(`npcDarkMat_${id}`, scene);
+    darkMat.diffuseColor = darkBrown;
+
+    // Legs
+    const legL = BABYLON.MeshBuilder.CreateBox(`npcLL_${id}`, { width: 0.17, height: 0.52, depth: 0.17 }, scene);
+    legL.material = darkMat; legL.position.set(-0.11, 0.26, 0); tag(legL);
+    const legR = BABYLON.MeshBuilder.CreateBox(`npcLR_${id}`, { width: 0.17, height: 0.52, depth: 0.17 }, scene);
+    legR.material = darkMat; legR.position.set(0.11, 0.26, 0); tag(legR);
+
+    // Torso
+    const torso = BABYLON.MeshBuilder.CreateBox(`npcTorso_${id}`, { width: 0.40, height: 0.48, depth: 0.21 }, scene);
+    torso.material = robeMat; torso.position.set(0, 0.76, 0); tag(torso);
+
+    // Collar accent
+    const collar = BABYLON.MeshBuilder.CreateBox(`npcCollar_${id}`, { width: 0.42, height: 0.07, depth: 0.23 }, scene);
+    collar.material = accentMat; collar.position.set(0, 1.01, 0); tag(collar);
+
+    // Arms
+    const armL = BABYLON.MeshBuilder.CreateBox(`npcAL_${id}`, { width: 0.13, height: 0.40, depth: 0.13 }, scene);
+    armL.material = robeMat; armL.position.set(-0.27, 0.75, 0); tag(armL);
+    const armR = BABYLON.MeshBuilder.CreateBox(`npcAR_${id}`, { width: 0.13, height: 0.40, depth: 0.13 }, scene);
+    armR.material = robeMat; armR.position.set(0.27, 0.75, 0); tag(armR);
+
+    // Hands
+    const handL = BABYLON.MeshBuilder.CreateSphere(`npcHL_${id}`, { diameter: 0.13, segments: 6 }, scene);
+    handL.material = skinMat; handL.position.set(-0.27, 0.52, 0); tag(handL);
+    const handR = BABYLON.MeshBuilder.CreateSphere(`npcHR_${id}`, { diameter: 0.13, segments: 6 }, scene);
+    handR.material = skinMat; handR.position.set(0.27, 0.52, 0); tag(handR);
+
+    // Head
+    const head = BABYLON.MeshBuilder.CreateSphere(`npcHead_${id}`, { diameter: 0.35, segments: 10 }, scene);
+    head.material = skinMat; head.position.set(0, 1.34, 0); tag(head);
+
+    // Hair
+    const hair = BABYLON.MeshBuilder.CreateSphere(`npcHair_${id}`, { diameter: 0.37, segments: 8 }, scene);
+    hair.material = darkMat; hair.position.set(0, 1.40, 0); hair.scaling.y = 0.52; tag(hair);
 
     const wp = world.gridToWorld(gx, gz);
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
-
     state.obstacles.add(`${gx},${gz}`);
     world.npcs.push({ id, name, gx, gz, dialogue, mesh: root, dialogueIndex: 0 });
   },
@@ -690,9 +902,9 @@ const world = {
     const pgx = state.player.gx;
     const pgz = state.player.gz;
     for (const b of world.buildings) {
-      if (!b.roofMesh) continue;
+      if (!b.roofMeshes) continue;
       const inside = pgx > b.gxMin && pgx < b.gxMax && pgz > b.gzMin && pgz < b.gzMax;
-      b.roofMesh.isVisible = !inside;
+      for (const m of b.roofMeshes) m.isVisible = !inside;
     }
   },
 
