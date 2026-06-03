@@ -31,6 +31,12 @@ const world = {
     scene.fogMode = BABYLON.Scene.FOGMODE_EXP2;
     scene.fogDensity = 0.004;
     scene.fogColor = new BABYLON.Color3(0.08, 0.06, 0.05);
+    // Flat-shade all new materials by default (RS2004 look)
+    scene.onNewMaterialAddedObservable.add(mat => {
+      if (mat instanceof BABYLON.StandardMaterial) {
+        mat.specularColor = new BABYLON.Color3(0, 0, 0);
+      }
+    });
 
     const startWP = world.gridToWorld(48, 52);
     const cam = new BABYLON.ArcRotateCamera('cam', -Math.PI / 2, Math.PI / 2.6, 20, new BABYLON.Vector3(startWP.x, 0, startWP.z), scene);
@@ -41,6 +47,21 @@ const world = {
     cam.wheelPrecision = 30;
     cam.panningSensibility = 0;
     cam.attachControl(canvas, true);
+
+    // ── TOON / CEL SHADER (RS2004-style flat shading) ──────────
+    BABYLON.Effect.ShadersStore['toonFragmentShader'] = `
+      precision highp float;
+      varying vec2 vUV;
+      uniform sampler2D textureSampler;
+      void main(void) {
+        vec4 c = texture2D(textureSampler, vUV);
+        float steps = 6.0;
+        c.rgb = floor(c.rgb * steps + 0.5) / steps;
+        gl_FragColor = c;
+      }
+    `;
+    const toonPass = new BABYLON.PostProcess('toon', 'toon', null, null, 1.0, cam);
+    state.toonPass = toonPass;
     if (cam.inputs.attached.pointers) {
       cam.inputs.attached.pointers.buttons = [0];
       cam.inputs.attached.pointers.pinchPrecision = 12;
@@ -489,16 +510,34 @@ const world = {
     fTop.material = waterMat; fTop.position = new BABYLON.Vector3(50*TILE_SIZE, 1.35, 50*TILE_SIZE);
     ['50,50','49,50','51,50','50,49','50,51'].forEach(k => state.obstacles.add(k));
 
-    // ── MARKET STALLS ──────────────────────────────────────────
-    [[44,43],[56,43],[44,57],[56,57]].forEach(([gx, gz], i) => {
-      world._buildStall(scene, gx, gz, i);
-      // Block the stall tile and the one behind it (stall faces inward)
+    // ── MARKET STALLS (GLB booths) ─────────────────────────────
+    const stallConfigs = [
+      { gx: 44, gz: 43, model: 'Booth_Food01', ry: Math.PI / 2 },
+      { gx: 56, gz: 43, model: 'Booth_Food02', ry: -Math.PI / 2 },
+      { gx: 44, gz: 57, model: 'Booth_Food02', ry: Math.PI / 2 },
+      { gx: 56, gz: 57, model: 'Booth_Food01', ry: -Math.PI / 2 },
+    ];
+    stallConfigs.forEach(({ gx, gz, model, ry }) => {
+      world._loadProp(scene, model, gx, gz, { ry, scale: 0.012 });
       state.obstacles.add(`${gx},${gz}`);
       state.obstacles.add(`${gx},${gz - 1}`);
       state.obstacles.add(`${gx},${gz + 1}`);
       state.obstacles.add(`${gx - 1},${gz}`);
       state.obstacles.add(`${gx + 1},${gz}`);
     });
+
+    // ── MARKET PROPS (barrels, carts, lamps) ───────────────────
+    // Barrels near tavern and apothecary
+    [[62,42],[64,42],[27,58],[27,60]].forEach(([gx,gz],i) =>
+      world._loadProp(scene, 'Barrel', gx, gz, { scale: 0.008, ry: i * 0.9 }));
+    // Carts near market stalls
+    [[47,44],[53,44]].forEach(([gx,gz],i) =>
+      world._loadProp(scene, 'Cart', gx, gz, { scale: 0.010, ry: i * Math.PI }));
+    // Street lamps along E-W road inside town
+    [[40,50],[44,50],[58,50],[62,50],[50,43],[50,57]].forEach(([gx,gz],i) =>
+      world._loadProp(scene, 'Lamp', gx, gz, { scale: 0.009, ry: 0 }));
+    // Signpost near Dawn Hall entrance
+    world._loadProp(scene, 'SignPost', 35, 42, { scale: 0.009, ry: 0.3 });
 
     // ── BRAZIER (south of fountain) ────────────────────────────
     const brazierMat = new BABYLON.StandardMaterial('brazMat', scene);
@@ -951,6 +990,16 @@ const world = {
           addWin(`winE_${name}_${f}_${wi}`, originX + worldW, winY, wz, false);
       }
     }
+  },
+
+  _loadProp(scene, modelName, gx, gz, { scale = 0.01, ry = 0 } = {}) {
+    const wp = world.gridToWorld(gx, gz);
+    BABYLON.SceneLoader.ImportMeshAsync('', 'assets/models/', modelName + '.glb', scene).then(result => {
+      const root = result.meshes[0];
+      root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
+      root.scaling = new BABYLON.Vector3(scale, scale, scale);
+      root.rotation.y = ry;
+    }).catch(err => console.warn('Failed to load prop ' + modelName, err));
   },
 
   _buildStall(scene, gx, gz, idx) {
