@@ -8,6 +8,12 @@
     'https://unpkg.com/babylonjs@6.49.0/babylon.js'
   ];
 
+  const loaderSources = [
+    'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js',
+    'https://cdn.jsdelivr.net/npm/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js',
+    'https://unpkg.com/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
+  ];
+
   const gameScripts = [
     'js/data.js',
     'js/state.js',
@@ -27,6 +33,21 @@
     document.head.appendChild(s);
   }
 
+  function loadLoadersThenGame(li) {
+    if (li >= loaderSources.length) {
+      // All loader CDNs failed — proceed anyway (GLBs won't work but game will start)
+      console.warn('babylonjs.loaders failed to load from all CDNs');
+      loadScriptsSequentially(gameScripts);
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = loaderSources[li];
+    s.crossOrigin = 'anonymous';
+    s.onload = () => loadScriptsSequentially(gameScripts);
+    s.onerror = () => loadLoadersThenGame(li + 1);
+    document.head.appendChild(s);
+  }
+
   let i = 0;
   function tryNext() {
     if (i >= sources.length) {
@@ -40,27 +61,7 @@
     const s = document.createElement('script');
     s.src = sources[i++];
     s.crossOrigin = 'anonymous';
-    s.onload = () => {
-      window.__babylonLoaded = true;
-      // Load the GLTF/GLB loader plugin before game scripts
-      const loaderSrc = sources[i-1].includes('cdn.babylonjs.com')
-        ? 'https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js'
-        : sources[i-1].includes('jsdelivr')
-          ? 'https://cdn.jsdelivr.net/npm/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
-          : sources[i-1].includes('unpkg')
-            ? 'https://unpkg.com/babylonjs-loaders@6.49.0/babylonjs.loaders.min.js'
-            : null;
-      if (loaderSrc) {
-        const ls = document.createElement('script');
-        ls.src = loaderSrc;
-        ls.crossOrigin = 'anonymous';
-        ls.onload = () => loadScriptsSequentially(gameScripts);
-        ls.onerror = () => loadScriptsSequentially(gameScripts); // proceed even if loaders fail
-        document.head.appendChild(ls);
-      } else {
-        loadScriptsSequentially(gameScripts);
-      }
-    };
+    s.onload = () => { window.__babylonLoaded = true; loadLoadersThenGame(0); };
     s.onerror = () => tryNext();
     document.head.appendChild(s);
   }
