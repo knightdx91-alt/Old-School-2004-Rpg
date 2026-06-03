@@ -129,14 +129,25 @@ Turn-based, initiated by clicking enemy or walking adjacent. state.combat object
 ### Save/load
 localStorage key: `sygl_save_v1`. Auto-saves every 15s and on quit. Saves player stats + worldClock + hudScale.
 
-## Next coding session — start here
-- **Wolf enemy** — spawn near market square (gx=52, gz=45). Wolf mesh from primitives (body, 4 legs, head, snout, ears, tail — grey-brown). Chase AI: pursues player if within 8 tiles, auto-starts combat at distance 1. Flee by walking: remove the "can't move in combat" block, let player walk away, wolf chases. Combat ends if distance > 12 ("You escaped") or wolf/player dies. Respawns after 60s.
+## Next coding session — start here (CRITICAL FIXES FIRST)
+
+### 1. Fix buildings not showing — GLB approach is broken, revert to procedural
+The `placeBuilding` helper in `_buildNewSpring` loads modular-building GLBs asynchronously. They are not showing up. **Revert to the original procedural `_buildBuilding` approach** — remove the `placeBuilding` helper entirely and call `world._buildBuilding` directly for all 8 buildings with their proper colours (dawnHall=amber, inn=wood, enchantedWeapons=purple, jeweler=red, apothecary=green, familiarSupplies=blue, restaurant=amber, teaHouse=amber). Remove the `glbReplaced` option from `_buildBuilding` entirely — it is no longer needed. Keep the Kenney GLBs only for small props (fountain, stalls, torches, barrels, carts, corner towers).
+
+### 2. Fix player model — revert to procedural capsule
+`buildPlayerMesh()` uses `character-keeper.glb` which looks wrong. Revert to the procedural capsule (simple coloured cylinder+sphere with an accent-coloured orb). The GLB character is not the right look for the game right now.
+
+### 3. Fix NPC models — revert to procedural boxes
+`_spawnNPC()` uses `character-keeper.glb` which looks wrong. Revert to the procedural robed figure (body box + head sphere + colour from `robeColor` param). Keep the `metadata: { npcId }` tagging for click detection.
+
+### 4. Fix ground flicker
+The ground plane and road planes at y=0/0.01/0.013/0.014 are z-fighting. Consolidate: set the main grass ground to y=0, dirt roads to y=0.02, cobblestone roads/square to y=0.03, farmland to y=0.02. Each layer must be clearly separated to stop flicker.
+
+### 5. Wolf enemy (after fixes above)
+Spawn near market square (gx=52, gz=45). Wolf mesh from primitives (body, 4 legs, head, snout, ears, tail — grey-brown). Chase AI: pursues player if within 8 tiles, auto-starts combat at distance 1. Flee by walking. Combat ends if distance > 12 ("You escaped") or wolf/player dies. Respawns after 60s.
 
 ## What needs to be done next (user's priorities)
-1. **Visual upgrade** — buildings are plain boxes. User wants better visuals. Options discussed:
-   - **Option A:** Improve procedural geometry (pitched roofs, windows, chimneys, better NPC models with limbs) — no external assets needed
-   - **Option B:** Set up .glb model loader pipeline (Kenney assets) — user would download files
-   - User was leaning toward Option A (geometry upgrade) as the immediate next step
+1. **Visual upgrade** — fix procedural buildings first (see critical fixes above), then improve them with pitched roofs, timber framing, windows, chimneys (already coded in `_addPitchedRoof`, `_addTimberFraming`, `_addWindows` — just need buildings back to call them)
 
 2. **Academy zone** — second zone, reached via north road. Separate scene load. Sygldry Academy building, grounds, courtyards. Training dummy enemy should move here.
 
