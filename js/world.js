@@ -216,9 +216,50 @@ const world = {
     }
   },
 
-  // Balanced "realistic" rendering: cascaded sun shadows + SSAO + tone-mapped, graded post-FX.
-  // Each block is wrapped so an unsupported feature degrades gracefully instead of breaking the scene.
+  // Pick a graphics tier from the device. Phones / low-memory devices get the light
+  // path (no real-time shadows or fullscreen post passes); desktops get the full look.
+  // Force a tier by setting state.gfxTier = 'low' | 'high' before the world builds.
+  _detectGfxTier() {
+    try {
+      const ua = navigator.userAgent || '';
+      const mobile = /Android|iPhone|iPad|iPod|Mobile|Silk|Kindle/i.test(ua);
+      const lowMem = navigator.deviceMemory && navigator.deviceMemory <= 3;
+      return (mobile || lowMem) ? 'low' : 'high';
+    } catch (e) { return 'low'; }
+  },
+
+  // Realistic rendering, scaled by device tier:
+  //   low  (phones)  — ACES tone-map + colour grade only, applied in-material; no shadows/post passes
+  //   high (desktop) — adds cascaded sun shadows, bloom, vignette, sharpen (and optional SSAO)
+  // Each block degrades gracefully so unsupported hardware can't break the scene.
   _initRealisticRendering(scene, cam) {
+    if (!state.gfxTier) state.gfxTier = world._detectGfxTier();
+    const tier = state.gfxTier;
+
+    const applyGrade = (ip) => {
+      ip.colorCurvesEnabled = true;
+      const cc = new BABYLON.ColorCurves();
+      cc.globalSaturation = -12;
+      cc.shadowsSaturation = -20;
+      cc.shadowsHue = 220;
+      cc.highlightsSaturation = -6;
+      ip.colorCurves = cc;
+    };
+
+    // ── LOW TIER — cheapest grounded look: tone-map + grade in-material, no extra passes ──
+    if (tier === 'low') {
+      try {
+        const ip = scene.imageProcessingConfiguration;
+        ip.toneMappingEnabled = true;
+        ip.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+        ip.exposure = 1.05;
+        ip.contrast = 1.1;
+        applyGrade(ip);
+      } catch (e) { console.warn('Image processing unavailable:', e); }
+      return;
+    }
+
+    // ── HIGH TIER ──
     const sun = state.sunLight;
 
     // 1) Cascaded shadow maps from the sun — large-scale, soft outdoor shadows
@@ -246,9 +287,8 @@ const world = {
       }
     } catch (e) { console.warn('Shadows unavailable:', e); }
 
-    // 2) SSAO — contact shadows in crevices and under objects.
-    // Disabled by default: it is the heaviest effect and the subtlest; flip to re-enable
-    // if the GPU budget allows (e.g. on desktop).
+    // 2) SSAO — contact shadows in crevices/under objects. Off by default (heaviest, subtlest);
+    // flip enableSSAO to re-enable on a capable GPU.
     const enableSSAO = false;
     try {
       if (enableSSAO && (!BABYLON.SSAO2RenderingPipeline || BABYLON.SSAO2RenderingPipeline.IsSupported)) {
@@ -275,14 +315,7 @@ const world = {
       ip.vignetteEnabled = true;
       ip.vignetteWeight = 1.6;
       ip.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
-      // Muted, slightly cool grade (PUBG-ish palette)
-      ip.colorCurvesEnabled = true;
-      const cc = new BABYLON.ColorCurves();
-      cc.globalSaturation = -12;
-      cc.shadowsSaturation = -20;
-      cc.shadowsHue = 220;
-      cc.highlightsSaturation = -6;
-      ip.colorCurves = cc;
+      applyGrade(ip);
       // Subtle bloom + gentle sharpen
       dp.bloomEnabled = true;
       dp.bloomThreshold = 0.85;
