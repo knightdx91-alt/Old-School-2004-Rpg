@@ -153,6 +153,7 @@ const world = {
     let downX = 0, downY = 0, downTime = 0, downId = null;
     let longPressTimer = null;
     let suppressNextTap = false;
+    const activePointers = new Set();
     const TAP_MOVE_MAX = 10;
     const TAP_TIME_MAX = 350;
     const LONG_PRESS_MS = 500;
@@ -162,6 +163,15 @@ const world = {
         // Desktop right-click → show context menu
         world.handleLongPress(ev);
         ev.preventDefault();
+        return;
+      }
+      activePointers.add(ev.pointerId);
+      // Second finger down → pinch/zoom gesture, not a long-press. Cancel any pending
+      // long-press and don't treat the release as a tap.
+      if (activePointers.size > 1) {
+        if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+        downId = null;
+        suppressNextTap = true;
         return;
       }
       // If ctx menu is open, the tap should only dismiss it, not move the player
@@ -187,6 +197,7 @@ const world = {
     });
 
     canvas.addEventListener('pointerup', (ev) => {
+      activePointers.delete(ev.pointerId);
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
       if (ev.pointerId !== downId) return;
       const dx = ev.clientX - downX;
@@ -198,6 +209,11 @@ const world = {
         if (suppressNextTap) { suppressNextTap = false; return; }
         world.handleTap(ev);
       }
+    });
+
+    canvas.addEventListener('pointercancel', (ev) => {
+      activePointers.delete(ev.pointerId);
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     });
 
     canvas.addEventListener('contextmenu', e => e.preventDefault());
