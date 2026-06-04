@@ -45,6 +45,8 @@ const world = {
     cam.lowerBetaLimit = 0.6;
     cam.upperBetaLimit = Math.PI / 2.15;
     cam.wheelPrecision = 30;
+    cam.angularSensibilityX = 2500;   // higher = slower, less twitchy rotation (default 1000)
+    cam.angularSensibilityY = 2500;
     cam.panningSensibility = 0;
     cam.attachControl(canvas, true);
 
