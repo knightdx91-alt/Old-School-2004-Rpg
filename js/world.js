@@ -60,8 +60,12 @@ const world = {
         gl_FragColor = c;
       }
     `;
-    const toonPass = new BABYLON.PostProcess('toon', 'toon', null, null, 1.0, cam);
-    state.toonPass = toonPass;
+    // RS2004 cel-shading runs only in retro mode. Realistic mode (default) skips it
+    // in favour of the tone-mapped pipeline set up in _initRealisticRendering().
+    state.realistic = (typeof state.realistic === 'boolean') ? state.realistic : true;
+    state.toonPass = state.realistic
+      ? null
+      : new BABYLON.PostProcess('toon', 'toon', null, null, 1.0, cam);
     if (cam.inputs.attached.pointers) {
       cam.inputs.attached.pointers.buttons = [0];
       cam.inputs.attached.pointers.pinchPrecision = 12;
@@ -117,6 +121,9 @@ const world = {
     state.targetMarker = marker;
 
     world.buildPlayerMesh();
+
+    // Realistic rendering pass: cascaded sun shadows, SSAO, tone-mapped post-FX
+    if (state.realistic) world._initRealisticRendering(scene, cam);
 
     // Render loop
     state.engine.runRenderLoop(() => {
@@ -192,6 +199,96 @@ const world = {
     });
 
     canvas.addEventListener('contextmenu', e => e.preventDefault());
+  },
+
+  // Register a runtime-spawned node (player / NPC / enemy) as a shadow caster
+  addShadowCaster(node) {
+    const sg = state.shadowGenerator;
+    if (!sg || !node) return;
+    const skip = /hpbg|hpfill|marker|flame|target/i;   // skip UI billboards / FX
+    const meshes = node.getChildMeshes ? node.getChildMeshes(false) : [];
+    if (node.getClassName && node.getClassName().indexOf('Mesh') !== -1) meshes.push(node);
+    for (const m of meshes) {
+      if (m.name && skip.test(m.name)) continue;
+      try { sg.addShadowCaster(m, false); m.receiveShadows = true; } catch (e) {}
+    }
+  },
+
+  // Balanced "realistic" rendering: cascaded sun shadows + SSAO + tone-mapped, graded post-FX.
+  // Each block is wrapped so an unsupported feature degrades gracefully instead of breaking the scene.
+  _initRealisticRendering(scene, cam) {
+    const sun = state.sunLight;
+
+    // 1) Cascaded shadow maps from the sun — large-scale, soft outdoor shadows
+    try {
+      const sg = new BABYLON.CascadedShadowGenerator(1024, sun);
+      sg.numCascades = 3;
+      sg.lambda = 0.85;
+      sg.cascadeBlendPercentage = 0.12;
+      sg.stabilizeCascades = true;
+      sg.depthClamp = true;
+      sg.shadowMaxZ = 90;
+      sg.usePercentageCloserFiltering = true;
+      sg.filteringQuality = BABYLON.ShadowGenerator.QUALITY_MEDIUM;
+      sg.bias = 0.01;
+      sg.normalBias = 0.02;
+      state.shadowGenerator = sg;
+
+      // Ground-like surfaces only receive; everything else casts and receives.
+      const noCast = /ground|road|grass|cobble|dirt|farm|water|marker|flame|sky|target/i;
+      const noShadow = /marker|flame|sky|target/i;
+      for (const m of scene.meshes) {
+        if (!m || !m.name) continue;
+        if (!noShadow.test(m.name)) m.receiveShadows = true;
+        if (!noCast.test(m.name)) { try { sg.addShadowCaster(m, false); } catch (e) {} }
+      }
+    } catch (e) { console.warn('Shadows unavailable:', e); }
+
+    // 2) SSAO — contact shadows in crevices and under objects
+    try {
+      if (!BABYLON.SSAO2RenderingPipeline || BABYLON.SSAO2RenderingPipeline.IsSupported) {
+        const ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, [cam]);
+        ssao.totalStrength = 1.1;
+        ssao.radius = 1.4;
+        ssao.base = 0.1;
+        ssao.samples = 12;
+        ssao.maxZ = 120;
+        state.ssaoPipeline = ssao;
+      }
+    } catch (e) { console.warn('SSAO unavailable:', e); }
+
+    // 3) Tone-mapped, colour-graded post-processing — the grounded, slightly-muted look
+    try {
+      const dp = new BABYLON.DefaultRenderingPipeline('realistic', true, scene, [cam]);
+      dp.fxaaEnabled = true;
+      dp.imageProcessingEnabled = true;
+      const ip = dp.imageProcessing;
+      ip.toneMappingEnabled = true;
+      ip.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES;
+      ip.exposure = 1.05;
+      ip.contrast = 1.12;
+      ip.vignetteEnabled = true;
+      ip.vignetteWeight = 1.6;
+      ip.vignetteColor = new BABYLON.Color4(0, 0, 0, 0);
+      // Muted, slightly cool grade (PUBG-ish palette)
+      ip.colorCurvesEnabled = true;
+      const cc = new BABYLON.ColorCurves();
+      cc.globalSaturation = -12;
+      cc.shadowsSaturation = -20;
+      cc.shadowsHue = 220;
+      cc.highlightsSaturation = -6;
+      ip.colorCurves = cc;
+      // Subtle bloom + gentle sharpen
+      dp.bloomEnabled = true;
+      dp.bloomThreshold = 0.85;
+      dp.bloomWeight = 0.15;
+      dp.bloomScale = 0.5;
+      dp.bloomKernel = 48;
+      dp.sharpenEnabled = true;
+      dp.sharpen.edgeAmount = 0.18;
+      dp.sharpen.colorAmount = 1.0;
+      state.renderPipeline = dp;
+    } catch (e) { console.warn('Post-processing pipeline unavailable:', e); }
   },
 
   _buildGround(scene) {
@@ -1362,6 +1459,7 @@ const world = {
     npcEntry.walkPhase = 0;
     npcEntry.targetPos = { x: wp.x, z: wp.z };
     npcEntry.isMoving = false;
+    world.addShadowCaster(root);
   },
 
   // Shared NPC mesh builder — used by both _spawnNPC and the portrait renderer
@@ -1854,6 +1952,7 @@ const world = {
     if (eq.weapon) {
       world.updatePlayerWeapon(eq.weapon);
     }
+    world.addShadowCaster(root);
   },
 
   spawnEnemy(e) {
@@ -1917,6 +2016,7 @@ const world = {
     root.position = new BABYLON.Vector3(wp.x, 0, wp.z);
     state.enemyMeshes.set(e.id, { root, hpBg, hpFill, hpFillMat });
     state.obstacles.add(`${e.gx},${e.gz}`);
+    world.addShadowCaster(root);
   },
 
   removeEnemy(e) {
