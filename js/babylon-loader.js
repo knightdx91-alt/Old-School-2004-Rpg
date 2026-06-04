@@ -1,6 +1,9 @@
 // Babylon.js loader — tries local bundle first, then CDN fallbacks.
 // Once Babylon loads, injects game scripts in order to guarantee BABYLON is defined.
 (function loadBabylon() {
+  // Cache-bust the game scripts on every page load so newly deployed code is
+  // always picked up — a fixed ?v=N tag lets the browser serve stale JS.
+  const BUILD_TAG = Date.now();
   const sources = [
     'js/babylon.js',
     'https://cdn.babylonjs.com/babylon.js',
@@ -29,7 +32,7 @@
   function loadScriptsSequentially(scripts, done) {
     if (!scripts.length) { done && done(); return; }
     const s = document.createElement('script');
-    s.src = scripts[0] + '?v=5';
+    s.src = scripts[0] + '?v=' + BUILD_TAG;
     s.onload = () => loadScriptsSequentially(scripts.slice(1), done);
     s.onerror = () => console.error('Failed to load ' + scripts[0]);
     document.head.appendChild(s);
