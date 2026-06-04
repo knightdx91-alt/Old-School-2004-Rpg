@@ -45,8 +45,8 @@ const world = {
     cam.lowerBetaLimit = 0.6;
     cam.upperBetaLimit = Math.PI / 2.15;
     cam.wheelPrecision = 30;
-    cam.angularSensibilityX = 2500;   // higher = slower, less twitchy rotation (default 1000)
-    cam.angularSensibilityY = 2500;
+    cam.angularSensibilityX = 2000;   // higher = slower, less twitchy rotation (default 1000)
+    cam.angularSensibilityY = 2000;
     cam.panningSensibility = 0;
     cam.attachControl(canvas, true);
 
@@ -224,7 +224,7 @@ const world = {
     // 1) Cascaded shadow maps from the sun — large-scale, soft outdoor shadows
     try {
       const sg = new BABYLON.CascadedShadowGenerator(1024, sun);
-      sg.numCascades = 3;
+      sg.numCascades = 2;
       sg.lambda = 0.85;
       sg.cascadeBlendPercentage = 0.12;
       sg.stabilizeCascades = true;
@@ -246,9 +246,12 @@ const world = {
       }
     } catch (e) { console.warn('Shadows unavailable:', e); }
 
-    // 2) SSAO — contact shadows in crevices and under objects
+    // 2) SSAO — contact shadows in crevices and under objects.
+    // Disabled by default: it is the heaviest effect and the subtlest; flip to re-enable
+    // if the GPU budget allows (e.g. on desktop).
+    const enableSSAO = false;
     try {
-      if (!BABYLON.SSAO2RenderingPipeline || BABYLON.SSAO2RenderingPipeline.IsSupported) {
+      if (enableSSAO && (!BABYLON.SSAO2RenderingPipeline || BABYLON.SSAO2RenderingPipeline.IsSupported)) {
         const ssao = new BABYLON.SSAO2RenderingPipeline('ssao', scene, { ssaoRatio: 0.5, blurRatio: 0.5 }, [cam]);
         ssao.totalStrength = 1.1;
         ssao.radius = 1.4;
